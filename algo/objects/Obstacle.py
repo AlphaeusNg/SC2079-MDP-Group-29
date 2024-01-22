@@ -6,8 +6,8 @@ class Obstacle:
         """Obstacle constructor
 
         Args:
-            x_g (int): x coordinate of obstacle (grid)
-            y_g (int): y coordinate of obstacle (grid)
+            x_g (int): x coordinate of obstacle (bottom left grid)
+            y_g (int): y coordinate of obstacle (bottom left grid)
             facing (str): {'N', 'S', 'E', 'W'} direction of image
 
         Parameters:
