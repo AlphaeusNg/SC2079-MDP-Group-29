@@ -10,12 +10,12 @@ class Checkpoint:
             theta (float): desired angle when reaching checkpoint
 
         Parameters:
-            active (bool): whether checkpoint has been reached
+            completed (bool): whether checkpoint has been reached
         """
 
         self.x = x
         self.y = y
         self.theta = theta
-        self.active = True
+        self.completed = False
 
         
