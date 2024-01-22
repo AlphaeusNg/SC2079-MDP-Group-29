@@ -5,3 +5,4 @@ class AgentState(Enum):
     START = 1
     DRIVE = 2
     IMAGEREC = 3
+    SELFDRIVE = 4
