@@ -24,7 +24,7 @@ class Map:
 
         assert len(obstacles) <= 8      # ensure list has at most 8 obstacles
         self.xmin, self.xmax, self.ymin, self.ymax = 0., 200., 0., 200.
-        self.start_g = (0,0)
+        self.start_g = (2,2)
         self.obstacles = []
 
         self.grid = np.ones((40, 40))           # 40x40 grid for computation
