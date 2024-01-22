@@ -1,5 +1,4 @@
 from algo.objects.Obstacle import Obstacle
-from algo.objects.Agent import Agent
 from algo.objects.Checkpoint import Checkpoint
 import numpy as np
 from typing import List
