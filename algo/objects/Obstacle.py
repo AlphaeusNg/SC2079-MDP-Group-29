@@ -1,13 +1,15 @@
 import numpy as np
 
 class Obstacle:
-    def __init__(self, x_g, y_g, face):
-        '''
-        Parameters:
-        x_g (int): x coordinate of obstacle (discretized)
-        y_g (int): y coordinate of obstacle (discretized)
-        face (string): {'N', 'S', 'E', 'W'} direction of image
-        '''
+    def __init__(self, x_g: int, y_g: int, face: str) -> None:
+        """Obstacle constructor
+
+        Args:
+            x_g (int): x coordinate of obstacle (grid)
+            y_g (int): y coordinate of obstacle (grid)
+            face (str): {'N', 'S', 'E', 'W'} direction of image
+        """
+        
         self.x_g = x_g
         self.y_g = y_g
         self.face = face
