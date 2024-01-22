@@ -1,5 +1,6 @@
 from algo.objects.Obstacle import Obstacle
 from algo.objects.Checkpoint import Checkpoint
+from algo import utils
 import numpy as np
 from typing import List
 
@@ -62,6 +63,23 @@ class Map:
                     self.grid[i, j] = 0
             
             # add checkpoints
-            self.checkpoints.append(Checkpoint(obstacle.x_g, obstacle.y_g))
+            x = utils.grid_to_coords(obstacle.x_g)
+            y = utils.grid_to_coords(obstacle.y_g)
+            if obstacle.facing == 'N':
+                x += 5
+                y -= 20
+            elif obstacle.facing == 'S':
+                x += 5
+                y += 30
+            elif obstacle.facing == 'E':
+                x -= 20
+                y += 5
+            elif obstacle.facing == 'W':
+                x += 30
+                y += 5
+
+            theta = utils.facing_to_rad(obstacle.facing)
+
+            self.checkpoints.append(Checkpoint(x, y, theta))
 
             
