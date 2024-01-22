@@ -8,8 +8,11 @@ class Obstacle:
             x_g (int): x coordinate of obstacle (grid)
             y_g (int): y coordinate of obstacle (grid)
             face (str): {'N', 'S', 'E', 'W'} direction of image
+
+        Parameters:
+            theta (float): direction of image in radians
         """
-        
+
         self.x_g = x_g
         self.y_g = y_g
         self.face = face
