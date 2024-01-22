@@ -5,12 +5,11 @@ import numpy as np
 from typing import List
 
 class Map:
-    def __init__(self, obstacles: List[Obstacle], agent:Agent) -> None:
+    def __init__(self, obstacles: List[Obstacle]=[]) -> None:
         """Map Constructor
 
         Args:
             obstacles (List[Obstacle]): list of obstacle objects
-            agent (Agent): agent object
 
         Parameters:
             xmin (float): left border
@@ -27,7 +26,6 @@ class Map:
         self.xmin, self.xmax, self.ymin, self.ymax = 0., 200., 0., 200.
         self.start_g = (0,0)
         self.obstacles = []
-        self.agent = agent
 
         self.grid = np.ones((40, 40))           # 40x40 grid for computation
         self.grid_display = np.ones((40, 40))   # 40x40 grid for display
