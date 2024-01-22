@@ -1,15 +1,15 @@
 import numpy as np
 
 class Obstacle:
-    def __init__(self, x, y, face):
+    def __init__(self, x_g, y_g, face):
         '''
         Parameters:
-        x (float32): x coordinate of obstacle
-        y (float32): y coordinate of obstacle
+        x_g (int): x coordinate of obstacle (discretized)
+        y_g (int): y coordinate of obstacle (discretized)
         face (string): {'N', 'S', 'E', 'W'} direction of image
         '''
-        self.x = x
-        self.y = y
+        self.x_g = x_g
+        self.y_g = y_g
         self.face = face
         if face == 'E':
             self.theta = 0
