@@ -2,7 +2,16 @@ from enum import Enum
 
 class AgentState(Enum):
     END = 0
-    PARK = 1
+    START = 1
     DRIVE = 2
     IMAGEREC = 3
     SELFDRIVE = 4
+
+class Gear(Enum):
+    FORWARD = 1
+    REVERSE = -1
+
+class Steering(Enum):
+    LEFT = -1
+    STRAIGHT = 0
+    RIGHT = 1
