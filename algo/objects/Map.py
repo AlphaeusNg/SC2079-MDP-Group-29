@@ -63,23 +63,23 @@ class Map:
                     self.grid[i, j] = 0
             
             # add checkpoints
-            x = utils.grid_to_coords(obstacle.x_g)
-            y = utils.grid_to_coords(obstacle.y_g)
+            cp_x_g = obstacle.x_g
+            cp_y_g = obstacle.y_g
             if obstacle.facing == 'N':
-                x += 5
-                y -= 20
+                cp_x_g += 1
+                cp_y_g -= 4
             elif obstacle.facing == 'S':
-                x += 5
-                y += 30
+                cp_x_g += 1
+                cp_y_g += 6
             elif obstacle.facing == 'E':
-                x -= 20
-                y += 5
+                cp_x_g -= 4
+                cp_y_g += 1
             elif obstacle.facing == 'W':
-                x += 30
-                y += 5
+                cp_x_g += 6
+                cp_y_g += 1
 
             theta = utils.facing_to_rad(obstacle.facing)
 
-            self.checkpoints.append(Checkpoint(x, y, theta))
+            self.checkpoints.append(Checkpoint(cp_x_g, cp_y_g, theta))
 
             
