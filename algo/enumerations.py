@@ -9,6 +9,7 @@ class AgentState(Enum):
 
 class Gear(Enum):
     FORWARD = 1
+    PARK = 0
     REVERSE = -1
 
 class Steering(Enum):
