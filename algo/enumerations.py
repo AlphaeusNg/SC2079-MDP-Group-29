@@ -1,6 +1,6 @@
 from enum import Enum
 
-class AgentState(Enum):
+class CarState(Enum):
     END = 0
     START = 1
     DRIVE = 2
