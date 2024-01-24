@@ -37,7 +37,7 @@ class Agent:
 
         self.dt = 0.1
         
-        self.state = AgentState.PARK
+        self.state = AgentState.START
         self.nextCheckpoint = None
 
     def update_position(self):
