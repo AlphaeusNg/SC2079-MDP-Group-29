@@ -17,7 +17,7 @@ class Map:
             ymin (float): bottom border
             ymax (float): top border
             start_g ((int, int)): starting grid numbers
-            grid (np.array): 40x40 np array grid representing map, includes virtual walls used for path planning
+            grid_vertices (np.array): 41x41 np array grid vertices for path planning (agent travels along grid lines)
             grid_display (np.array): 40x40 np array grid representing map for display purposes
             checkpoints (List[Checkpoint]): list of checkpoint objects
         """
@@ -27,8 +27,8 @@ class Map:
         self.start_g = (2,2)
         self.obstacles = []
 
-        self.grid = np.ones((40, 40))           # 40x40 grid for computation
-        self.grid_display = np.ones((40, 40))   # 40x40 grid for display
+        self.grid_vertices = np.ones((41, 41))  # 41x41 grid vertices for computation
+        self.grid_display = np.ones((40, 40))   # 40x40 grid boxes for display
         self.checkpoints = []
         
         self.add_obstacles_to_grids(obstacles)
@@ -53,11 +53,11 @@ class Map:
                 for j in range(j_start, j_end + 1):
                     self.grid_display[i, j] = 0
             
-            # add obstacle to grid
-            i_start = max(obstacle.x_g - 3, 0)      # 0: first index
-            i_end = min(obstacle.x_g + 4, 39)       # 39: last index
-            j_start = max(obstacle.y_g - 3, 0)      # 0: first index
-            j_end = min(obstacle.y_g + 4, 39)       # 39: last index
+            # add obstacle to grid vertices
+            i_start = max(obstacle.x_g - 2, 0)      # 0: first index
+            i_end = min(obstacle.x_g + 4, 40)       # 40: last index
+            j_start = max(obstacle.y_g - 2, 0)      # 0: first index
+            j_end = min(obstacle.y_g + 4, 40)       # 40: last index
             for i in range(i_start, i_end + 1):
                 for j in range(j_start, j_end + 1):
                     self.grid[i, j] = 0
