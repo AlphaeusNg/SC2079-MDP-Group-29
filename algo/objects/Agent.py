@@ -21,7 +21,8 @@ class Agent:
             theta_t (float): angular velocity in rad/s
             dt (float): smallest time step, to be changed
             self.state (AgentState): current state of agent, default to PARK
-            self.nextCheckpoint (Checkpoint): next checkpoint of robot, defaults to None, chosen by algorithm
+            self.nextCheckpoint (Checkpoint): next checkpoint of agent, defaults to None, chosen by algorithm
+            self.commands (List{DriveCommand}): list of actions for agent to take
         """
 
         self.map = map
@@ -39,6 +40,7 @@ class Agent:
         
         self.state = AgentState.START
         self.nextCheckpoint = None
+        self.commands = []
 
     def update_position(self):
         pass #todo
