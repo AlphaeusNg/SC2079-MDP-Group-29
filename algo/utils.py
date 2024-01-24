@@ -68,3 +68,19 @@ def rad_to_facing(rad: float) -> str:
         return 'S'
     else:
         return 'W'
+    
+def coords_to_pixelcoords(x_g:int, y_g:int, map_x0=50, map_y0=50, map_width=800, map_height=800):
+    """Convert grid numbers to pixel coordinates
+
+    Args:
+        x_g (int): x coordinate of obstacle (bottom left grid)
+        y_g (int): y coordinate of obstacle (bottom left grid)
+        map_x0 (int, optional): x pixel coordinate of map (top left) in pixels. Defaults to 50.
+        map_y0 (int, optional): y pixel coordinate of map (top left) in pixels. Defaults to 50.
+        map_width (int, optional): map width in pixels. Defaults to 800.
+        map_height (int, optional): map height in pixels. Defaults to 800.
+    """
+    new_x = map_x0 + grid_to_coords(x_g)*200/map_width
+    new_y = map_y0 + map_height - grid_to_coords(y_g)*200/map_height
+
+    return new_x, new_y
