@@ -1,11 +1,11 @@
 import numpy as np
 
 def grid_to_coords(x_g: int, y_g: int):
-    """ Convert grid number to continuous coordinates (assuming bottom left of grid)
+    """ Convert grid vertices coordinates to continuous coordinates
 
     Args:
-        x_g (int): x coordinate (grid)
-        y_g (int): y coordinate (grid)
+        x_g (int): x coordinate (grid vertices)
+        y_g (int): y coordinate (grid vertices)
 
     Returns:
         x (float): x coordinate (continuous)
@@ -15,15 +15,15 @@ def grid_to_coords(x_g: int, y_g: int):
     return x_g*5, y_g*5
 
 def coords_to_grid(x: float, y: float) -> (int, int):
-    """Convert continuous coordinates to grid number
+    """Convert continuous coordinates to grid vertices coordinates
 
     Args:
         x (float): x coordinate (continuous)
         y (float): y coordinate (continuous)
 
     Returns:
-        x_g (int): x coordinate (grid)
-        y_g (int): y coordinate (grid)
+        x_g (int): x coordinate (grid vertices)
+        y_g (int): y coordinate (grid vertices)
     """
     return x//5, y//5
 
