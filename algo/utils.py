@@ -80,7 +80,8 @@ def coords_to_pixelcoords(x_g:int, y_g:int, map_x0=50, map_y0=50, map_width=800,
         map_width (int, optional): map width in pixels. Defaults to 800.
         map_height (int, optional): map height in pixels. Defaults to 800.
     """
-    new_x = map_x0 + grid_to_coords(x_g)*200/map_width
-    new_y = map_y0 + map_height - grid_to_coords(y_g)*200/map_height
+    x, y = grid_to_coords(x_g, y_g)
+    new_x = map_x0 + x*map_width/200
+    new_y = map_y0 + map_height - y*map_height/200
 
     return new_x, new_y
