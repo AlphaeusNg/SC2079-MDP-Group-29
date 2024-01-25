@@ -1,4 +1,5 @@
 import numpy as np
+import constants as c
 
 def grid_to_coords(x_g: int, y_g: int):
     """ Convert grid vertices coordinates to continuous coordinates
@@ -12,7 +13,7 @@ def grid_to_coords(x_g: int, y_g: int):
         y (float): y coordinate (continuous)
     """
 
-    return x_g*5, y_g*5
+    return x_g*200/c.GRID_SIZE, y_g*200/c.GRID_SIZE
 
 def coords_to_grid(x: float, y: float) -> (int, int):
     """Convert continuous coordinates to grid vertices coordinates
