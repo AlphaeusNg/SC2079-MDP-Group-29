@@ -1,5 +1,6 @@
 import numpy as np
 import constants as c
+import math
 
 def grid_to_coords(x_g: int, y_g: int):
     """ Convert grid vertices coordinates to continuous coordinates
@@ -86,3 +87,9 @@ def coords_to_pixelcoords(x_g:int, y_g:int, map_x0=50, map_y0=50, map_width=800,
     new_y = map_y0 + map_height - y*map_height/200
 
     return new_x, new_y
+
+def l2 (x1: float, y1: float, x2: float, y2: float) -> float:
+    """L2 distance between 2 points in R2
+    """
+
+    return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
