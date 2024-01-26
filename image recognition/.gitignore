@@ -1,5 +1,4 @@
 .idea
 .venv
-dataset
+dataset*
 image archive
-yolov8n.pt
