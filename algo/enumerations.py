@@ -1,18 +1,18 @@
-from enum import Enum
+from enum import IntEnum
 
-class CarState(Enum):
+class CarState(IntEnum):
     END = 0
     START = 1
     DRIVE = 2
     IMAGEREC = 3
     SELFDRIVE = 4
 
-class Gear(Enum):
+class Gear(IntEnum):
     FORWARD = 1
     PARK = 0
     REVERSE = -1
 
-class Steering(Enum):
+class Steering(IntEnum):
     LEFT = -1
     STRAIGHT = 0
     RIGHT = 1
