@@ -46,9 +46,9 @@ class OccupancyMap:
 
         for obstacle in obstacles:
             # add obstacle to grid vertices (including virtual wall)
-            i_start = max(obstacle.x_g - 2, 0)      # 0: first index
+            i_start = max(obstacle.x_g - 3, 0)      # 0: first index
             i_end = min(obstacle.x_g + 4, 39)       # 39: last index
-            j_start = max(obstacle.y_g - 2, 0)      # 0: first index
+            j_start = max(obstacle.y_g - 3, 0)      # 0: first index
             j_end = min(obstacle.y_g + 4, 39)       # 39: last index
             self.occupancy_grid[i_start:i_end+1, j_start:j_end+1] = 1
 
@@ -66,7 +66,10 @@ if __name__ == '__main__':
                  Obstacle(38, 38, 'N')]
     map = OccupancyMap(obstacles)
 
-    print(map.collide_with_point(1.5, 2.6))
+    print(map.collide_with_point(150, 150))
+
+    np.set_printoptions(threshold=sys.maxsize)
+    print(map.occupancy_grid)
 
     plt.imshow(map.occupancy_grid, interpolation='none', origin='lower')
     plt.show()
