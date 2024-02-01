@@ -27,7 +27,7 @@ def coords_to_grid(x: float, y: float) -> (int, int):
         x_g (int): x coordinate (grid vertices)
         y_g (int): y coordinate (grid vertices)
     """
-    return x//(200/c.GRID_SIZE), y//(200/c.GRID_SIZE)
+    return int(x//(200/c.GRID_SIZE)), int(y//(200/c.GRID_SIZE))
 
 def facing_to_rad(facing: str) -> float:
     """Convert {N, S, E, W} to radians
