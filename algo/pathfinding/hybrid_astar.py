@@ -37,7 +37,7 @@ class Node():
         return x_g, y_g, theta_g
 
     def __eq__(self, other):
-        return abs(self.x - other.x) <= 2.5 and abs(self.y - other.y) <= 2.5 and \
+        return abs(self.x - other.x) <= 3 and abs(self.y - other.y) <= 3 and \
         (abs(self.theta - other.theta) <= np.pi/24 or abs(abs(self.theta - other.theta) - 2*np.pi) <= np.pi/24)
     
     def __lt__(self, other):

@@ -81,7 +81,7 @@ class Simulator:
 
         map = OccupancyMap(obstacles)
         algo = HybridAStar(map, x_f=120, y_f=160, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=5, 
-                           L=39.25/6, simulate=True, heuristic='euclidean')
+                           L=39.25/8, simulate=True, heuristic='euclidean')
         path, pathHistory = algo.find_path()
 
         for node in path:
