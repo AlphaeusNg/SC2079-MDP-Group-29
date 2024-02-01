@@ -11,6 +11,8 @@ from typing import List
 import utils
 import constants as c
 from queue import PriorityQueue
+import time
+import pathfinding.reeds_shepp as rs
 
 import matplotlib.pyplot as plt #to remove
 
@@ -27,15 +29,16 @@ class Node():
         self.h = 0
         self.f = 0
 
-    def discretize_position(self, x, y, theta, gridSize=40, thetaBins=18):
-        x_g = x // (200/c.GRID_SIZE)
-        y_g = y // (200/c.GRID_SIZE)
-        theta_g = (theta * 180 / np.pi + 180 / thetaBins) // thetaBins
+    def discretize_position(self, x, y, theta, thetaBins=18):
+        x_g = int(x // (200/c.GRID_SIZE))
+        y_g = int(y // (200/c.GRID_SIZE))
+        theta_g = int(((theta * 180 / np.pi + 180)//(360/thetaBins)))
 
         return x_g, y_g, theta_g
 
     def __eq__(self, other):
-        return self.x_g == other.x_g and self.y_g == other.y_g and self.theta_g == other.theta_g
+        return abs(self.x - other.x) <= 2.5 and abs(self.y - other.y) <= 2.5 and \
+        (abs(self.theta - other.theta) <= np.pi/24 or abs(abs(self.theta - other.theta) - 2*np.pi) <= np.pi/24)
     
     def __lt__(self, other):
         return self.f < other.f
@@ -43,7 +46,7 @@ class Node():
 class HybridAStar():
     def __init__(self, map: OccupancyMap, x_0: float=15, y_0: float=15, theta_0: float=np.pi/2, 
                  x_f: float=15, y_f: float=180, theta_f: float=np.pi/2, steeringChangeCost=10, gearChangeCost=20,
-                    L: float=5, minR: float=25, heuristic: str='euclidean'):
+                    L: float=5, minR: float=25, heuristic: str='hybriddiag', simulate: bool=False, thetaBins=18):
         """HybridAStar constructor
 
         Args:
@@ -78,8 +81,12 @@ class HybridAStar():
         self.L = L
         self.minR = minR
         self.heuristic = heuristic
+        self.simulate = simulate
+        self.thetaBins = thetaBins
 
     def find_path(self):
+        start = time.process_time()
+        pathHistory = []
         gearChoices = [Gear.FORWARD, Gear.REVERSE]
         steeringChoices = [Steering.LEFT, Steering.STRAIGHT, Steering.RIGHT]
         choices = [(gear, steering) for gear in gearChoices for steering in steeringChoices]
@@ -89,14 +96,22 @@ class HybridAStar():
 
         open = PriorityQueue()
         close = PriorityQueue()
+        openList = 999999*np.ones((c.GRID_SIZE, c.GRID_SIZE, self.thetaBins))
+        closedList = 999999*np.ones((c.GRID_SIZE, c.GRID_SIZE, self.thetaBins))
 
         open.put((startNode.f, startNode))
 
         printing = False
         pathFound = False
+        nodesExpanded = 0
 
         while not open.empty() and not pathFound:
             currentNode = open.get()[1]
+            openList[currentNode.x_g, currentNode.y_g, currentNode.theta_g] = 999999
+            nodesExpanded += 1
+
+            if self.simulate:
+                pathHistory.append(currentNode)
 
             if printing:
                 print(f"Currently exploring (x:{currentNode.x:.2f}, y: {currentNode.y:.2f}, " +
@@ -108,6 +123,9 @@ class HybridAStar():
             printing = False
 
             for choice in choices:
+                if choice[0] == -currentNode.prevAction[0] and choice[1] == -currentNode.prevAction[1]:
+                    continue 
+
                 x_child, y_child, theta_child = self.calculate_next_node(currentNode, choice)
 
                 if self.map.collide_with_point(x_child, y_child):
@@ -116,8 +134,10 @@ class HybridAStar():
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
 
                 if childNode == endNode:
+                    print("Path Found!")
                     pathFound = True
                     currentNode = childNode
+                    break
                 
                 else:
                     childNode.g = currentNode.g + self.L
@@ -125,38 +145,45 @@ class HybridAStar():
                         childNode.h = utils.l2(childNode.x, childNode.y, endNode.x, endNode.y)
                     elif self.heuristic == 'manhattan':
                         childNode.h = utils.l1(childNode.x, childNode.y, endNode.x, endNode.y)
+                    elif self.heuristic == 'diag':
+                        childNode.h = utils.diag_dist(childNode.x, childNode.y, endNode.x, endNode.y)
                     elif self.heuristic == 'reeds-shepp':
-                        print('Reeds-Shepp not implemented yet')
+                        childNode.h = rs.get_optimal_path_length((childNode.x, childNode.y, childNode.theta), 
+                                                    (endNode.x, endNode.y, endNode.theta), self.minR)
+                    elif self.heuristic == 'hybridl2':
+                        childNode.h = max(utils.l2(childNode.x, childNode.y, endNode.x, endNode.y), 
+                                          rs.get_optimal_path_length((childNode.x, childNode.y, childNode.theta), 
+                                                    (endNode.x, endNode.y, endNode.theta), self.minR))
+                    elif self.heuristic == 'hybridl1':
+                        childNode.h = min(utils.l1(childNode.x, childNode.y, endNode.x, endNode.y), 
+                                          rs.get_optimal_path_length((childNode.x, childNode.y, childNode.theta), 
+                                                    (endNode.x, endNode.y, endNode.theta), self.minR))
+                    elif self.heuristic == 'hybriddiag':
+                        childNode.h = min(utils.diag_dist(childNode.x, childNode.y, endNode.x, endNode.y), 
+                                          rs.get_optimal_path_length((childNode.x, childNode.y, childNode.theta), 
+                                                    (endNode.x, endNode.y, endNode.theta), self.minR))
+                    elif self.heuristic == 'greedy':
+                        childNode.h = 0
 
                     extraCost = 0
-                    if currentNode.prevAction[0] != choice[0]:
-                        extraCost += self.gearChangeCost
-                    
-                    if currentNode.prevAction[1] != choice[1]:
-                        extraCost += self.steeringChangeCost
+                    extraCost += self.gearChangeCost*abs(currentNode.prevAction[0] - choice[0])
+                    extraCost += self.steeringChangeCost*abs(currentNode.prevAction[1] - choice[1])
                     
                     childNode.f = childNode.g + childNode.h + extraCost
 
                 betterPathExists = False
 
-                for f, node in open.queue:
-                    if f > childNode.f:
-                        break
-                    if node == childNode:
-                        betterPathExists = True # better path to current node already exist, to be optimised
-                        break 
+                if openList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
+                    continue
+
+                if closedList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
+                    continue
                 
-                for f, node in close.queue:
-                    if f > childNode.f:
-                        break
-                    if node == childNode:
-                        betterPathExists = True # better path to current node already exist, to be optimised
-                        break
-                
-                if not betterPathExists:
-                    open.put((childNode.f, childNode))
+                open.put((childNode.f, childNode))
+                openList[childNode.x_g, childNode.y_g, childNode.theta_g] = childNode.f
             
             close.put((currentNode.f, currentNode))
+            closedList[currentNode.x_g, currentNode.y_g, currentNode.theta_g] = currentNode.f
 
         path = []
         while currentNode != startNode:
@@ -165,7 +192,14 @@ class HybridAStar():
 
         path.reverse()
 
-        return path
+        end = time.process_time()
+        print(f"Nodes Expanded = {nodesExpanded}, Time taken = {(end - start):.2f}")
+
+        if self.simulate:
+            return path, pathHistory
+        
+        else:
+            return path
 
 
     def calculate_next_node(self, currentNode, choice):
@@ -197,7 +231,8 @@ if __name__ == '__main__':
                  Obstacle(38, 38, 'N')]
     map = OccupancyMap(obstacles)
 
-    algo = HybridAStar(map, x_f=150, y_f=150, theta_f=0)
+    algo = HybridAStar(map, x_f=150, y_f=150, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=10, 
+                           L=5, heuristic='greedy')
     path = algo.find_path()
     for node in path:
         print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " +
