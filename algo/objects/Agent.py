@@ -1,10 +1,10 @@
-from algo.objects.Map import Map
+from algo.objects.OccupancyMap import OccupancyMap
 from algo.enumerations import CarState
 from algo import utils
 import numpy as np
 
 class Car:
-    def __init__(self, map: Map, x: float=20., y: float=20., theta: float=np.pi/2, algo: str='astar'):
+    def __init__(self, map: OccupancyMap, x: float=20., y: float=20., theta: float=np.pi/2, algo: str='astar'):
         """Car constructor
 
         Args:
