@@ -27,7 +27,7 @@ def coords_to_grid(x: float, y: float) -> (int, int):
         x_g (int): x coordinate (grid vertices)
         y_g (int): y coordinate (grid vertices)
     """
-    return x//5, y//5
+    return x//(200/c.GRID_SIZE), y//(200/c.GRID_SIZE)
 
 def facing_to_rad(facing: str) -> float:
     """Convert {N, S, E, W} to radians
@@ -93,3 +93,24 @@ def l2 (x1: float, y1: float, x2: float, y2: float) -> float:
     """
 
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+def normalise_theta(theta: float):
+    revolutions = int((theta + np.sign(theta) * np.pi) / (2 * np.pi))
+
+    p1 = truncated_remainder(theta + np.sign(theta) * np.pi, 2 * np.pi)
+    p2 = (np.sign(np.sign(theta)
+                  + 2 * (np.sign(math.fabs((truncated_remainder(theta + np.pi, 2 * np.pi))
+                                      / (2 * np.pi))) - 1))) * np.pi
+
+    output_angle = p1 - p2
+
+    return output_angle
+
+def truncated_remainder(dividend, divisor):
+    divided_number = dividend / divisor
+    divided_number = \
+        -int(-divided_number) if divided_number < 0 else int(divided_number)
+
+    remainder = dividend - divisor * divided_number
+
+    return remainder
