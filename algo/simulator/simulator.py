@@ -80,8 +80,8 @@ class Simulator:
         pygame.init()
 
         map = OccupancyMap(obstacles)
-        algo = HybridAStar(map, x_f=120, y_f=160, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=5, 
-                           L=39.25/8, simulate=True, heuristic='euclidean')
+        algo = HybridAStar(map, x_f=15, y_f=80, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=5, 
+                           L=39.25/4, simulate=True, heuristic='euclidean')
         path, pathHistory = algo.find_path()
 
         for node in path:

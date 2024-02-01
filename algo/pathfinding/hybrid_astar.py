@@ -29,7 +29,7 @@ class Node():
         self.h = 0
         self.f = 0
 
-    def discretize_position(self, x, y, theta, thetaBins=18):
+    def discretize_position(self, x, y, theta, thetaBins=24):
         x_g = int(x // (200/c.GRID_SIZE))
         y_g = int(y // (200/c.GRID_SIZE))
         theta_g = int(((theta * 180 / np.pi + 180)//(360/thetaBins)))
@@ -37,7 +37,7 @@ class Node():
         return x_g, y_g, theta_g
 
     def __eq__(self, other):
-        return abs(self.x - other.x) <= 3 and abs(self.y - other.y) <= 3 and \
+        return abs(self.x - other.x) <= 3.5 and abs(self.y - other.y) <= 3.5 and \
         (abs(self.theta - other.theta) <= np.pi/24 or abs(abs(self.theta - other.theta) - 2*np.pi) <= np.pi/24)
     
     def __lt__(self, other):
@@ -46,7 +46,7 @@ class Node():
 class HybridAStar():
     def __init__(self, map: OccupancyMap, x_0: float=15, y_0: float=15, theta_0: float=np.pi/2, 
                  x_f: float=15, y_f: float=180, theta_f: float=np.pi/2, steeringChangeCost=10, gearChangeCost=20,
-                    L: float=5, minR: float=25, heuristic: str='hybriddiag', simulate: bool=False, thetaBins=18):
+                    L: float=5, minR: float=25, heuristic: str='hybriddiag', simulate: bool=False, thetaBins=24):
         """HybridAStar constructor
 
         Args:
@@ -170,8 +170,6 @@ class HybridAStar():
                     extraCost += self.steeringChangeCost*abs(currentNode.prevAction[1] - choice[1])
                     
                     childNode.f = childNode.g + childNode.h + extraCost
-
-                betterPathExists = False
 
                 if openList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
                     continue
