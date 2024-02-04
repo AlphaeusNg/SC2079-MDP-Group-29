@@ -9,4 +9,4 @@ Contains the scripts for training and inference.
 Contain information about model training process
 
 ### STM32
-Contains infomation for managing and functioning the robot via STM32 board
+Contains STM32 program code information for managing and functioning the robot
