@@ -2,19 +2,19 @@ import numpy as np
 import math
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__ + '\..')))
 
-from enumerations import Gear, Steering
-from objects.OccupancyMap import OccupancyMap
-from objects.Obstacle import Obstacle
+from algo.enumerations import Gear, Steering
+from algo.objects.OccupancyMap import OccupancyMap
+from algo.objects.Obstacle import Obstacle
 from typing import List
 import utils
 import constants as c
 from queue import PriorityQueue
 import time
 import pathfinding.reeds_shepp as rs
+import algo.pathfinding.hamiltonian as h
 
-import matplotlib.pyplot as plt #to remove
+import matplotlib.pyplot as plt
 
 class Node():
     def __init__(self, x: float, y: float, theta: float, 
@@ -223,18 +223,25 @@ class HybridAStar():
             y_b = y_c + (x_ca * math.sin(gear*theta_t) + y_ca * math.cos(gear*theta_t))
 
         return x_b, y_b, theta_b
-        
+
+
 if __name__ == '__main__':
     obstacles = [Obstacle(10, 10, 'N'), Obstacle(20, 10, 'S'), Obstacle(10, 20, 'E'), Obstacle(20, 20, 'W'), 
                  Obstacle(38, 38, 'N')]
-    map = OccupancyMap(obstacles)
+    rand_obstacles = h.generate_random_obstacles(200, 5)
+    map = OccupancyMap(rand_obstacles)
+    goal_list = h.find_nearest_neighbor_path(rand_obstacles)
 
-    algo = HybridAStar(map, x_f=150, y_f=150, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=10, 
-                           L=5, heuristic='greedy')
-    path = algo.find_path()
-    for node in path:
-        print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " +
-                f"theta: {node.theta*180/np.pi:.2f}), Action: {node.prevAction}")
+    current_xpos, current_ypos = 15, 15
+    while goal_list:
+        x_goal, y_goal = goal_list.pop(0)
+        algo = HybridAStar(map, x_0=current_xpos, y_0=current_ypos, x_f=x_goal, y_f=y_goal, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=10, L=5, heuristic='greedy')
+        path = algo.find_path()
+        for node in path:
+            print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta*180/np.pi:.2f}), Action: {node.prevAction}")
+        print(f"Objective = ({x_goal:}, {y_goal})")
+        current_xpos, current_ypos = x_goal, y_goal
+
 
 
     '''
