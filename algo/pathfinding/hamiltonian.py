@@ -1,5 +1,25 @@
 import random
+import itertools
 from algo.objects.Obstacle import Obstacle
+
+
+def find_brute_force_path(obstacles):
+    obstacle_permutations = itertools.permutations(obstacles)
+    shortest_path = None
+    shortest_distance = float('inf')
+    for obstacle_order in obstacle_permutations:
+        path = []
+        current_pos = (15, 15)
+        total_distance = 0
+        for obstacle in obstacle_order:
+            distance = abs(obstacle.x_g - current_pos[0] + offset_x(obstacle.facing)) + abs(obstacle.y_g - current_pos[1] + offset_y(obstacle.facing))
+            total_distance += distance
+            path.append((obstacle.x_g + offset_x(obstacle.facing), obstacle.y_g + offset_y(obstacle.facing)))
+            current_pos = (obstacle.x_g + offset_x(obstacle.facing), obstacle.y_g + offset_y(obstacle.facing))
+        if total_distance < shortest_distance:
+            shortest_distance = total_distance
+            shortest_path = path[:]
+    return shortest_path
 
 
 def find_nearest_neighbor_path(obstacles):
@@ -80,6 +100,6 @@ if __name__ == "__main__":
     print("\nGrid:")
     print_grid(grid, obstacles)
 
-    path = find_nearest_neighbor_path(obstacles)
-    print("\nNearest Neighbor Path:")
+    path = find_brute_force_path(obstacles)
+    print("\nShortest Path:")
     print(path)
