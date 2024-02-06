@@ -1,5 +1,7 @@
 import random
 import itertools
+import numpy
+import algo.utils as u
 from algo.objects.Obstacle import Obstacle
 
 
@@ -12,10 +14,11 @@ def find_brute_force_path(obstacles):
         current_pos = (15, 15)
         total_distance = 0
         for obstacle in obstacle_order:
-            distance = abs(obstacle.x_g - current_pos[0] + offset_x(obstacle.facing)) + abs(obstacle.y_g - current_pos[1] + offset_y(obstacle.facing))
+            x_coord, y_coord = u.grid_to_coords(obstacle.x_g, obstacle.y_g)
+            distance = abs(x_coord - current_pos[0] + offset_x(obstacle.facing)) + abs(y_coord - current_pos[1] + offset_y(obstacle.facing))
             total_distance += distance
-            path.append((obstacle.x_g + offset_x(obstacle.facing), obstacle.y_g + offset_y(obstacle.facing)))
-            current_pos = (obstacle.x_g + offset_x(obstacle.facing), obstacle.y_g + offset_y(obstacle.facing))
+            path.append((x_coord + offset_x(obstacle.facing), y_coord + offset_y(obstacle.facing), obstacle.facing))
+            current_pos = (x_coord + offset_x(obstacle.facing), y_coord + offset_y(obstacle.facing))
         if total_distance < shortest_distance:
             shortest_distance = total_distance
             shortest_path = path[:]
@@ -27,19 +30,31 @@ def find_nearest_neighbor_path(obstacles):
     current_pos = (15, 15)
 
     while obstacles:
-        nearest_neighbor = min(obstacles, key=lambda obstacle: abs(obstacle.x_g - current_pos[0] + offset_x(obstacle.facing)) + abs(obstacle.y_g - current_pos[1] + offset_y(obstacle.facing)))
+        x_coord, y_coord = u.grid_to_coords(obstacles[0].x_g, obstacles[0].y_g)
+        nearest_neighbor = min(obstacles, key=lambda obstacle: abs(x_coord - current_pos[0] + offset_x(obstacle.facing)) + abs(y_coord - current_pos[1] + offset_y(obstacle.facing)))
         obstacles.remove(nearest_neighbor)
-        path.append((nearest_neighbor.x_g + offset_x(nearest_neighbor.facing), nearest_neighbor.y_g + offset_y(nearest_neighbor.facing)))
-        current_pos = (nearest_neighbor.x_g + offset_x(nearest_neighbor.facing), nearest_neighbor.y_g + offset_y(nearest_neighbor.facing))
+        path.append((x_coord + offset_x(nearest_neighbor.facing), y_coord + offset_y(nearest_neighbor.facing), nearest_neighbor.facing))
+        current_pos = (x_coord + offset_x(nearest_neighbor.facing), y_coord + offset_y(nearest_neighbor.facing))
 
     return path
 
 
+def theta_goal(facing):
+    if facing == 'N':
+        return -(numpy.pi/2)
+    elif facing == 'S':
+        return numpy.pi/2
+    elif facing == 'E':
+        return numpy.pi
+    elif facing == 'W':
+        return 0
+
+
 def offset_x(facing):
     if facing == 'N':
-        return 10
+        return 0
     elif facing == 'S':
-        return -10
+        return 0
     elif facing == 'E':
         return 40
     elif facing == 'W':
@@ -52,9 +67,9 @@ def offset_y(facing):
     elif facing == 'S':
         return -40
     elif facing == 'E':
-        return -10
+        return 0
     elif facing == 'W':
-        return 10
+        return 0
 
 
 def generate_random_obstacles(grid_size, obstacle_count):
@@ -93,7 +108,7 @@ def print_grid(grid_size, obstacles):
 
 
 if __name__ == "__main__":
-    grid = 200
+    grid = 40
     obstacle_number = 5
 
     obstacles = generate_random_obstacles(grid, obstacle_number)
@@ -103,3 +118,4 @@ if __name__ == "__main__":
     path = find_brute_force_path(obstacles)
     print("\nShortest Path:")
     print(path)
+
