@@ -19,6 +19,9 @@ class Simulator:
         pygame.display.set_caption('Algorithm Simulator')
         self.clock = pygame.time.Clock()
 
+        self.points = []
+        self.obstacle_list = obstacles
+
         self.map_surface = pygame.Surface((c.MAP_WIDTH, c.MAP_HEIGHT))
         self.map_surface.fill('azure')
         self.start_surface = pygame.Surface((30 * c.MAP_WIDTH / 200, 30 * c.MAP_HEIGHT / 200))
@@ -76,20 +79,20 @@ class Simulator:
     def start_simulation(self):
         pygame.init()
 
-        map = OccupancyMap(obstacles)
-        algo = HybridAStar(map, x_f=150, y_f=180, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=5,
-                           L=39.25 / 4, simulate=True, heuristic='euclidean')
-        path, pathHistory = algo.find_path()
+        map = OccupancyMap(self.obstacle_list)
+        goal_list = h.find_brute_force_path(self.obstacle_list)
+        cur_x, cur_y = 15, 15
+        while goal_list:
+            x_goal, y_goal, direction = goal_list.pop(0)
+            algo = HybridAStar(map, x_0=cur_x, y_0=cur_y, x_f=x_goal, y_f=y_goal, theta_f=h.theta_goal(direction),
+                               gearChangeCost=10, steeringChangeCost=5,L=39.25 / 4, simulate=True, heuristic='greedy')
 
-        for node in path:
-            print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " +
-                  f"theta: {node.theta * 180 / np.pi:.2f}), Action: {node.prevAction}")
+            cur_x, cur_y = x_goal, y_goal # Need to amend
+            path, pathHistory = algo.find_path()
 
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
+            for node in path:
+                print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta * 180 / np.pi:.2f}), Action: {node.prevAction}")
+            print(f"Objective = ({x_goal:}, {y_goal}, {direction}, {h.theta_goal(direction) * 180 / np.pi:.2f})")
 
             self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
             self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
@@ -104,16 +107,22 @@ class Simulator:
             pygame.display.update()
             self.clock.tick(1000)
 
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
     def draw_final_path(self, path):
-        points = []
-        x, y = coords_to_pixelcoords(x=path[0].parent.x, y=path[0].parent.y)
-        points.append((x, y))
+        # points = []
+        # x, y = coords_to_pixelcoords(x=path[0].parent.x, y=path[0].parent.y)
+        # points.append((x, y))
         for node in path:
             x, y = coords_to_pixelcoords(x=node.x, y=node.y)
-            points.append((x, y))
+            self.points.append((x, y))
             pygame.draw.circle(self.path_surface, (255, 0, 0, 255), (x, y), 4)
 
-        pygame.draw.lines(self.path_surface, (0, 0, 0, 255), False, points, width=3)
+        pygame.draw.lines(self.path_surface, (0, 0, 0, 255), False, self.points, width=3)
 
     def draw_path_history(self, pathHistory):
 
@@ -124,9 +133,10 @@ class Simulator:
 
 
 if __name__ == "__main__":
-    obstacles = [Obstacle(10, 10, 'N'), Obstacle(20, 10, 'S'), Obstacle(10, 20, 'E'), Obstacle(20, 20, 'W'), Obstacle(38, 38, 'N')]
+    obstacles = [Obstacle(10, 38, 'S'), Obstacle(38, 10, 'W'), Obstacle(10, 5, 'E'),
+                 Obstacle(2,20,'E')]
     # path = h.find_nearest_neighbor_path((0, 0), obstacles)
-    rand_obstacles = h.generate_random_obstacles(40, 5)
+    rand_obstacles = h.generate_random_obstacles(c.GRID_SIZE, 3)
 
-    sim = Simulator(rand_obstacles)
+    sim = Simulator(obstacles)
     sim.start_simulation()
