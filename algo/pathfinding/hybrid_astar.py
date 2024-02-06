@@ -226,21 +226,21 @@ class HybridAStar():
 
 
 if __name__ == '__main__':
-    obstacles = [Obstacle(10, 10, 'N'), Obstacle(20, 10, 'S'), Obstacle(10, 20, 'E'), Obstacle(20, 20, 'W'), 
-                 Obstacle(38, 38, 'N')]
-    rand_obstacles = h.generate_random_obstacles(200, 5)
-    map = OccupancyMap(rand_obstacles)
-    goal_list = h.find_nearest_neighbor_path(rand_obstacles)
-
+    obstacles = [Obstacle(10, 38, 'S'), Obstacle(38, 10, 'W'), Obstacle(10, 5, 'E'),
+                 Obstacle(2,20,'E')]
+    rand_obstacles = h.generate_random_obstacles(c.GRID_SIZE, 3)
+    map = OccupancyMap(obstacles)
+    goal_list = h.find_brute_force_path(obstacles)
     current_xpos, current_ypos = 15, 15
     while goal_list:
-        x_goal, y_goal = goal_list.pop(0)
-        algo = HybridAStar(map, x_0=current_xpos, y_0=current_ypos, x_f=x_goal, y_f=y_goal, theta_f=np.pi, gearChangeCost=10, steeringChangeCost=10, L=5, heuristic='greedy')
+        x_goal, y_goal, direction = goal_list.pop(0)
+        algo = HybridAStar(map, x_0=current_xpos, y_0=current_ypos, x_f=x_goal, y_f=y_goal, theta_f=h.theta_goal(direction), gearChangeCost=10, steeringChangeCost=10, L=5, heuristic='greedy')
+        current_xpos, current_ypos = x_goal, y_goal
         path = algo.find_path()
         for node in path:
             print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta*180/np.pi:.2f}), Action: {node.prevAction}")
-        print(f"Objective = ({x_goal:}, {y_goal})")
-        current_xpos, current_ypos = x_goal, y_goal
+        print(f"Objective = ({x_goal:}, {y_goal}, {direction}, {h.theta_goal(direction) * 180 / np.pi:.2f})")
+
 
 
 
