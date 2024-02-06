@@ -28,7 +28,7 @@ class Obstacle(pygame.sprite.Sprite):
 
         if facing == 'E':
             self.image = pygame.transform.rotate(self.image, 90)
-        elif facing == 'S':
+        elif facing == 'N':
             self.image = pygame.transform.rotate(self.image, 180)
         elif facing == 'W':
             self.image = pygame.transform.rotate(self.image, 270)
