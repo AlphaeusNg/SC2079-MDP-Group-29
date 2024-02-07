@@ -63,7 +63,7 @@ class HybridAStar():
             minR (float, optional): minimum turning radius in cm. Defaults to 25.
         """
         
-        assert -np.pi < theta_0, theta_f <= np.pi
+        assert -np.pi < theta_0 and theta_f <= np.pi
         assert 0 <= x_0, y_0 <= 200
         assert 0 <= x_f, y_f <= 200
 
@@ -231,14 +231,15 @@ if __name__ == '__main__':
     rand_obstacles = h.generate_random_obstacles(c.GRID_SIZE, 3)
     map = OccupancyMap(obstacles)
     goal_list = h.find_brute_force_path(obstacles)
-    current_xpos, current_ypos = 15, 15
+    current_xpos, current_ypos, cur_theta = 15, 15, np.pi/2
     while goal_list:
         x_goal, y_goal, direction = goal_list.pop(0)
-        algo = HybridAStar(map, x_0=current_xpos, y_0=current_ypos, x_f=x_goal, y_f=y_goal, theta_f=h.theta_goal(direction), gearChangeCost=10, steeringChangeCost=10, L=5, heuristic='greedy')
-        current_xpos, current_ypos = x_goal, y_goal
+        theta_goal = h.theta_goal(direction)
+        algo = HybridAStar(map, x_0=current_xpos, y_0=current_ypos, x_f=x_goal, y_f=y_goal, theta_0=cur_theta, theta_f=theta_goal, gearChangeCost=10, steeringChangeCost=10, L=5, heuristic='greedy')
         path = algo.find_path()
         for node in path:
             print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta*180/np.pi:.2f}), Action: {node.prevAction}")
+            current_xpos, current_ypos, cur_theta = node.x, node.y, node.theta
         print(f"Objective = ({x_goal:}, {y_goal}, {direction}, {h.theta_goal(direction) * 180 / np.pi:.2f})")
 
 
