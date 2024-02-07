@@ -78,27 +78,34 @@ class Simulator:
 
     def start_simulation(self):
         pygame.init()
-
         map = OccupancyMap(self.obstacle_list)
+
+        self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
+        self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
+        self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
+        self.borders.draw(self.screen)
+        self.obstacles.draw(self.screen)
+        pygame.display.update()
+
         goal_list = h.find_brute_force_path(self.obstacle_list)
-        cur_x, cur_y = 15, 15
+        cur_x, cur_y, cur_direction = 15, 15, np.pi/2
         while goal_list:
             x_goal, y_goal, direction = goal_list.pop(0)
-            algo = HybridAStar(map, x_0=cur_x, y_0=cur_y, x_f=x_goal, y_f=y_goal, theta_f=h.theta_goal(direction),
+            theta_goal = h.theta_goal(direction)
+            try:
+                algo = HybridAStar(map, x_0=cur_x, y_0=cur_y, x_f=x_goal, y_f=y_goal, theta_0=cur_direction, theta_f=theta_goal,
                                gearChangeCost=10, steeringChangeCost=5,L=39.25 / 4, simulate=True, heuristic='greedy')
+                path, pathHistory = algo.find_path()
 
-            cur_x, cur_y = x_goal, y_goal # Need to amend
-            path, pathHistory = algo.find_path()
+                for node in path:
+                    print(
+                        f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta * 180 / np.pi:.2f}), Action: {node.prevAction}")
+                    cur_x, cur_y, cur_direction = node.x, node.y, node.theta
+                print(f"Objective = ({x_goal:}, {y_goal}, {direction}, {h.theta_goal(direction) * 180 / np.pi:.2f})")
 
-            for node in path:
-                print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta * 180 / np.pi:.2f}), Action: {node.prevAction}")
-            print(f"Objective = ({x_goal:}, {y_goal}, {direction}, {h.theta_goal(direction) * 180 / np.pi:.2f})")
-
-            self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
-            self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
-            self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
-            self.borders.draw(self.screen)
-            self.obstacles.draw(self.screen)
+            except AssertionError as e:
+                print("Path not found!")
+                continue
 
             self.draw_path_history(pathHistory)
             self.draw_final_path(path)
