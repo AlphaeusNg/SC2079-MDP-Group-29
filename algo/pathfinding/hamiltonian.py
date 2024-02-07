@@ -56,16 +56,16 @@ def offset_x(facing):
     elif facing == 'S':
         return 0
     elif facing == 'E':
-        return 40
+        return 30
     elif facing == 'W':
-        return -40
+        return -30
 
 
 def offset_y(facing):
     if facing == 'N':
-        return 40
+        return 30
     elif facing == 'S':
-        return -40
+        return -30
     elif facing == 'E':
         return 0
     elif facing == 'W':
