@@ -5,7 +5,8 @@ import json
 from rpi_config import *
 
 class PCInterface:
-    def __init__(self,RPiMain):
+    def __init__(self, RPiMain):
+        # Initialize PCInterface with RPiMain instance and connection details
         self.RPiMain = RPiMain
         self.host = RPI_IP
         self.port = PC_PORT
@@ -14,7 +15,8 @@ class PCInterface:
         self.send_message = False
 
     def connect(self):
-        if self.client_socket is not None: 
+        # Establish a connection with the PC
+        if self.client_socket is not None:
             self.disconnect()
 
         try:
@@ -22,20 +24,20 @@ class PCInterface:
                 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 print("[PC] Socket established successfully.")
                 sock.bind((self.host, self.port))
-                sock.listen(128) # the maximum number of queued connections that the server can handle simultaneously
+                sock.listen(128)
 
                 print("[PC] Waiting for PC connection...")
-                # with socket.timeout(30):
                 self.client_socket, self.address = sock.accept()
                 self.send_message = True
         except socket.error as e:
             print("[PC] ERROR: Failed to connect -", str(e))
         else:
             print("[PC] PC connected successfully:", self.address)
-        
+
     def disconnect(self):
+        # Disconnect from the PC
         try:
-            if self.client_socket is not None: #TODO
+            if self.client_socket is not None:
                 self.client_socket.close()
                 self.client_socket = None
                 self.send_message = False
@@ -44,58 +46,49 @@ class PCInterface:
             print("[PC] Failed to disconnect from PC:", str(e))
 
     def reconnect(self):
+        # Disconnect and then connect again
         self.disconnect()
         self.connect()
 
     def listen(self):
+        # Continuously listen for messages from the PC
         while True:
             try:
-                message = self.client_socket.recv(PC_BUFFER_SIZE) # the maximum number of bytes to be received
+                message = self.client_socket.recv(PC_BUFFER_SIZE)
 
                 if not message:
                     self.send_message = False
                     print("[PC] PC disconnected remotely. Reconnecting...")
                     self.reconnect()
 
-                decodedMsg = message.decode("utf-8")
-                if len(decodedMsg) <= 1:
+                decoded_msg = message.decode("utf-8")
+                if len(decoded_msg) <= 1:
                     continue
-                print("[PC] Read from PC:", decodedMsg[:MSG_LOG_MAX_SIZE])
-                parsedMsg = json.loads(decodedMsg)
-                type = parsedMsg["type"]
-                
+
+                print("[PC] Read from PC:", decoded_msg[:MSG_LOG_MAX_SIZE])
+                parsed_msg = json.loads(decoded_msg)
+                msg_type = parsed_msg["type"]
+
+                # Route messages to the appropriate destination
                 # PC -> Rpi -> STM
-                if type == 'NAVIGATION':
+                if msg_type == 'NAVIGATION': 
                     self.RPiMain.STM.msg_queue.put(message)
-
                 # PC -> Rpi -> Android
-                elif type == 'IMAGE_RESULTS':
-                    self.RPiMain.Android.msg_queue.put(message) 
-                    
-                # PC -> Rpi -> Android
-                elif type in ['COORDINATES', 'PATH']:
+                elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                     self.RPiMain.Android.msg_queue.put(message)
-
                 else:
                     print("[PC] ERROR: Received message with unknown type from PC -", message)
 
-            except socket.error as e:
-                print("[PC] SOCKET ERROR: Failed to read from PC-", str(e))
-            except IOError as ie:
-                print("[PC] IO ERROR: Failed to read from PC-", str(ie))
-            except Exception as e2:
-                print("[PC] ERROR: Failed to read from PC-", str(e2))
-            except ConnectionResetError:
-                print("[PC] ConnectionResetError")
-            except:
-                print("[PC] Unknown error")
+            except (socket.error, IOError, Exception, ConnectionResetError) as e:
+                print("[PC] ERROR:", str(e))
 
     def send(self):
+        # Continuously send messages to the PC
         while True:
-            if (self.send_message):
+            if self.send_message:
                 message = self.msg_queue.get()
                 exception = True
-                while exception: 
+                while exception:
                     try:
                         message_sized = self.prepend_msg_size(message)
                         self.client_socket.send(message_sized)
@@ -107,9 +100,7 @@ class PCInterface:
                         exception = False
 
     def prepend_msg_size(self, message):
-        # first 4 bytes is length of the message
+        # Prepend the message size to the actual message
         message_len = len(message)
         length_bytes = message_len.to_bytes(4, byteorder="big")
         return length_bytes + message
-
-            

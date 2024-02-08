@@ -1,0 +1,245 @@
+[RPiMain] Starting RPiMain...
+[Android] BT socket established successfully.
+[Android] Waiting for connection on RFCOMM channel 0
+[Android] BT socket binded successfully.
+[Android] Waiting for Android connection...
+[Android] Accepted connection from ('90:EE:C7:E7:D2:46', 1)
+[PC] Socket established successfully.
+[PC] Waiting for PC connection...
+[PC] PC connected successfully: ('192.168.14.25', 56804)
+[STM] Connected to STM 0 successfully.
+[RPiMain] Components connected successfully
+[RPiMain] Sending threads started successfully
+[RPiMain] Listening threads started successfully
+[Android] Read from Android: {"type":"START_TASK","data":{"task":"EXPLORATION","robot":{"id":"R","x":1,"y":1,"dir":"N"},"obstacles":[{"id":"1","x":1,"y":16,"dir":"E"},{"id":"2","x
+[PC] Write to PC: {"type":"START_TASK","data":{"task":"EXPLORATION","robot":{"id":"R","x":1,"y":1,"dir":"N"},"obstacles":[{"id":"1","x":1,"y":16,"dir":"E"},{"id":"2","x
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SF010", "RF090", "SB020", "LF090"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5], [3,
+[STM] Adding NAVIGATION path from PC to Android message queue
+[STM] Sending command SF018
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5], [3, 5], [2, 5], [3, 5], [4, 5], [5, 5], [5, 6], [5, 7], [5,
+[STM] Waiting for ACK
+[STM] In listening loop...
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SF020", "RB090", "SF030", "RB090", "SF010"], "path": [[5, 9], [5, 10], [5, 9], [5, 8], [5, 7], [6, 7], [
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SF020", "LB090", "SF010", "LB090", "SB020", "LB090", "SF010"], "path": [[8, 8], [8, 7], [8, 8], [8, 9], 
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SB020", "LF090", "SF010", "RF090"], "path": [[10, 2], [9, 2], [10, 2], [11, 2], [12, 2], [12, 3], [12, 4
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SB020", "LF090", "SF030"], "path": [[14, 9], [13, 9], [14, 9], [15, 9], [16, 9], [16, 10], [16, 11], [16
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SB040", "LF090", "SB020"], "path": [[16, 14], [16, 13], [16, 12], [16, 11], [16, 12], [16, 13], [16, 14]
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["SB010", "RF090", "SB040", "LF090", "SF050"], "path": [[16, 14], [15, 14], [14, 14], [13, 14], [13, 15], 
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SB022
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SB011
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[STM] Adding NAVIGATION path from PC to Android message queue
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[5, 9], [5, 10], [5, 9], [5, 8], [5, 7], [6, 7], [7, 7], [8, 7], [7, 7], [6, 7], [5, 7], [6, 7], [7, 7], [8, 7], [8
+[STM] Sending command SF029
+[STM] Waiting for ACK
+[STM] In listening loop...
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "2", "img_id": "22"}}
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "2", "img_id": "22"}}
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RB090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF030
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RB090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF001
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[STM] Adding NAVIGATION path from PC to Android message queue
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[8, 8], [8, 7], [8, 8], [8, 9], [8, 10], [9, 10], [10, 10], [11, 10], [10, 10], [11, 10], [12, 10], [13, 10], [13, 
+[STM] Sending command SF030
+[STM] Waiting for ACK
+[STM] In listening loop...
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "13"}}
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "13"}}
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LB090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF014
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LB090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SB016
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LB090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF004
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[STM] Resetting gyroscope after 3 obstacles
+[STM] Waiting 8s for reset
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "5", "img_id": "18"}}
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "5", "img_id": "18"}}
+[STM] Adding NAVIGATION path from PC to Android message queue
+[STM] Sending command SB014
+[STM] Waiting for ACK
+[STM] In listening loop...
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[10, 2], [9, 2], [10, 2], [11, 2], [12, 2], [12, 3], [12, 4], [12, 5], [12, 6], [12, 7], [12, 8], [12, 9], [13, 9],
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF007
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SB008
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[STM] Adding NAVIGATION path from PC to Android message queue
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[14, 9], [13, 9], [14, 9], [15, 9], [16, 9], [16, 10], [16, 11], [16, 12], [16, 13], [16, 14], [16, 15]]}}
+[STM] Sending command SB014
+[STM] Waiting for ACK
+[STM] In listening loop...
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "7", "img_id": "26"}}
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "7", "img_id": "26"}}
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF019
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[STM] Adding NAVIGATION path from PC to Android message queue
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[16, 14], [16, 13], [16, 12], [16, 11], [16, 12], [16, 13], [16, 14], [15, 14], [14, 14], [13, 14], [14, 14], [15, 
+[STM] Sending command SB034
+[STM] Waiting for ACK
+[STM] In listening loop...
+[Camera] Image captured
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SB031
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[STM] Resetting gyroscope after 6 obstacles
+[STM] Waiting 8s for reset
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "6", "img_id": "12"}}
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "6", "img_id": "12"}}
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "4", "img_id": "16"}}
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "4", "img_id": "16"}}
+[STM] Adding NAVIGATION path from PC to Android message queue
+[STM] Sending command SB002
+[Android] Write to Android: {"type": "PATH", "data": {"path": [[16, 14], [15, 14], [14, 14], [13, 14], [13, 15], [13, 16], [13, 17], [13, 16], [13, 15], [13, 14], [13, 13], [13, 
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SB042
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF090
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF039
+[STM] Waiting for ACK
+[STM] In listening loop...
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Adding image from camera to PC message queue
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAFAAEBAAQAAAABAAAC0AEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "IMAGE_RESULTS", "data": {"obs_id": "1", "img_id": "13"}}
+[Android] Write to Android: {"type": "IMAGE_RESULTS", "data": {"obs_id": "1", "img_id": "13"}}
+[PC] PC disconnected remotely. Reconnecting...
+[PC] Disconnected from PC successfully.
+[PC] Socket established successfully.
+[PC] Waiting for PC connection...
+client_loop: send disconnect: Broken pipe

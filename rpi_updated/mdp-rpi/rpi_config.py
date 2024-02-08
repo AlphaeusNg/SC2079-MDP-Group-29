@@ -1,6 +1,12 @@
-LOCATION = "OUT" # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
+"""
+Need to double check a lot of things here to sync up with hardware and algo I think.
+"""
 
-RPI_IP = "192.168.14.1"
+
+# Configuration constants
+LOCATION = repr("OUT") # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
+
+RPI_IP = repr("192.168.29.29") # WARNING! DOUBLE CHECK THIS.
 MSG_LOG_MAX_SIZE = 150 # characters
 
 # PC Interface
@@ -8,7 +14,7 @@ PC_PORT = 8888
 PC_BUFFER_SIZE = 2048
 
 # Android Interface
-BT_UUID = "00001101-0000-1000-8000-00805f9b34fb" 
+BT_UUID = "00001101-0000-1000-8000-00805f9b34fb" # WARNING! DOUBLE CHECK THIS.
 BT_BUFFER_SIZE = 2048
 
 # STM Interface

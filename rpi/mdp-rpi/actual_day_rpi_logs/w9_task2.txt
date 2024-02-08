@@ -1,0 +1,130 @@
+[RPiMain] Starting RPiMain...
+[Android] BT socket established successfully.
+[Android] Waiting for connection on RFCOMM channel 0
+[Android] BT socket binded successfully.
+[Android] Waiting for Android connection...
+[Android] Accepted connection from ('90:EE:C7:E7:D2:46', 1)
+[PC] Socket established successfully.
+[PC] Waiting for PC connection...
+[PC] PC connected successfully: ('192.168.14.16', 56033)
+[STM] Connected to STM 0 successfully.
+[RPiMain] Components connected successfully
+[RPiMain] Sending threads started successfully
+[RPiMain] Listening threads started successfully
+[Android] Read from Android: {"type":"START_TASK","data":{"task":"FASTEST_PATH","robot":{"id":"R","x":-2,"y":-2,"dir":"N"},"obstacles":[]}}
+[PC] Write to PC: {"type":"START_TASK","data":{"task":"FASTEST_PATH","robot":{"id":"R","x":-2,"y":-2,"dir":"N"},"obstacles":[]}}
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["UF200"]}}
+[STM] No path found in NAVIGATION message
+[STM] ERROR with path found in NAVIGATION message
+[STM] Sending command YF200
+[STM] Read from STM: 0
+[STM] Read from STM: 4
+[STM] Read from STM: 9
+[STM] Read final DIST = 49
+[STM] updated YDIST = 49
+[STM] DEBUGGING: first movement distance = 49
+[STM] Checking second arrow: None
+[STM] Adding image from camera to PC message queue
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAEAAEBAAQAAAABAAADAAEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["firstLeft", "YF150", "SB012"]}}
+[STM] No path found in NAVIGATION message
+[STM] ERROR with path found in NAVIGATION message
+[STM] Sending command LF050
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF050
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF060
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF040
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RB020
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command YF150
+[STM] Read from STM: 0
+[STM] Read from STM: 4
+[STM] Read from STM: 3
+[STM] Read final DIST = 43
+[STM] updated YDIST = 43
+[STM] Sending command SB012
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Checking second arrow: None
+[STM] Adding image from camera to PC message queue
+[Camera] Image captured
+[PC] Write to PC: {"type": "IMAGE_TAKEN", "data": {"image": "/9j/4WQARXhpZgAATU0AKgAAAAgACgEAAAQAAAABAAAEAAEBAAQAAAABAAADAAEPAAIAAAAMAAAAhgEQAAIAAAAKAAAAkgEaAAUAAAABAAA
+[PC] Read from PC: {"type": "NAVIGATION", "data": {"commands": ["secondLeft"]}}
+[STM] No path found in NAVIGATION message
+[PC] PC disconnected remotely. Reconnecting...
+[STM] ERROR with path found in NAVIGATION message
+[STM] Saving second arrow as L
+[PC] Disconnected from PC successfully.
+[STM] Sending command LF090
+[PC] Socket established successfully.
+[PC] Waiting for PC connection...
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command TR040
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command IR100
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF180
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command TR000
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command XR200
+[STM] Read from STM: 0
+[STM] Read from STM: 6
+[STM] Read from STM: 9
+[STM] Read final DIST = 69
+[STM] updated XDIST = 69
+[STM] Sending command RF090
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Checking second arrow: L
+[STM] Initiating return to carpark: XDIST = 69, YDIST = 43, ARROW = L
+[STM] Calculating path to carpark...
+[STM] Final path to carpark: ['SF123', 'RF090', 'SF009', 'LF090', 'VF200']
+[STM] Sending command SF123
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command RF090
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command SF009
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command LF090
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] Sending command VF200
+[STM] Waiting for ACK
+[STM] Read from STM: A
+[STM] Received ACK from STM
+[STM] DONE
+
