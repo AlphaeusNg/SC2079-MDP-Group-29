@@ -12,6 +12,13 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
+
+- Update pip:
+
+```shell
+pip3 install --upgrade setuptools pip
+```
+
 - Install required packages:
 
 ```shell
