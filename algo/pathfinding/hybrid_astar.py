@@ -63,7 +63,7 @@ class HybridAStar():
             minR (float, optional): minimum turning radius in cm. Defaults to 25.
         """
         
-        assert -np.pi < theta_0, theta_f <= np.pi
+        assert -np.pi <= theta_0, theta_f <= np.pi
         assert 0 <= x_0, y_0 <= 200
         assert 0 <= x_f, y_f <= 200
 
@@ -96,8 +96,8 @@ class HybridAStar():
 
         open = PriorityQueue()
         close = PriorityQueue()
-        openList = 999999*np.ones((c.GRID_SIZE, c.GRID_SIZE, self.thetaBins))
-        closedList = 999999*np.ones((c.GRID_SIZE, c.GRID_SIZE, self.thetaBins))
+        openList = 999999*np.ones((c.GRID_SIZE, c.GRID_SIZE, self.thetaBins + 1))
+        closedList = 999999*np.ones((c.GRID_SIZE, c.GRID_SIZE, self.thetaBins + 1))
 
         open.put((startNode.f, startNode))
 
@@ -197,7 +197,7 @@ class HybridAStar():
             return path, pathHistory
         
         else:
-            return path
+            return path, None
 
 
     def calculate_next_node(self, currentNode, choice):
