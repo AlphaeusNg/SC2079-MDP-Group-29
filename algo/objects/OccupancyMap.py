@@ -7,6 +7,7 @@ import utils
 import numpy as np
 from typing import List
 import matplotlib.pyplot as plt
+from simulation.testing import get_maps
 
 class OccupancyMap:
     def __init__(self, obstacles: List[Obstacle]=[]) -> None:
@@ -62,9 +63,8 @@ class OccupancyMap:
         return self.occupancy_grid[x_g, y_g]
 
 if __name__ == '__main__':
-    obstacles = [Obstacle(10, 10, 'N'), Obstacle(20, 10, 'S'), Obstacle(10, 20, 'E'), Obstacle(20, 20, 'W'), 
-                 Obstacle(38, 38, 'N')]
-    map = OccupancyMap(obstacles)
+    maps = get_maps()
+    map = OccupancyMap(maps[0])
 
     print(map.collide_with_point(150, 150))
 
