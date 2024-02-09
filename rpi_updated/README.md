@@ -3,13 +3,13 @@
 - From `rpi/` directory, create a virtual env if there's no venv exist: 
 
 ```shell
-python -m venv .venv
+python3 -m venv .venv
 ```
 
 - Activate the virtual env:
 
 ```shell
-.venv\Scripts\activate
+source .venv/bin/activate
 ```
 
 - Install required packages:
