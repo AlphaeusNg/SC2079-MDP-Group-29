@@ -26,11 +26,11 @@ class Obstacle(pygame.sprite.Sprite):
         self.theta = utils.facing_to_rad(facing)
 
         if facing == 'E':
-            self.image = pygame.transform.rotate(self.image, 90)
+            self.image = pygame.transform.rotate(self.image, 270)
         elif facing == 'S':
             self.image = pygame.transform.rotate(self.image, 180)
         elif facing == 'W':
-            self.image = pygame.transform.rotate(self.image, 270)
+            self.image = pygame.transform.rotate(self.image, 90)
 
 class VirtualWall(pygame.sprite.Sprite):
     def __init__(self, x_g: int, y_g: int) -> None:
