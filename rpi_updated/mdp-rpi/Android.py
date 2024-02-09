@@ -7,6 +7,7 @@ import json
 
 from rpi_config import *
 
+
 class AndroidInterface:
     def __init__(self, RPiMain):
         # Initialize AndroidInterface with RPiMain instance
@@ -15,37 +16,38 @@ class AndroidInterface:
         self.uuid = BT_UUID
         self.msg_queue = Queue()
 
-    def setup_bluetooth(self):
+    def connect(self):
         # Grant permission for Bluetooth access
-        subprocess.run("sudo chmod o+rw /var/run/sdp", shell=True) 
+        subprocess.run("sudo chmod o+rw /var/run/sdp", shell=True)
 
         # Establish and bind socket
         self.socket = bt.BluetoothSocket(bt.RFCOMM)
         print("[Android] BT socket established successfully.")
-    
+
         try:
             self.port = self.socket.getsockname()[1]
             print("[Android] Waiting for connection on RFCOMM channel", self.port)
             self.socket.bind((self.host, bt.PORT_ANY))
             print("[Android] BT socket binded successfully.")
-            
+
             # Turning advertisable
             subprocess.run("sudo hciconfig hci0 piscan", shell=True)
             self.socket.listen(128)
-            
+
             # Advertise Bluetooth service
-            bt.advertise_service(self.socket, "Group29-Server", service_id=self.uuid, service_classes=[self.uuid, bt.SERIAL_PORT_CLASS], profiles=[bt.SERIAL_PORT_PROFILE])
+            bt.advertise_service(self.socket, "Group29-Server", service_id=self.uuid,
+                                 service_classes=[self.uuid, bt.SERIAL_PORT_CLASS], profiles=[bt.SERIAL_PORT_PROFILE])
 
         except socket.error as e:
             print("[Android] ERROR: Android socket binding failed -", str(e))
             sys.exit()
-            
+
         print("[Android] Waiting for Android connection...")
 
         try:
             self.client_socket, self.client_info = self.socket.accept()
             print("[Android] Accepted connection from", self.client_info)
-            
+
         except socket.error as e:
             print("[Android] ERROR: connection failed -", str(e))
 
@@ -56,7 +58,7 @@ class AndroidInterface:
             print("[Android] Disconnected from Android successfully.")
         except Exception as e:
             print("[Android] ERROR: Failed to disconnect from Android -", str(e))
-            
+
     def reconnect(self):
         # Disconnect and then connect again
         self.disconnect()
@@ -66,7 +68,7 @@ class AndroidInterface:
         # Continuously listen for messages from Android
         while True:
             try:
-                message = self.client_socket.recv(BT_BUFFER_SIZE) 
+                message = self.client_socket.recv(BT_BUFFER_SIZE)
 
                 if not message:
                     print("[Android] Android disconnected remotely. Reconnecting...")
@@ -82,7 +84,7 @@ class AndroidInterface:
 
                 # Route messages to the appropriate destination
                 if msg_type == 'NAVIGATION':
-                    self.RPiMain.STM.msg_queue.put(message) 
+                    self.RPiMain.STM.msg_queue.put(message)
 
                 elif msg_type == 'START_TASK':
                     self.RPiMain.PC.msg_queue.put(message)
@@ -93,10 +95,10 @@ class AndroidInterface:
 
     def send(self):
         # Continuously send messages to Android
-        while True: 
+        while True:
             message = self.msg_queue.get()
             exception = True
-            while exception: 
+            while exception:
                 try:
                     self.client_socket.send(message)
                     print("[Android] Write to Android: " + message.decode("utf-8")[:MSG_LOG_MAX_SIZE])

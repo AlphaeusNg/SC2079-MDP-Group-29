@@ -3,6 +3,7 @@ from Android import AndroidInterface
 from PC import PCInterface
 from stm import STMInterface
 
+
 class RPiMain:
     def __init__(self):
         # Initialize interfaces
@@ -12,7 +13,7 @@ class RPiMain:
 
     def connect_components(self):
         # Connect all components
-        self.Android.setup_bluetooth()
+        self.Android.connect()
         self.PC.connect()
         self.STM.connect()
 
@@ -57,11 +58,12 @@ class RPiMain:
         PC_listen.join()
 
         print("[RPiMain] All threads concluded, cleaning up...")
-        
+
         # Cleanup after threads finish
         self.cleanup()
 
         print("[RPiMain] Exiting RPiMain...")
+
 
 # Create an instance of RPiMain and run it
 rpi = RPiMain()
