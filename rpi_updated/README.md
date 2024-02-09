@@ -19,10 +19,10 @@ source .venv/bin/activate
 pip3 install --upgrade setuptools pip
 ```
 
-- Install required packages:
+- Install required packages (--verbose allows you to see what's going on):
 
 ```shell
-pip install -e .
+pip install -e . --verbose
 ```
 
 - Change directory to `mdp-rpi` and run `rpi_main.py`:
