@@ -4,9 +4,9 @@ Need to double check a lot of things here to sync up with hardware and algo I th
 
 
 # Configuration constants
-LOCATION = repr("OUT") # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
+LOCATION = "OUT" # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
 
-RPI_IP = repr("192.168.29.29") # WARNING! DOUBLE CHECK THIS.
+RPI_IP = "192.168.29.29" # WARNING! DOUBLE CHECK THIS.
 MSG_LOG_MAX_SIZE = 150 # characters
 
 # PC Interface
