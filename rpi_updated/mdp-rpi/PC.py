@@ -54,30 +54,42 @@ class PCInterface:
         # Continuously listen for messages from the PC
         while True:
             try:
-                message = self.client_socket.recv(PC_BUFFER_SIZE)
+                if self.client_socket is not None:
+                    # Receive the length of the message
+                    length_bytes = self.client_socket.recv(4)
+                    if not length_bytes:
+                        print("[PC] Client disconnected.")
+                        break
+                    message_length = int.from_bytes(length_bytes, byteorder="big")
+                    
+                    # Receive the message
+                    message = self.client_socket.recv(message_length)
 
-                if not message:
-                    self.send_message = False
-                    print("[PC] PC disconnected remotely. Reconnecting...")
-                    self.reconnect()
+                    if not message:
+                        self.send_message = False
+                        print("[PC] PC disconnected remotely. Reconnecting...")
+                        self.reconnect()
 
-                decoded_msg = message.decode("utf-8")
-                if len(decoded_msg) <= 1:
-                    continue
+                    decoded_msg = message.decode("utf-8")
+                    if len(decoded_msg) <= 1:
+                        continue
 
-                print("[PC] Read from PC:", decoded_msg[:MSG_LOG_MAX_SIZE])
-                parsed_msg = json.loads(decoded_msg)
-                msg_type = parsed_msg["type"]
+                    print("[PC] Read from PC:", decoded_msg[:MSG_LOG_MAX_SIZE])
+                    parsed_msg = json.loads(decoded_msg)
+                    msg_type = parsed_msg["type"]
 
-                # Route messages to the appropriate destination
-                # PC -> Rpi -> STM
-                if msg_type == 'NAVIGATION': 
-                    self.RPiMain.STM.msg_queue.put(message)
-                # PC -> Rpi -> Android
-                elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
-                    self.RPiMain.Android.msg_queue.put(message)
+                    # Route messages to the appropriate destination
+                    # PC -> Rpi -> STM
+                    if msg_type == 'NAVIGATION': 
+                        self.RPiMain.STM.msg_queue.put(message)
+                    # PC -> Rpi -> Android
+                    elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
+                        self.RPiMain.Android.msg_queue.put(message)
+                    else:
+                        print("[PC] ERROR: Received message with unknown type from PC -", message)
                 else:
-                    print("[PC] ERROR: Received message with unknown type from PC -", message)
+                    print("[PC Client] ERROR: Client socket is not initialized.")
+                    return None
 
             except (socket.error, IOError, Exception, ConnectionResetError) as e:
                 print("[PC] ERROR:", str(e))
@@ -86,13 +98,26 @@ class PCInterface:
         # Continuously send messages to the PC
         while True:
             if self.send_message:
-                message = self.msg_queue.get()
+                # message = self.msg_queue.get()
+                message_ori = {
+                    "type": "START_TASK",
+                    "data": {
+                    "task": "EXPLORATION",
+                    "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                    "obstacles": [
+                            {"id": "00", "x": 4, "y": 15, "dir": 'S'},
+                            {"id": "01", "x": 16, "y": 17, "dir": 'W'}
+                    ]
+                    }
+                }
+                message = json.dumps(message_ori)
                 exception = True
                 while exception:
                     try:
-                        message_sized = self.prepend_msg_size(message)
-                        self.client_socket.send(message_sized)
-                        print("[PC] Write to PC:", message.decode("utf-8")[:MSG_LOG_MAX_SIZE])
+                        # message_sized = self.prepend_msg_size(message)
+                        self.client_socket.send(self.prepend_msg_size(message))
+                        print("[PC] Write to PC:", message)
+                        self.send_message = False
                     except Exception as e:
                         print("[PC] ERROR: Failed to write to PC -", str(e))
                         self.reconnect()
@@ -100,7 +125,7 @@ class PCInterface:
                         exception = False
 
     def prepend_msg_size(self, message):
-        # Prepend the message size to the actual message
-        message_len = len(message)
+        message_bytes = message.encode("utf-8")
+        message_len = len(message_bytes)
         length_bytes = message_len.to_bytes(4, byteorder="big")
-        return length_bytes + message
+        return length_bytes + message_bytes
