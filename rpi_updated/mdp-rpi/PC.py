@@ -21,13 +21,13 @@ class PCInterface:
 
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #allow the socket to be reused immediately after it is closed
                 print("[PC] Socket established successfully.")
                 sock.bind((self.host, self.port))
                 sock.listen(128)
 
                 print("[PC] Waiting for PC connection...")
-                self.client_socket, self.address = sock.accept()
+                self.client_socket, self.address = sock.accept() #blocks until a client connects to the server
                 self.send_message = True
         except socket.error as e:
             print("[PC] ERROR: Failed to connect -", str(e))
