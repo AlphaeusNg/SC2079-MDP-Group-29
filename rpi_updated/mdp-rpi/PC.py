@@ -98,19 +98,19 @@ class PCInterface:
         # Continuously send messages to the PC
         while True:
             if self.send_message:
-                # message = self.msg_queue.get()
-                message_ori = {
-                    "type": "START_TASK",
-                    "data": {
-                    "task": "EXPLORATION",
-                    "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
-                    "obstacles": [
-                            {"id": "00", "x": 4, "y": 15, "dir": 'S'},
-                            {"id": "01", "x": 16, "y": 17, "dir": 'W'}
-                    ]
-                    }
-                }
-                message = json.dumps(message_ori)
+                message = self.msg_queue.get()
+                # message_ori = {
+                #     "type": "START_TASK",
+                #     "data": {
+                #     "task": "EXPLORATION",
+                #     "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                #     "obstacles": [
+                #             {"id": "00", "x": 4, "y": 15, "dir": 'S'},
+                #             {"id": "01", "x": 16, "y": 17, "dir": 'W'}
+                #     ]
+                #     }
+                # }
+                # message = json.dumps(message_ori)
                 exception = True
                 while exception:
                     try:
