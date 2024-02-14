@@ -71,10 +71,6 @@ void Error_Handler(void);
 #define BIN1_GPIO_Port GPIOA
 #define BIN2_Pin GPIO_PIN_5
 #define BIN2_GPIO_Port GPIOA
-#define REncoder_Pin GPIO_PIN_6
-#define REncoder_GPIO_Port GPIOA
-#define REncoderA7_Pin GPIO_PIN_7
-#define REncoderA7_GPIO_Port GPIOA
 #define OLED_RST_Pin GPIO_PIN_7
 #define OLED_RST_GPIO_Port GPIOE
 #define OLED_DC_Pin GPIO_PIN_8

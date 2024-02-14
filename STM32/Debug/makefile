@@ -68,8 +68,8 @@ all: main-build
 main-build: MDPGRP29.elf secondary-outputs
 
 # Tool invocations
-MDPGRP29.elf MDPGRP29.map: $(OBJS) $(USER_OBJS) C:\Users\User\Documents\MDPGRP29\STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "MDPGRP29.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\Documents\MDPGRP29\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MDPGRP29.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+MDPGRP29.elf MDPGRP29.map: $(OBJS) $(USER_OBJS) C:\Users\User\Downloads\MDPGRP29-main\MDPGRP29-main\STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "MDPGRP29.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\Downloads\MDPGRP29-main\MDPGRP29-main\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MDPGRP29.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

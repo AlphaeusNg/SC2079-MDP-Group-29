@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "oled.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -92,6 +93,14 @@ const osThreadAttr_t startGyro_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for communicateTask */
+osThreadId_t startcommsHandle;
+const osThreadAttr_t startcomms_attributes = {
+		.name = "startcomms",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityLow,
+};
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -110,11 +119,15 @@ void OLEDDisplay(void *argument);
 void MOTOR(void *argument);
 void LEncoder(void *argument);
 void REncoder(void *argument);
+int PID_Control(double error);
 void startGyroTask(void *argument);
+void StartComm(void *argument);
 
 /* USER CODE BEGIN PFP */
 // Gyro
-double total_angle=0;
+double current_angle = 0;
+double prev_angle = 0;
+double cum_angle = 0;
 uint8_t gyroBuffer[20];
 uint8_t ICMAddress = 0x68;
 
@@ -122,13 +135,19 @@ uint8_t ICMAddress = 0x68;
 uint16_t pwmVal_servo = 149;
 uint16_t pwmVal_R = 0;
 uint16_t pwmVal_L = 0;
-int times_acceptable=0;
-int e_brake = 0;
 
 // MotorEncoder
 int32_t rightEncoderVal = 0, leftEncoderVal = 0;
 int32_t rightTarget = 0, leftTarget = 0;
-double target_angle=0;
+
+// Self-testing on straight line with fixed angle
+double target_angle = 0;
+int steering = 142;
+
+// Communication control from PC command to STM32
+uint8_t aRxBuffer[20];
+int flagDone = 0;
+int magnitude = 0;
 /* USER CODE END PFP */
 
 
@@ -175,6 +194,7 @@ int main(void)
   OLED_Init();
   /* USER CODE END 2 */
 
+  HAL_UART_Receive_IT(&huart3, (uint8_t *) aRxBuffer,10);
   /* Init scheduler */
   osKernelInitialize();
 
@@ -213,6 +233,9 @@ int main(void)
   /* creation of startGyro */
   startGyroHandle = osThreadNew(startGyroTask, NULL, &startGyro_attributes);
 
+  /* creation of startcomms */
+  startcommsHandle = osThreadNew(StartComm, NULL, &startcomms_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -220,18 +243,20 @@ int main(void)
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
+  /* USER CODE BEGIN WHILE */
+
 
   /* Start scheduler */
-  osKernelStart();
 
+  osKernelStart();
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+
+
   while (1)
   {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+  /* USER CODE END WHILE */
+  /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -637,10 +662,11 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	UNUSED(huart);
+	HAL_UART_Transmit(&huart3,(uint8_t *) aRxBuffer,10,0xFFFF);
+}
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -650,7 +676,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* USER CODE BEGIN 5 */
   /* Infinite loop */
 	uint8_t ch = 'A';
 	  for(;;)
@@ -665,7 +690,6 @@ void StartDefaultTask(void *argument)
 		HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
 		osDelay(5000);
 	  }
-  /* USER CODE END 5 */
 }
 
 void readByte(uint8_t addr, uint8_t* data){
@@ -710,30 +734,37 @@ void gyroInit(){
 /* USER CODE END Header_OLEDDisplay */
 void OLEDDisplay(void *argument)
 {
-  /* USER CODE BEGIN OLEDDisplay */
+	/* USER CODE BEGIN OLEDDisplay */
 	uint8_t righty[20] = {0};
-  /* Infinite loop */
-  for(;;)
-  {
-  //sprintf(righty,"Gyro: %d \0", (int)total_angle);
-	int decimals = abs((int)((total_angle-(int)(total_angle))*1000));
-	sprintf(righty,"Gyro: %d.%d \0", (int)total_angle, decimals);
+	uint8_t rightyy[20] = {0};
 
-	OLED_ShowString(10, 30, righty);
-	OLED_Refresh_Gram();
-    osDelay(1);
-  }
-  /*
+	//For Displaying Gyro
+	/*
+	  for(;;)
+	  {
+	  //sprintf(righty,"Gyro: %d \0", (int)current_angle);
+		int decimals = abs((int)((current_angle-(int)(current_angle))*1000));
+		sprintf(righty,"Gyro: %d.%d \0", (int)current_angle, decimals);
+		OLED_ShowString(10, 30, righty);
+		sprintf(rightyy,"S: %d \0", steering);
+		OLED_ShowString(10, 40, rightyy);
+		OLED_Refresh_Gram();
+		osDelay(1);
+	  } */
+
 	uint8_t hello[20]= "Testing RN!\0";
-//	char speedStringL[20];
-//	char speedStringR[20];
+
+	//For serial communication via UART from PC to STM32 using buffer command
+	//char speedStringL[20];
+	//char speedStringR[20];
+
 
 	for(;;)
 	{
-//	  OLED_ShowString(10,10, hello);H
 	  sprintf(hello,"%s\0", aRxBuffer);
 	  OLED_ShowString(10,10, hello);
-	  // Display motor speed revolution
+
+	  // Display motor encoder raw values
 //	  sprintf(speedStringL, "SpeedL: %d", leftEncoderVal);
 //	  OLED_ShowString(10, 30, (uint8_t*)speedStringL);
 //	  sprintf(speedStringR, "SpeedR: %d", rightEncoderVal);
@@ -741,7 +772,7 @@ void OLEDDisplay(void *argument)
 	  OLED_Refresh_Gram();
 	  osDelay(1);
 	}
-   */
+
 }
 
 /* USER CODE BEGIN Header_MOTOR */
@@ -759,111 +790,162 @@ void buzzerBeep()
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10); //Buzzer Off
 }
 
-int PID_Control(int error, int right)
+int PID_Control(double error)
 {
-	if(right){//rightMotor
-		if(error>0){//go forward
-			HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel B- forward
-			HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-		}else{//go backward
-		    HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET); // set direction of rotation for wheel B - reverse
-			HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-		}
-	}else{//leftMotor
-		if(error>0){//go forward
-			HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel A - forward
-			HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-		}else{//go backward
-		    HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET); // set direction of rotation for wheel A - reverse
-			HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-		}
-	}
+	// error is gyro reading value
+	float kp = 13;
+	float kd = 2;
+	// never include ki as it takes an additional for cum_angle which makes the error larger!!!
+    int out = round(142+kp*current_angle + kd*(current_angle-prev_angle));
 
-	error = abs(error);
-	if(error > 2000){
-		return 3000;
-	}else if(error > 500){
-		return 2000;
-	}else if(error > 200){
-		return 1400;
-	}else if(error > 100){
-		return 1000;
-	}else if(error > 2){
-		times_acceptable++;
-		return 500;
-	}else if(error >=1){
-		times_acceptable++;
-		return 0;
-	}else{
-		times_acceptable++;
-		return 0;
-	}
+    prev_angle = current_angle;
+    cum_angle += current_angle;
+
+	return(out);
 }
 
-int PID_Angle(double errord, int right)
-{
-	int error = (int)(errord*10);
-	if(right){//rightMotor
-		if(error>0){//go forward
-			HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel B- forward
-			HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-		}else{//go backward
-		    HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET); // set direction of rotation for wheel B - reverse
-			HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-		}
-	}else{//leftMotor
-		if(error<0){//go forward
-			HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel A - forward
-			HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-		}else{//go backward
-		    HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET); // set direction of rotation for wheel A - reverse
-			HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-		}
-	}
-
-	error = abs(error);
-	if(error > 300){
-		return 3000;
-	}else if(error > 200){
-		return 2000;
-	}else if(error > 150){
-		return 1600;
-	}else if(error > 100){
-		return 1400;
-	}else if(error >10){
-		return 1000;
-	}else if(error >=2){
-		times_acceptable++;
-		return 600;
-	}else{
-		times_acceptable++;
-		return 0;
-	}
-}
-
-int finishCheck(){
-	if (times_acceptable > 20){
-		e_brake = 1;
-		pwmVal_L = pwmVal_R = 0;
-		leftTarget = leftEncoderVal;
-		rightTarget = rightEncoderVal;
-		times_acceptable = 0;
-	    osDelay(30); //og 300
-
-		return 0;
-	}
-	return 1;
-}
+// movement
+void moveCarStraight(double distance) {
 
 
-void MOTOR(void *argument)
-{
-	uint16_t pwmVal  = 1000;
+	//MOTOR();
+
+	uint16_t pwmVal = 1000;
 	HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
-// For forward and backward testing
+	for(;;)
+		  {
+			  while(pwmVal<1100)
+			  {
+				  // Left Motor (Motor A)
+				  HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
+				  HAL_GPIO_WritePin(GPIOA,AIN1_Pin, GPIO_PIN_SET);
+
+				  // Right Motor (Motor B)
+				  HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
+				  HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+
+				  steering = PID_Control(current_angle);
+				  if (steering<90)
+				  {
+					  steering = 90;
+				  }
+				  else if (steering>220)
+				  {
+					  steering = 220;
+				  }
+
+				  htim1.Instance->CCR4 = steering;
+
+				  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,pwmVal);
+				  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_2,pwmVal);
+				  osDelay(10);
+			  }
+			  osDelay(1);
+		  }
+
+
+	/*
+	distance = distance * 75;
+	pwmVal_servo = SERVOCENTER;
+	osDelay(300);
+	e_brake = 0;
+	times_acceptable = 0;
+	rightEncoderVal = 75000;
+	leftEncoderVal = 75000;
+	rightTarget = 75000;
+	leftTarget = 75000;
+	rightTarget += distance;
+	leftTarget += distance;
+	while (finishCheck())
+		;
+//	if (stopped == 1) {
+//		vTaskResume(ultrasonicTaskHandle);
+//		stopped = 0;
+//	}
+	*/
+}
+
+void StartComm(void *argument)
+{
+	char ack = 'A';
+
+	for (;;) {
+		magnitude = 0;
+			if ((aRxBuffer[0] == 'G' && aRxBuffer[1] == 'Y' && aRxBuffer[2] == 'R'
+					&& aRxBuffer[3] == 'O' && aRxBuffer[4] == 'R')
+					|| (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'R'
+							|| aRxBuffer[0] == 'L')
+							&& (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
+							&& (0 <= aRxBuffer[2] - '0' <= 9)
+							&& (0 <= aRxBuffer[3] - '0' <= 9)
+							&& (0 <= aRxBuffer[4] - '0' <= 9)) {
+
+				magnitude = ((int) (aRxBuffer[2]) - 48) * 100
+						+ ((int) (aRxBuffer[3]) - 48) * 10
+						+ ((int) (aRxBuffer[4]) - 48);
+
+				if (aRxBuffer[1] == 'B') {
+					magnitude *= -1;
+				}
+
+				osDelay(3000); //Actual code can OSDelay(300) since they will have the commands all ready
+				switch (aRxBuffer[0]) {
+				case 'S':
+					moveCarStraight(magnitude);
+					flagDone = 1;
+					aRxBuffer[0] = 'D';
+					aRxBuffer[1] = 'O';
+					aRxBuffer[2] = 'N';
+					aRxBuffer[3] = 'E';
+					aRxBuffer[4] = '!';
+					osDelay(100);
+					break;
+				/*
+				case 'R':
+					moveCarRight(magnitude);
+					flagDone = 1;
+					aRxBuffer[0] = 'D';
+					aRxBuffer[1] = 'O';
+					aRxBuffer[2] = 'N';
+					aRxBuffer[3] = 'E';
+					aRxBuffer[4] = '!';
+					osDelay(100);
+					break;
+				case 'L':
+					moveCarLeft(magnitude);
+					flagDone = 1;
+					aRxBuffer[0] = 'D';
+					aRxBuffer[1] = 'O';
+					aRxBuffer[2] = 'N';
+					aRxBuffer[3] = 'E';
+					aRxBuffer[4] = '!';
+					osDelay(100);
+					break;
+				*/
+				case 'G':
+					NVIC_SystemReset();
+					break;
+				}
+			}
+			if (flagDone == 1) {
+						osDelay(300);
+						HAL_UART_Transmit(&huart3, (uint8_t*) &ack, 1, 0xFFFF);
+						flagDone = 0;
+			}
+			osDelay(100);
+	}
+}
+void MOTOR(void *argument)
+{
+		uint16_t pwmVal = 1000;
+		HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+		HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
+		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+
+// Motor Testing straight/backwards
 		/*
 		for(;;)
 		{
@@ -904,47 +986,8 @@ void MOTOR(void *argument)
 		  osDelay(1);
 		} */
 
-// For backwheels turn testing
-	/*
-	for(;;)
-		  {
-			  while(pwmVal<1600)
-			  {
-				  // Left Motor (Motor A)
-				  HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
-
-				  // Right Motor (Motor B)
-				  HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
-				  pwmVal++;
-				  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,pwmVal);
-				  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_2,pwmVal);
-
-				  osDelay(10);
-
-			  }
-			  while(pwmVal>0)
-			  {
-				  // Left Motor
-				  HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET);
-
-				  // Right Motor
-				  HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET);
-
-				//  pwmVal--;
-				  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,pwmVal);
-				  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_2,pwmVal);
-				  osDelay(10);
-
-			  }
-			  osDelay(1);
-		  } */
-
-// Test on straight movement as well as turning left/right
+// Motor using PID Control for servo motor
+	  /*
 	  for(;;)
 	  {
 		  while(pwmVal<1100)
@@ -957,154 +1000,37 @@ void MOTOR(void *argument)
 			  HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
 			  HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
 
-			  //pwmVal++;
-
-			  if (pwmVal>=1000){
-			//	  htim1.Instance->CCR4 = 145;
-			//	  osDelay(2000);
-				  htim1.Instance->CCR4 = 220; //right
-				  osDelay(2000);
-			//	  htim1.Instance->CCR4 = 145; //center
-			//	  osDelay(2000);
-		    //	  htim1.Instance->CCR4 = 85; //left
-			//	  osDelay(2000);
+			  steering = PID_Control(current_angle);
+			  if (steering<90)
+			  {
+				  steering = 90;
+			  }
+			  else if (steering>220)
+			  {
+				  steering = 220;
 			  }
 
-			  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,pwmVal);
-			  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_2,pwmVal+800); //added 800 more pwm on right motor
-			  osDelay(10);
-		  }
-		  osDelay(1);
-		  /*
-		  while(pwmVal>0)
-		  {
-			  // Left Motor
-			  HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-			  HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET);
+			  htim1.Instance->CCR4 = steering;
 
-			  // Right Motor
-			  HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-			  HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET);
+			//pwmVal++;
 
-			  pwmVal--;
+			//if (pwmVal>=1000){
+			//	htim1.Instance->CCR4 = 145;
+			//	osDelay(2000);
+			//	htim1.Instance->CCR4 = 220; //right
+			//  osDelay(2000);
+			//  htim1.Instance->CCR4 = 145; //center
+			//  osDelay(2000);
+		    //  htim1.Instance->CCR4 = 85; //left
+			//	osDelay(2000);
+
 			  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,pwmVal);
 			  __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_2,pwmVal);
 			  osDelay(10);
-
-		  } */
-		//osDelay(1);
-	  }
-
-	/*
-	// With PID Implementation for Motors
-		pwmVal_R = 0;
-		pwmVal_L = 0;
-		int straightCorrection=0;
-		HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-		HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
-		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-		htim1.Instance->CCR4 = 149; //Centre
-
-		HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel B- forward
-		HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel A - forward
-		HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-		osDelay(100); //og 1000
-
-		  for(;;)
-		  {
-				htim1.Instance->CCR4 = pwmVal_servo;
-				double error_angle = target_angle - total_angle;
-		//		if(aRxBuffer[0] = ' '){
-		//			pwmVal_L = pwmVal_R = 0;
-		//
-		//		}else
-					if (pwmVal_servo < 85){ //106 //TURN LEFT
-					pwmVal_R = PID_Angle(error_angle, 1)*1.072;  //right is master
-					pwmVal_L = pwmVal_R*(0.59); //left is slave
-
-					if(error_angle>0){
-						//go forward
-						HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel A- forward
-						HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_RESET);
-					}
-					else{
-						//go backward
-						HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET); // set direction of rotation for wheel A - reverse
-						HAL_GPIO_WritePin(GPIOA, AIN2_Pin, GPIO_PIN_SET);
-					}
-				}
-
-				else if (pwmVal_servo > 200){ //230 //TURN RIGHT
-					pwmVal_L = PID_Angle(error_angle, 0);
-					pwmVal_R = pwmVal_L*(0.59); //right is slave
-
-					if(error_angle<0){
-						//go forward
-						HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_SET); // set direction of rotation for wheel B- forward
-						HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_RESET);
-					}
-					else{
-						//go backward
-						HAL_GPIO_WritePin(GPIOA, BIN1_Pin, GPIO_PIN_RESET); // set direction of rotation for wheel B - reverse
-						HAL_GPIO_WritePin(GPIOA, BIN2_Pin, GPIO_PIN_SET);
-					}
-				}
-
-				else {
-
-
-					pwmVal_R = PID_Control(leftTarget - leftEncoderVal, 0)*1.072;
-					if (abs(leftTarget - leftEncoderVal)>abs(rightTarget - rightEncoderVal)){
-						straightCorrection++;
-					}else{ straightCorrection--;}
-					if (abs(leftTarget - leftEncoderVal)<100){
-						straightCorrection=0;
-					}
-					pwmVal_L = PID_Control(rightTarget - rightEncoderVal, 1)+straightCorrection;
-
-
-					if ((leftTarget - leftEncoderVal)<0){
-						if (error_angle>5){ // if turn left, 106. right 230. left +. right -.
-									pwmVal_servo=((19*5)/5 + 149);
-								}
-								else if(error_angle<-5){
-									pwmVal_servo=((-19*5)/5 + 149);
-								}else{
-									pwmVal_servo=((19*error_angle)/5 + 149);
-								}
-
-					}else{
-						if (error_angle>5){ // if turn left, 106. right 230. left +. right -.
-									pwmVal_servo=((-19*5)/5 + 149);
-								}
-								else if(error_angle<-5){
-									pwmVal_servo=((19*5)/5 + 149);
-								}else{
-									pwmVal_servo=((-19*error_angle)/5 + 149);
-								}
-					}
-
-
-					//line correction equation is pwmVal = (19*error)/5 + 149
-				}
-
-				if(e_brake){
-					pwmVal_L = pwmVal_R = 0;
-					leftTarget = leftEncoderVal;
-					rightTarget = rightEncoderVal;
-				}
-
-				__HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,pwmVal_L);
-				__HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_2,pwmVal_R);
-				osDelay(1);
-
-				if (times_acceptable>1000){
-					times_acceptable=1001;
-				}
-
 		  }
-		  */
+		  osDelay(1);
+
+	  } */
 }
 
 /* USER CODE BEGIN Header_LEncoder */
@@ -1219,27 +1145,26 @@ void startGyroTask(void *argument)
 		buzzerBeep();
 		tick = HAL_GetTick();
 
+		  /* Infinite loop */
+		  for(;;)
+		  {
+				osDelay(50);
+				readByte(0x37, val);
+				angular_speed = (val[0] << 8) | val[1];
+				//subtract gyroscope bias from measurement to compensate for drift
+				current_angle +=(double)((double)angular_speed - offset)*((HAL_GetTick() - tick)/16400.0); //extra calibration +0.00003
+				i -= angular_speed;
+				tick = HAL_GetTick();
+				i++;
 
-	  /* Infinite loop */
-	  for(;;)
-	  {
-			osDelay(50);
-			readByte(0x37, val);
-			angular_speed = (val[0] << 8) | val[1];
-			//subtract gyroscope bias from measurement to compensate for drift
-			total_angle +=(double)((double)angular_speed - offset)*((HAL_GetTick() - tick)/16400.0); //extra calibration +0.00003
-			i -= angular_speed;
-			tick = HAL_GetTick();
-			i++;
-
-	//		char hello[50] = {0};
-	//		double diff = total_angle - old;
-	//		int decimals = abs((int)((diff-(int)(diff))*10000));
-	//		int offdeci = abs((int)((offset-(int)(offset))*10000));
-	//		sprintf(hello,"G%d.%d: %d.%d \0", (int)offset,offdeci,(int)diff, decimals);
-	//		old = total_angle;
-	//		HAL_UART_Transmit(&huart3, hello, 20,0xFFFF);
-	  }
+		//		char hello[50] = {0};
+		//		double diff = current_angle - old;
+		//		int decimals = abs((int)((diff-(int)(diff))*10000));
+		//		int offdeci = abs((int)((offset-(int)(offset))*10000));
+		//		sprintf(hello,"G%d.%d: %d.%d \0", (int)offset,offdeci,(int)diff, decimals);
+		//		old = current_angle;
+		//		HAL_UART_Transmit(&huart3, hello, 20,0xFFFF);
+		  }
 	  /* USER CODE END StartGyroTask */
 }
 
