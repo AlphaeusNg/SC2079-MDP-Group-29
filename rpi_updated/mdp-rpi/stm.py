@@ -72,18 +72,27 @@ class STMInterface:
         self.xdist = None
         self.ydist = None 
         while True: 
-            message = self.msg_queue.get()
-
-            message_str = message.decode("utf-8")
-            message_json = json.loads(message_str)
-            message_type = message_json["type"]
+            # message = self.msg_queue.get()
+            message = {
+                "type": "NAVIGATION",
+                "data": {
+                "commands":  ["SF010", "RF090", "SB050", "LB090"],
+                "path": [[0,1], [1,1], [2,1], [3,1]]
+                }
+            }
+            message_json = json.dumps(message)
+            # print(type(message_json))
+            # message_str = message.decode("utf-8")
+            # message_json = json.loads(message)
+            message_type = message["type"]
 
             if message_type == "NAVIGATION":
                 # Display path on Android
-                self.send_path_to_android(message_json) 
+                self.send_path_to_android(message) 
 
                 # Convert/adjust turn or obstacle routing commands
-                commands = self.adjust_commands(message_json["data"]["commands"])
+                commands = self.adjust_commands(message["data"]["commands"])
+                print(commands)
                 for command in commands:
                     self.write_to_stm(command)
 
@@ -95,8 +104,8 @@ class STMInterface:
                     return
 
                 # Start a new thread to capture and send the image to PC
-                capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
-                capture_and_send_image_thread.start()
+                # capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                # capture_and_send_image_thread.start()
 
                 if self.obstacle_count % STM_GYRO_RESET_FREQ == 0:
                     print("[STM] Resetting gyroscope after %d obstacles" % self.obstacle_count)
@@ -147,11 +156,12 @@ class STMInterface:
     def wait_for_ack(self):
         # Wait for ACK message from STM
         message = self.listen()
+        print(message)
         if message  == STM_ACK_MSG:
             print("[STM] Received ACK from STM") 
         else:
             print("[STM] ERROR: Unexpected message from STM -", message)
-            self.reconnect() 
+            # self.reconnect() 
 
     def wait_for_dist(self):
         # Wait for distance measurement from STM
@@ -172,12 +182,12 @@ class STMInterface:
         print("[STM] Adding image from camera to PC message queue")
         self.RPiMain.PC.msg_queue.put(get_image())      
 
-    def send_path_to_android(self, message_json):
+    def send_path_to_android(self, message):
         # Send path to Android for display
-        if "path" not in message_json["data"]:
+        if "path" not in message["data"]:
             print("[STM] No path found in NAVIGATION message")  
         try: 
-            path_message = self.create_path_message(message_json["data"]["path"])
+            path_message = self.create_path_message(message["data"]["path"])
             self.RPiMain.Android.msg_queue.put(path_message)
             print("[STM] Adding NAVIGATION path from PC to Android message queue")
         except:
