@@ -1,0 +1,116 @@
+14:17:04 **** Incremental Build of configuration Release for project MDP ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -DUSE_HAL_DRIVER -DSTM32F407xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I"C:/Users/yaomi/STM32CubeIDE/MDP/MDP/Drivers/PeripheralDriver/Inc" -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'moveCarStraight':
+../Core/Src/main.c:782:16: warning: implicit declaration of function 'finishCheck' [-Wimplicit-function-declaration]
+  782 |         while (finishCheck())
+      |                ^~~~~~~~~~~
+../Core/Src/main.c: In function 'PID_Control':
+../Core/Src/main.c:844:17: warning: implicit declaration of function 'abs' [-Wimplicit-function-declaration]
+  844 |         error = abs(error);
+      |                 ^~~
+../Core/Src/main.c:26:1: note: include '<stdlib.h>' or provide a declaration of 'abs'
+   25 | #include "oled.h"
+  +++ |+#include <stdlib.h>
+   26 | /* USER CODE END Includes */
+../Core/Src/main.c: In function 'StartMotorTask':
+../Core/Src/main.c:1032:44: warning: 'abs' argument 1 promotes to 'int32_t' {aka 'long int'} where 'int' is expected in a call to built-in function declared without prototype [-Wbuiltin-declaration-mismatch]
+ 1032 |                         if (abs(leftTarget - leftEncoderVal)
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~
+<built-in>: note: built-in 'abs' declared here
+../Core/Src/main.c:1033:59: warning: 'abs' argument 1 promotes to 'int32_t' {aka 'long int'} where 'int' is expected in a call to built-in function declared without prototype [-Wbuiltin-declaration-mismatch]
+ 1033 |                                         > abs(rightTarget - rightEncoderVal)) {
+      |                                               ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+<built-in>: note: built-in 'abs' declared here
+../Core/Src/main.c:1038:44: warning: 'abs' argument 1 promotes to 'int32_t' {aka 'long int'} where 'int' is expected in a call to built-in function declared without prototype [-Wbuiltin-declaration-mismatch]
+ 1038 |                         if (abs(leftTarget - leftEncoderVal) < 100) {
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~
+<built-in>: note: built-in 'abs' declared here
+../Core/Src/main.c: In function 'StartOLEDTask':
+../Core/Src/main.c:1097:17: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
+ 1097 |                 sprintf(usVal, "Distance: %d \0", (int) uDistance);
+      |                 ^~~~~~~
+../Core/Src/main.c:26:1: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+   25 | #include "oled.h"
+  +++ |+#include <stdio.h>
+   26 | /* USER CODE END Includes */
+../Core/Src/main.c:1097:17: warning: incompatible implicit declaration of built-in function 'sprintf' [-Wbuiltin-declaration-mismatch]
+ 1097 |                 sprintf(usVal, "Distance: %d \0", (int) uDistance);
+      |                 ^~~~~~~
+../Core/Src/main.c:1097:17: note: include '<stdio.h>' or provide a declaration of 'sprintf'
+../Core/Src/main.c:1097:25: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+ 1097 |                 sprintf(usVal, "Distance: %d \0", (int) uDistance);
+      |                         ^~~~~
+      |                         |
+      |                         uint8_t * {aka unsigned char *}
+../Core/Src/main.c:1097:25: note: expected 'char *' but argument is of type 'uint8_t *' {aka 'unsigned char *'}
+../Core/Src/main.c:1097:46: warning: embedded '\0' in format [-Wformat-contains-nul]
+ 1097 |                 sprintf(usVal, "Distance: %d \0", (int) uDistance);
+      |                                              ^~
+../Core/Src/main.c:1101:25: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+ 1101 |                 sprintf(gyroVal, "Gyro: %d.%d \0", (int) total_angle, decimals);
+      |                         ^~~~~~~
+      |                         |
+      |                         uint8_t * {aka unsigned char *}
+../Core/Src/main.c:1101:25: note: expected 'char *' but argument is of type 'uint8_t *' {aka 'unsigned char *'}
+../Core/Src/main.c:1101:47: warning: embedded '\0' in format [-Wformat-contains-nul]
+ 1101 |                 sprintf(gyroVal, "Gyro: %d.%d \0", (int) total_angle, decimals);
+      |                                               ^~
+../Core/Src/main.c:1104:25: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+ 1104 |                 sprintf(command, "C: %c%c%c%c%c \0", aRxBuffer[0], aRxBuffer[1],
+      |                         ^~~~~~~
+      |                         |
+      |                         uint8_t * {aka unsigned char *}
+../Core/Src/main.c:1104:25: note: expected 'char *' but argument is of type 'uint8_t *' {aka 'unsigned char *'}
+../Core/Src/main.c:1104:49: warning: embedded '\0' in format [-Wformat-contains-nul]
+ 1104 |                 sprintf(command, "C: %c%c%c%c%c \0", aRxBuffer[0], aRxBuffer[1],
+      |                                                 ^~
+../Core/Src/main.c: In function 'StartCommunicateTask':
+../Core/Src/main.c:1211:77: warning: comparison of constant '9' with boolean expression is always true [-Wbool-compare]
+ 1211 |                                                 && (0 <= aRxBuffer[2] - '0' <= 9)
+      |                                                                             ^~
+../Core/Src/main.c:1211:55: warning: comparisons like 'X<=Y<=Z' do not have their mathematical meaning [-Wparentheses]
+ 1211 |                                                 && (0 <= aRxBuffer[2] - '0' <= 9)
+      |                                                     ~~^~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:1212:77: warning: comparison of constant '9' with boolean expression is always true [-Wbool-compare]
+ 1212 |                                                 && (0 <= aRxBuffer[3] - '0' <= 9)
+      |                                                                             ^~
+../Core/Src/main.c:1212:55: warning: comparisons like 'X<=Y<=Z' do not have their mathematical meaning [-Wparentheses]
+ 1212 |                                                 && (0 <= aRxBuffer[3] - '0' <= 9)
+      |                                                     ~~^~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:1213:77: warning: comparison of constant '9' with boolean expression is always true [-Wbool-compare]
+ 1213 |                                                 && (0 <= aRxBuffer[4] - '0' <= 9)) {
+      |                                                                             ^~
+../Core/Src/main.c:1213:55: warning: comparisons like 'X<=Y<=Z' do not have their mathematical meaning [-Wparentheses]
+ 1213 |                                                 && (0 <= aRxBuffer[4] - '0' <= 9)) {
+      |                                                     ~~^~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:1213:49: warning: suggest parentheses around '&&' within '||' [-Wparentheses]
+ 1208 |                                 || (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'R'
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1209 |                                                 || aRxBuffer[0] == 'L')
+      |                                                 ~~~~~~~~~~~~~~~~~~~~~~~
+ 1210 |                                                 && (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
+      |                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1211 |                                                 && (0 <= aRxBuffer[2] - '0' <= 9)
+      |                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1212 |                                                 && (0 <= aRxBuffer[3] - '0' <= 9)
+      |                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1213 |                                                 && (0 <= aRxBuffer[4] - '0' <= 9)) {
+      |                                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+arm-none-eabi-gcc -o "MDP.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\yaomi\STM32CubeIDE\MDP\MDP\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MDP.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: MDP.elf
+ 
+arm-none-eabi-size   MDP.elf 
+arm-none-eabi-objdump -h -S  MDP.elf  > "MDP.list"
+arm-none-eabi-objcopy  -O ihex  MDP.elf  "MDP.hex"
+   text	   data	    bss	    dec	    hex	filename
+  31540	    108	  22496	  54144	   d380	MDP.elf
+Finished building: default.size.stdout
+ 
+Finished building: MDP.list
+ 
+Finished building: MDP.hex
+ 
+
+14:17:12 Build Finished. 0 errors, 20 warnings. (took 7s.839ms)
+
