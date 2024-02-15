@@ -76,7 +76,7 @@ class STMInterface:
             message = {
                 "type": "NAVIGATION",
                 "data": {
-                "commands":  ["SF010", "RF090", "SB050", "LB090"],
+                "commands":  ["SF010", "RF030", "SB050", "LB090"],
                 "path": [[0,1], [1,1], [2,1], [3,1]]
                 }
             }

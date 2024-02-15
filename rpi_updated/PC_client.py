@@ -6,6 +6,9 @@ RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
 PC_PORT = 8888  # Replace with the port used by the PC server
 PC_BUFFER_SIZE = 1024
 
+import socket
+import threading
+
 class PCClient:
     def __init__(self):
         # Initialize PCClient with connection details
@@ -47,7 +50,7 @@ class PCClient:
         length_bytes = message_len.to_bytes(4, byteorder="big")
         return length_bytes + message_bytes
 
-    def receive_message(self):
+    def receive_messages(self):
         try:
             while True:
                 # Receive the length of the message
@@ -63,30 +66,21 @@ class PCClient:
         except socket.error as e:
             print("[PC Server] ERROR:", str(e))
 
-# Example usage:
-if __name__ == "__main__":
-    pc_client = PCClient()
-    pc_client.connect()
-    PC1_sample = {
-        "type": "NAVIGATION",
-        "data": {
-        "commands": ["SF010", "RF090", "SB050", "LB090"],
-        "path": [[0,1], [1,1], [2,1], [3,1]]
-        }
-    }
-    PC2_sample = {
-        "type": "IMAGE_RESULTS",
-        "data": {
-        "obs_id": "00", 
-        "img_id": "36"
-        }
-    }
-    PC1_json = json.dumps(PC1_sample)
-    PC2_json = json.dumps(PC2_sample)
-    # Send a message to the rpi
-    pc_client.send_message(PC1_json)
+def send_message_thread(client, message):
+    client.send_message(message)
 
-    # Receive a message from the rpi
-    received_message = pc_client.receive_message()
-    pc_client.send_message(PC2_json)
-    pc_client.disconnect()
+if __name__ == "__main__":
+    client = PCClient()
+    client.connect()
+    
+    receive_thread = threading.Thread(target=client.receive_messages)
+    receive_thread.start()
+    
+    while True:
+        message = input("Enter message to send (or type 'quit' to exit): ")
+        if message.lower() == "quit":
+            break
+        send_thread = threading.Thread(target=send_message_thread, args=(client, message))
+        send_thread.start()
+
+    client.disconnect()
