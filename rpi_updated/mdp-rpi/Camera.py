@@ -8,6 +8,7 @@ import time
 def capture(img_pth):
     # Capture image using PiCamera and save it to the specified path
     camera = PiCamera()
+    camera.resolution = (640, 480)
     camera.capture(img_pth)
     camera.close()
     print("[Camera] Image captured")
@@ -26,7 +27,7 @@ def get_image():
 
     # Capture and preprocess the image
     capture(img_pth)
-    preprocess_img(img_pth)
+    # preprocess_img(img_pth)
 
     # Construct a message with the encoded image
     encoded_string = ""

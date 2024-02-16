@@ -98,26 +98,29 @@ class PCInterface:
         # Continuously send messages to the PC
         while True:
             if self.send_message:
-                # message = self.msg_queue.get()
-                message_ori = {
-                    "type": "START_TASK",
-                    "data": {
-                    "task": "EXPLORATION",
-                    "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
-                    "obstacles": [
-                            {"id": "00", "x": 4, "y": 15, "dir": 'S'},
-                            {"id": "01", "x": 16, "y": 17, "dir": 'W'}
-                    ]
-                    }
-                }
-                message = json.dumps(message_ori)
+                # uncomment once ready
+                message = self.msg_queue.get()
+                # for testing
+                # message_ori = {
+                #     "type": "START_TASK",
+                #     "data": {
+                #     "task": "EXPLORATION",
+                #     "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                #     "obstacles": [
+                #             {"id": "00", "x": 4, "y": 15, "dir": 'S'},
+                #             {"id": "01", "x": 16, "y": 17, "dir": 'W'}
+                #     ]
+                #     }
+                # }
+                # message = json.dumps(message_ori)
                 exception = True
                 while exception:
                     try:
-                        # message_sized = self.prepend_msg_size(message)
-                        self.client_socket.send(self.prepend_msg_size(message))
-                        print("[PC] Write to PC:", message)
-                        self.send_message = False
+                        message_sized = self.prepend_msg_size(message)
+                        self.client_socket.send(self.prepend_msg_size(message_sized))
+                        print("[PC] Write to PC:", message.decode("utf-8")[:MSG_LOG_MAX_SIZE])
+                        # print("[PC] Write to PC:", message)
+                        # self.send_message = False
                     except Exception as e:
                         print("[PC] ERROR: Failed to write to PC -", str(e))
                         self.reconnect()

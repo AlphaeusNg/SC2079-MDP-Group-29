@@ -72,27 +72,42 @@ class STMInterface:
         self.xdist = None
         self.ydist = None 
         while True: 
-            # message = self.msg_queue.get()
-            message = {
-                "type": "NAVIGATION",
-                "data": {
-                "commands":  ["SF010", "RF030", "SB050", "LB090"],
-                "path": [[0,1], [1,1], [2,1], [3,1]]
-                }
-            }
-            message_json = json.dumps(message)
+            
+            # Uncomment once implementation is done
+            message = self.msg_queue.get()
+
+            # comment once implementation is done.
+            # message = {
+            #     "type": "NAVIGATION",
+            #     "data": {
+            #     "commands":  ["SF010", "RF030", "SB050", "LB090"],
+            #     "path": [[0,1], [1,1], [2,1], [3,1]]
+            #     }
+            # }
+
+            # message_json = json.dumps(message)
             # print(type(message_json))
-            # message_str = message.decode("utf-8")
-            # message_json = json.loads(message)
-            message_type = message["type"]
+            # print(message)
+            # print(type(message_json))
+
+            message_str = message.decode("utf-8")
+            message_json = json.loads(message_str)
+            message_type = message_json["type"]
 
             if message_type == "NAVIGATION":
                 # Display path on Android
-                self.send_path_to_android(message) 
+                self.send_path_to_android(message_json) 
 
                 # Convert/adjust turn or obstacle routing commands
-                commands = self.adjust_commands(message["data"]["commands"])
-                print(commands)
+                # print("hello 1: ", message)
+                commands = self.adjust_commands(message_json["data"]["commands"])
+                # print("hello 2: ", commands)
+                # print(type(commands))
+                # print(len(commands))
+                # for object in commands:
+                #     obj_id = id(object)
+                #     print(f"Index: {obj_id}, object: {object}")
+                # break
                 for command in commands:
                     self.write_to_stm(command)
 
@@ -161,7 +176,7 @@ class STMInterface:
             print("[STM] Received ACK from STM") 
         else:
             print("[STM] ERROR: Unexpected message from STM -", message)
-            # self.reconnect() 
+            self.reconnect() 
 
     def wait_for_dist(self):
         # Wait for distance measurement from STM
@@ -194,11 +209,14 @@ class STMInterface:
             print("[STM] ERROR with path found in NAVIGATION message")    
 
     def is_valid_command(self, command):
+        # Hard-coded portion for the angle, if the manual correction is not working, then uncomment this
+        
         # Check if a command is valid according to the defined format
-        if re.match(STM_NAV_COMMAND_FORMAT, command) or command == STM_GYRO_RESET_COMMAND:
-            return True
-        else:
-            return False
+         if re.match(STM_NAV_COMMAND_FORMAT, command) or command == STM_GYRO_RESET_COMMAND:
+             return True
+         else:
+             return False
+    
 
     def adjust_commands(self, commands):
         # Adjust and combine commands for smoother execution
@@ -207,6 +225,7 @@ class STMInterface:
 
         def adjust_turn_command(turn_command):
             return STM_COMMAND_ADJUSTMENT_MAP.get(turn_command, turn_command)
+            # return True
 
         def is_obstacle_routing_command(command):
             return command in STM_OBS_ROUTING_MAP.keys()
@@ -219,6 +238,9 @@ class STMInterface:
         
         def is_straight_command(command):
             return self.is_valid_command(command) and command.startswith("S")
+
+        def is_validturn_command(command):
+           return self.is_valid_command(command) and command.startswith("R") or command.startswith("L")
 
         def combine_straight_commands(straight_commands):
             dir_dict = {"SF": 1, "SB": -1} 
@@ -252,12 +274,16 @@ class STMInterface:
         final_commands = []     
         for i in range(len(commands)):
             command = commands[i].upper()
-            if is_straight_command(command):
+            #if is_straight_command(command):
+            if True:
                 final_commands = add_command(final_commands, command)
             else:
                 adj_commands = []
                 if is_turn_command(command): 
                     adj_commands = adjust_turn_command(command)
+                # Just added to check it: 
+                #if is_validturn_command(command):
+                #    adj_commands = adjust_turn_command(command)
                 elif is_obstacle_routing_command(command): 
                     adj_commands = adjust_obstacle_routing_command(command)
                 else:
