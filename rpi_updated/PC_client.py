@@ -1,5 +1,6 @@
 import socket
 import json
+from queue import Queue
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
@@ -15,12 +16,15 @@ class PCClient:
         self.host = RPI_IP
         self.port = PC_PORT
         self.client_socket = None
+        self.msg_queue = Queue()
+        self.send_message = False
 
     def connect(self):
         # Establish a connection with the PC
         try:
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.client_socket.connect((self.host, self.port))
+            self.send_message = True
             print("[PC Client] Connected to PC successfully.")
         except socket.error as e:
             print("[PC Client] ERROR: Failed to connect -", str(e))
@@ -33,16 +37,28 @@ class PCClient:
                 print("[PC Client] Disconnected from rpi.")
         except Exception as e:
             print("[PC Client] Failed to disconnect from rpi:", str(e))
+    
+    def reconnect(self):
+        # Disconnect and then connect again
+        self.disconnect()
+        self.connect()
 
-    def send_message(self, message):
-        try:
-            if self.client_socket is not None:
-                self.client_socket.sendall(self.prepend_msg_size(message))
-                print("[PC Client] Message sent to rpi:", message)
-            else:
-                print("[PC Client] ERROR: Client socket is not initialized.")
-        except Exception as e:
-            print("[PC Client] ERROR: Failed to send message -", str(e))
+    def send(self):
+        while True:
+            if self.send_message:
+                message = self.msg_queue.get()
+                exception = True
+                while exception:
+                    try:
+                        # message_sized = self.prepend_msg_size(message)
+                        self.client_socket.send(self.prepend_msg_size(message))
+                        print("[PC Client] Write to RPI:", message)
+                        self.send_message = False
+                    except Exception as e:
+                        print("[PC Client] ERROR: Failed to write to RPI -", str(e))
+                        self.reconnect()
+                    else:
+                        exception = False
             
     def prepend_msg_size(self, message):
         message_bytes = message.encode("utf-8")
@@ -62,25 +78,43 @@ class PCClient:
                 
                 # Receive the message
                 message = self.client_socket.recv(message_length).decode("utf-8")
+                
+                # Temporary for testing
+                message = json.loads(message)
+                if message["type"] == "START_TASK":
+                    message = {"type": "NAVIGATION", "data": {"commands": ["SF010", "RF090"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    message = json.dumps(message)
+                    self.msg_queue.put(message)
+                # end of temp test code
+                
                 print("[PC Server] Received message:", message)
+
         except socket.error as e:
             print("[PC Server] ERROR:", str(e))
 
-def send_message_thread(client, message):
-    client.send_message(message)
 
 if __name__ == "__main__":
     client = PCClient()
     client.connect()
     
-    receive_thread = threading.Thread(target=client.receive_messages)
-    receive_thread.start()
+    PC_client_receive = threading.Thread(target=client.receive_messages, name="PC-Client_listen_thread")
+    PC_client_send = threading.Thread(target=client.send, name="PC-Client_send_thread")
+
+    PC_client_send.start()
+    print("[PC Client] Sending threads started successfully")
+
+    PC_client_receive.start()
+    print("[PC Client] Listening threads started successfully")
+
+    PC_client_receive.join()
+    PC_client_send.join()
+    print("[PC Client] All threads concluded, cleaning up...")
     
-    while True:
-        message = input("Enter message to send (or type 'quit' to exit): ")
-        if message.lower() == "quit":
-            break
-        send_thread = threading.Thread(target=send_message_thread, args=(client, message))
-        send_thread.start()
+    # while True:
+        # message = input("Enter message to send (or type 'quit' to exit): ")
+        # if message.lower() == "quit":
+        #     break
+        # send_thread = threading.Thread(target=send_thread, args=(client, message))
+        # send_thread.start()
 
     client.disconnect()
