@@ -1,5 +1,8 @@
 import numpy as np
 from enumerations import Gear, Steering
+from objects.Obstacle import Obstacle
+import algo.objects.OccupancyMap as om
+import algo.simulation.simulator as sim
 
 
 def print_path(path):
@@ -69,4 +72,21 @@ def construct_json(command):
         "data": command
         # "path": path
     }
+    return json_file
+
+
+def call_algo(message):
+    obstacles = []
+    data_obstacles = message["data"]["obstacles"]
+    for obstacle in data_obstacles:
+        obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, obstacle["dir"]))
+    # Run simulator
+    map = om.OccupancyMap(obstacles)
+    hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 15, 'theta_start': np.pi / 2,
+                        'theta_offset': -np.pi / 2, 'metric': 'euclidean', 'minR': 25}
+    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25 * np.pi / 4 / 5, 'minR': 25,
+                  'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
+    simulator = sim.Simulator(obstacles, hamiltonian_args, astar_args).start_simulation()
+    # Convert to json
+    json_file = construct_json(simulator)
     return json_file
