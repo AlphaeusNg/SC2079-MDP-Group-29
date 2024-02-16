@@ -4,7 +4,8 @@ Need to double check a lot of things here to sync up with hardware and algo I th
 
 
 # Configuration constants
-LOCATION = "OUT" # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
+# LOCATION = "OUT" # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
+LOCATION = "NONE" # IN (indoors) / OUT (outdoors) / NONE (disable turn adjustment)
 
 RPI_IP = "192.168.29.29" # WARNING! DOUBLE CHECK THIS.
 MSG_LOG_MAX_SIZE = 150 # characters
@@ -20,8 +21,8 @@ BT_BUFFER_SIZE = 2048
 # STM Interface
 STM_BAUDRATE = 115200
 STM_ACK_MSG = "A"
-# STM_NAV_COMMAND_FORMAT = '^[SLR][FB][0-9]{3}$' # task 1
-STM_NAV_COMMAND_FORMAT = '^(([SLR][FB])|([UYV]F)|([IXT][LR]))[0-9]{3}$' # task 2
+STM_NAV_COMMAND_FORMAT = '^[SLR][FB][0-9]{3}$' # task 1
+# STM_NAV_COMMAND_FORMAT = '^(([SLR][FB])|([UYV]F)|([IXT][LR]))[0-9]{3}$' # task 2
 STM_GYRO_RESET_COMMAND = "GYROR"
 STM_GYRO_RESET_DELAY = 8 # time to wait for gyro reset
 STM_GYRO_RESET_FREQ = 3 # number of obstacles before GRYO RESET command is sent

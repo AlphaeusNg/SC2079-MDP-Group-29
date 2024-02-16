@@ -87,14 +87,24 @@ class AndroidInterface:
                 elif msg_type == 'START_TASK':
                     self.RPiMain.PC.msg_queue.put(message)
 
+            
             except (socket.error, IOError, Exception, ConnectionResetError) as e:
                 print("[Android] ERROR:", str(e))
-                # Handle different types of errors
+                
 
     def send(self):
         # Continuously send messages to Android
         while True: 
             message = self.msg_queue.get()
+            # message_ori =   {
+            #     "type": "IMAGE_RESULTS",
+            #     "data": {
+            #     "obs_id": "11", 
+            #     "img_id": "30", 
+            #     }
+            # }
+            # message_ori = "hello from rpi"
+            # message = json.dumps(message_ori).encode("utf-8")
             exception = True
             while exception: 
                 try:
@@ -105,3 +115,4 @@ class AndroidInterface:
                     self.reconnect()  # reconnect and resend
                 else:
                     exception = False  # done sending, get next message
+

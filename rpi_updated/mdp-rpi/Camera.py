@@ -5,12 +5,18 @@ from picamera import PiCamera
 import cv2
 import time
 
+FOLDER_PATH = "/home/pi/Documents/SC2079-MDP-Group-29/rpi_updated/mdp-rpi/ImageCapture"
+
 def capture(img_pth):
     # Capture image using PiCamera and save it to the specified path
     camera = PiCamera()
-    camera.capture(img_pth)
+    camera.resolution = (640, 480)
+    print(img_pth)
+    image_save_location =  os.path.join(FOLDER_PATH, img_pth)
+    camera.capture(image_save_location)
     camera.close()
     print("[Camera] Image captured")
+
 
 def preprocess_img(img_pth):
     # Read image, resize it, and save the resized image
@@ -26,7 +32,7 @@ def get_image():
 
     # Capture and preprocess the image
     capture(img_pth)
-    preprocess_img(img_pth)
+    # preprocess_img(img_pth)
 
     # Construct a message with the encoded image
     encoded_string = ""
