@@ -34,19 +34,21 @@ class Main:
                     sys.exit(1)
 
     def test(self):
-        PC1_sample = {
-            "type": "NAVIGATION",
-            "data": {"commands": ["RF015", "SF040", "LF005", "SF015", "LF010"]}}
-        PC1_json = json.dumps(PC1_sample)
-        self.client.send_message(PC1_json)
-        self.client.recieve_message()
+        message = {"type": "START_TASK", "data": {"task": "EXPLORATION", "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                                               "obstacles": [{"id": "00", "x": 8, "y": 5, "dir": 'S'},
+                                                             {"id": "01", "x": 10, "y": 17, "dir": 'W'}]}}
+
+        data = pc.call_algo(message)
+        jdata = json.dumps(data)
+        print(jdata)
+        # self.client.send_message(PC1_json)
+        # self.client.receive_message()
 
     def run_task1(self):
-        # if self.client.connected is True:
+        if self.client.connected is True:
             print("Listening...")
             while True:
-                data = {"type": "START_TASK","data": {"task": "EXPLORATION","robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'}, "obstacles": [{"id": "00", "x": 8, "y": 5, "dir": 'S'},{"id": "01", "x": 10, "y": 17, "dir": 'W'}]}}
-                # data = self.client.get_message()
+                data = self.client.get_message()
                 if data is None:
                     continue
                 if data["type"] == "START_TASK":
@@ -62,6 +64,7 @@ class Main:
                     print(f"Return me this: {simulator}")
                     # Convert to json
                     json_file = pc.construct_json(simulator)
+                    print(json_file)
                     # Send data to rpi
                     json_data = json.dumps(json_file)
                     self.client.send_message(json_data)
@@ -75,4 +78,4 @@ if __name__ == "__main__":
 
     # Test connection with RPI
     # main_instance.connect()
-    main_instance.run_task1()
+    main_instance.test()
