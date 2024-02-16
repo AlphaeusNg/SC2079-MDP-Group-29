@@ -64,7 +64,6 @@ class PCInterface:
                     
                     # Receive the message
                     message = self.client_socket.recv(message_length)
-
                     if not message:
                         self.send_message = False
                         print("[PC] PC disconnected remotely. Reconnecting...")
@@ -100,6 +99,7 @@ class PCInterface:
             if self.send_message:
                 # uncomment once ready
                 message = self.msg_queue.get()
+                message = message.decode("utf-8")
                 # for testing
                 # message_ori = {
                 #     "type": "START_TASK",
@@ -116,11 +116,8 @@ class PCInterface:
                 exception = True
                 while exception:
                     try:
-                        message_sized = self.prepend_msg_size(message)
-                        self.client_socket.send(self.prepend_msg_size(message_sized))
-                        print("[PC] Write to PC:", message.decode("utf-8")[:MSG_LOG_MAX_SIZE])
-                        # print("[PC] Write to PC:", message)
-                        # self.send_message = False
+                        self.client_socket.send(self.prepend_msg_size(message))
+                        print("[PC] Write to PC:", message)
                     except Exception as e:
                         print("[PC] ERROR: Failed to write to PC -", str(e))
                         self.reconnect()
