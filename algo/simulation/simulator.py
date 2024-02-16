@@ -147,7 +147,7 @@ class Simulator:
                 
                 done = True
                 print(f"Total path length: {numNodes*self.astar_args['L']}cm")
-                return self.commands
+                print(self.commands)
 
             # self.draw_path_history(pathHistory)
             # pygame.display.update()
