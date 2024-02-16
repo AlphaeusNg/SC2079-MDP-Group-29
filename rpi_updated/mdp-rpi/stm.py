@@ -77,10 +77,11 @@ class STMInterface:
             message = self.msg_queue.get()
 
             # comment once implementation is done.
-            # message = {
+            # message_json = {
             #     "type": "NAVIGATION",
             #     "data": {
-            #     "commands":  ["SF010", "RF030", "SB050", "LB090"],
+            #     # "commands":  ["SF010", "RF030", "SB050", "LB090"],
+            #     "commands":  ["SF010", "SB050"],
             #     "path": [[0,1], [1,1], [2,1], [3,1]]
             #     }
             # }
@@ -119,8 +120,8 @@ class STMInterface:
                     return
 
                 # Start a new thread to capture and send the image to PC
-                # capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
-                # capture_and_send_image_thread.start()
+                capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                capture_and_send_image_thread.start()
 
                 if self.obstacle_count % STM_GYRO_RESET_FREQ == 0:
                     print("[STM] Resetting gyroscope after %d obstacles" % self.obstacle_count)
@@ -195,6 +196,7 @@ class STMInterface:
     def send_image_to_pc(self):
         # Send captured image to PC
         print("[STM] Adding image from camera to PC message queue")
+        # t = get_image()
         self.RPiMain.PC.msg_queue.put(get_image())      
 
     def send_path_to_android(self, message):

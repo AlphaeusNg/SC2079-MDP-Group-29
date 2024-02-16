@@ -96,19 +96,17 @@ class AndroidInterface:
 
     def send(self):
         # Continuously send messages to Android
-        # while True:
-            # message = self.msg_queue.get()
-        for i in range(1):
-            message_ori =   {
-                "type": "IMAGE_RESULTS",
-                "data": {
-                "obs_id": "11", 
-                "img_id": "30", 
-                }
-            }
+        while True:
+            message = self.msg_queue.get()
+            # message_ori =   {
+            #     "type": "IMAGE_RESULTS",
+            #     "data": {
+            #     "obs_id": "11", 
+            #     "img_id": "30", 
+            #     }
+            # }
             # message_ori = "hello from rpi"
-            message = json.dumps(message_ori).encode("utf-8")
-            # message = message_ori.encode("utf-8")
+            # message = json.dumps(message_ori).encode("utf-8")
             exception = True
             while exception:
                 try:
