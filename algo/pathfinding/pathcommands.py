@@ -1,8 +1,9 @@
 import numpy as np
 from enumerations import Gear, Steering
 from objects.Obstacle import Obstacle
+from pathfinding.hamiltonian import Hamiltonian
+from pathfinding.hybrid_astar import HybridAStar
 import algo.objects.OccupancyMap as om
-import algo.simulation.simulator as sim
 
 
 def print_path(path):
@@ -75,18 +76,31 @@ def construct_json(command):
     return json_file
 
 
-def call_algo(message):
+def call_algo(message, L=25*np.pi/4/5, minR=25):
     obstacles = []
+    full_commands = []
     data_obstacles = message["data"]["obstacles"]
     for obstacle in data_obstacles:
         obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, obstacle["dir"]))
-    # Run simulator
+    # Run algo
     map = om.OccupancyMap(obstacles)
-    hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 15, 'theta_start': np.pi / 2,
-                        'theta_offset': -np.pi / 2, 'metric': 'euclidean', 'minR': 25}
-    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25 * np.pi / 4 / 5, 'minR': 25,
-                  'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
-    simulator = sim.Simulator(obstacles, hamiltonian_args, astar_args).start_simulation()
+    tsp = Hamiltonian(obstacles, 15, 15, np.pi/2, -np.pi/2, 'euclidean', minR)
+    current_pos = tsp.start
+    checkpoints = tsp.find_brute_force_path()
+    for idx, checkpoint in enumerate(checkpoints):
+        algo = HybridAStar(map, current_pos[0], current_pos[1], current_pos[2], checkpoint[0], checkpoint[1], checkpoint[2], 10, 10, L, minR, 'euclidean', False, 24)
+        path, pathHistory = algo.find_path()
+        print_path(path)
+        current_pos = (path[-1].x, path[-1].y, path[-1].theta)
+        commands = construct_path(path, L, minR)
+        full_commands.extend(commands)
     # Convert to json
-    json_file = construct_json(simulator)
+    json_file = construct_json(full_commands)
     return json_file
+
+
+if __name__ == "__main__":
+    message = {"type": "START_TASK", "data": {"task": "EXPLORATION", "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                                               "obstacles": [{"id": "00", "x": 8, "y": 5, "dir": 'S'},
+                                                             {"id": "01", "x": 10, "y": 17, "dir": 'W'}]}}
+    print(call_algo(message))
