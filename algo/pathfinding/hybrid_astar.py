@@ -12,7 +12,6 @@ from typing import List
 import algo.utils as utils
 import algo.constants as c
 import algo.pathfinding.reeds_shepp as rs
-import algo.pathfinding.pathcommands as pc
 
 
 class Node():
