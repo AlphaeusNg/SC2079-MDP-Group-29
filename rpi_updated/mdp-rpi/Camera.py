@@ -4,6 +4,7 @@ import os
 from picamera import PiCamera
 import cv2
 import time
+from datetime import datetime
 
 FOLDER_PATH = "/home/pi/Documents/SC2079-MDP-Group-29/rpi_updated/mdp-rpi/ImageCapture"
 IMAGE_PREPROCESSED_FOLDER_PATH = "/home/pi/Documents/SC2079-MDP-Group-29/rpi_updated/mdp-rpi/ImagePreProcessed"
@@ -31,7 +32,8 @@ def preprocess_img(img_pth):
 
 def get_image():
     # Create a unique image path based on the current timestamp
-    img_pth = f"img_{round(time.time())}.jpg"
+    formatted_time = datetime.fromtimestamp(time.time()).strftime('%H-%M-%S.%f')[:-3]
+    img_pth = f"img_{formatted_time}.jpg"
 
     # Capture and preprocess the image
     capture(img_pth)
@@ -51,7 +53,6 @@ def get_image():
             "image": encoded_string
         }
     }
-
     return json.dumps(message).encode("utf-8")
 
 # import picamera
