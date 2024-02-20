@@ -1,6 +1,7 @@
 import socket
 import json
 from queue import Queue
+# import time
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
@@ -53,7 +54,7 @@ class PCClient:
                         # message_sized = self.prepend_msg_size(message)
                         self.client_socket.send(self.prepend_msg_size(message))
                         print("[PC Client] Write to RPI:", message)
-                        self.send_message = False
+                        # self.send_message = False
                     except Exception as e:
                         print("[PC Client] ERROR: Failed to write to RPI -", str(e))
                         self.reconnect()
@@ -70,27 +71,47 @@ class PCClient:
         try:
             while True:
                 # Receive the length of the message
-                length_bytes = self.client_socket.recv(4)
+                length_bytes = self.receive_all(4)
                 if not length_bytes:
                     print("[PC Server] Client disconnected.")
                     break
                 message_length = int.from_bytes(length_bytes, byteorder="big")
                 
-                # Receive the message
-                message = self.client_socket.recv(message_length).decode("utf-8")
-                
-                # Temporary for testing
+                # Temporary for testing, remove in final version
+                # time.sleep(5)
+
+                # Receive the actual message data
+                message = self.receive_all(message_length)
+                print("[PC Client] Received message:", message)
+
                 message = json.loads(message)
                 if message["type"] == "START_TASK":
+                    # Add algo implementation here:
                     message = {"type": "NAVIGATION", "data": {"commands": ["SF010", "RF090"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    message = json.dumps(message)
+                    self.msg_queue.put(message)
+                
+                elif message["type"] == "IMAGE_TAKEN":
+                    print(message)
+                    # Add image recognition here:
+                    message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
                     message = json.dumps(message)
                     self.msg_queue.put(message)
                 # end of temp test code
                 
-                print("[PC Server] Received message:", message)
-
         except socket.error as e:
             print("[PC Server] ERROR:", str(e))
+
+    def receive_all(self, size):
+        data = b""
+        while len(data) < size:
+            chunk = self.client_socket.recv(size - len(data))
+            if not chunk:
+                raise ConnectionError("Connection closed unexpectedly")
+            data += chunk
+        return data
+
+    
 
 
 if __name__ == "__main__":
