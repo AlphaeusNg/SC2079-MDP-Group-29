@@ -1,7 +1,8 @@
+"""
+Just to test the individual image sending and receiving back via socket. Can delete once fully integrated
+"""
+
 import socket
-import picamera
-import threading
-import time
 from threading import Thread
 from Android import AndroidInterface
 from PC import PCInterface
@@ -105,25 +106,18 @@ class PCInterface:
 
     def send(self):
         # Continuously send messages to the PC
-        while True:
+        # while True:
+        for i in range(1):
             if self.send_message:
                 # uncomment once ready
                 # message = self.msg_queue.get()
                 # message = message.decode("utf-8")
                 # for testing
-                camera_data = Camera.get_image
-                message_ori = {
-                    "type": "IMAGE_TAKEN",
-                    "data": {
-                        "image": camera_data
-                    }
-                }
-                message = json.dumps(message_ori)
+                message = Camera.get_image()
                 exception = True
                 while exception:
                     try:
                         self.client_socket.send(self.prepend_msg_size(message))
-                        # print("[PC] Write to PC:", message.decode("utf-8")[:MSG_LOG_MAX_SIZE])
                         print("[PC] Write to PC:", message)
                         # self.send_message = False
                     except Exception as e:
@@ -133,10 +127,10 @@ class PCInterface:
                         exception = False
 
     def prepend_msg_size(self, message):
-        message_bytes = message.encode("utf-8")
-        message_len = len(message_bytes)
+        # message_bytes = message.encode("utf-8")
+        message_len = len(message)
         length_bytes = message_len.to_bytes(4, byteorder="big")
-        return length_bytes + message_bytes
+        return length_bytes + message
 
 
 
@@ -200,25 +194,6 @@ class RPiMain:
         self.cleanup()
 
         print("[RPiMain] Exiting RPiMain...")
-
-
-def start_server():
-    host = '0.0.0.0'  # Listen on all available interfaces
-    port = 5555
-
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((host, port))
-    server_socket.listen(1)
-
-    print("Server listening on {}:{}".format(host, port))
-
-    while True:
-        client_socket, addr = server_socket.accept()
-        print("Accepted connection from:", addr)
-
-        # Start a new thread to handle the client
-        client_thread = threading.Thread(target=Camera.get_image, args=(client_socket,))
-        client_thread.start()
 
 if __name__ == "__main__":
     # Create an instance of RPiMain and run it
