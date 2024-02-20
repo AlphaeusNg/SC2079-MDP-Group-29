@@ -53,3 +53,29 @@ def get_image():
     }
 
     return json.dumps(message).encode("utf-8")
+
+# import picamera
+# import time
+
+# def capture_video(output_path, duration=10):
+#     # Initialize the camera
+#     with picamera.PiCamera() as camera:
+#         # Set the resolution (adjust as needed)
+#         camera.resolution = (640, 480)
+        
+#         # Start recording video
+#         camera.start_recording(output_path)
+        
+#         # Record for the specified duration
+#         camera.wait_recording(duration)
+        
+#         # Stop recording
+#         camera.stop_recording()
+
+# if __name__ == "__main__":
+#     video_output_path = "output_video.h264"  # Change the file name or path as needed
+#     video_duration = 10  # Duration of the video in seconds
+    
+#     capture_video(video_output_path, video_duration)
+#     print(f"Video captured and saved to {video_output_path}")
+

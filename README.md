@@ -6,4 +6,4 @@
 Contains the scripts for training and inference.
 
 ### STM32
-Contains STM32 program code information for managing and functioning the robot
+Contains STM32 program code for managing and functioning the robot
