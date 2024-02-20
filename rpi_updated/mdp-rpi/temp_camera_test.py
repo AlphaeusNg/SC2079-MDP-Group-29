@@ -4,13 +4,10 @@ Just to test the individual image sending and receiving back via socket. Can del
 
 import socket
 from threading import Thread
-from Android import AndroidInterface
 from PC import PCInterface
-from stm import STMInterface
 import Camera
 from queue import Queue
 import socket
-import sys
 import json
 from rpi_config import *
 

@@ -4,10 +4,25 @@ import socket
 import sys
 import subprocess
 import json
-
 from rpi_config import *
 
 class AndroidInterface:
+    """
+    Represents the interface between the Raspberry Pi and an Android device over Bluetooth.
+
+    Args:
+    - RPiMain: Instance of the RPiMain class.
+
+    Attributes:
+    - RPiMain (RPiMain): Instance of the RPiMain class.
+    - host (str): IP address of the Raspberry Pi.
+    - uuid (str): Bluetooth UUID for the service.
+    - msg_queue (Queue): Queue for storing messages.
+    - socket (BluetoothSocket): Bluetooth socket for communication.
+    - port (int): Port number for the socket connection.
+    - client_socket (BluetoothSocket): Socket for communication with the connected Android device.
+    - client_info (tuple): Information about the connected Android client.
+    """
     def __init__(self, RPiMain):
         # Initialize AndroidInterface with RPiMain instance
         self.RPiMain = RPiMain
