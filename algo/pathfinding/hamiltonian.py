@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__ + '\..')))
 import utils
 from objects.Obstacle import Obstacle
 import pathfinding.reeds_shepp as rs
+import constants as c
 
 class Hamiltonian():
     def __init__(self, obstacles, x_start, y_start, theta_start, theta_offset=0, 
@@ -61,9 +62,12 @@ class Hamiltonian():
 
 def obstacle_to_checkpoint(obstacle: Obstacle, theta_offset):
     x, y = utils.grid_to_coords(obstacle.x_g, obstacle.y_g)
+    theta = offset_theta(obstacle.facing, theta_offset)
     x += offset_x(obstacle.facing)
     y += offset_y(obstacle.facing)
-    theta = offset_theta(obstacle.facing, theta_offset)
+    x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
+    y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
+
     return (x, y, theta)
 
 def offset_x(facing: str):

@@ -37,6 +37,7 @@ class Node():
         return x_g, y_g, theta_g
 
     def __eq__(self, other):
+
         return abs(self.x - other.x) <= 3.5 and abs(self.y - other.y) <= 3.5 and \
         (abs(self.theta - other.theta) <= np.pi/24 or abs(abs(self.theta - other.theta) - 2*np.pi) <= np.pi/24)
     
@@ -44,19 +45,20 @@ class Node():
         return self.f < other.f
 
 class HybridAStar():
-    def __init__(self, map: OccupancyMap, x_0: float=15, y_0: float=15, theta_0: float=np.pi/2, 
-                 x_f: float=15, y_f: float=180, theta_f: float=np.pi/2, steeringChangeCost=10, gearChangeCost=20,
+    def __init__(self, map: OccupancyMap, x_0: float=15, y_0: float=10, theta_0: float=np.pi/2, 
+                 x_f: float=15, y_f: float=180, theta_f: float=np.pi/2, theta_offset: float=0, steeringChangeCost=10, gearChangeCost=20,
                     L: float=5, minR: float=25, heuristic: str='hybriddiag', simulate: bool=False, thetaBins=24):
         """HybridAStar constructor
 
         Args:
             map (2D numpy array): binary occupancy map
             x_0 (float, optional): starting x coordinate of rear axle. Defaults to 15.
-            y_0 (float, optional): starting y coordinate of rear axle. Defaults to 15.
+            y_0 (float, optional): starting y coordinate of rear axle. Defaults to 10.
             theta_0 (float, optional): starting direction. Defaults to np.pi/2.
             x_f (float, optional): ending x coordinate of rear axle. Defaults to 15.
             y_f (float, optional): ending y coordinate of rear axle. Defaults to 180.
             theta_f (float, optional): ending direction. Defaults to np.pi/2.
+            theta_offset (float, optional): offset for camera direction. Defaults to 0.
             steeringChangeCost (int, optional): extra cost for changing steering input. Defaults to 10.
             gearChangeCost (int, optional): extra cost for changing gear input. Defaults to 20.
             L (float, optional): distance travel each step in cm. Defaults to 5.
@@ -76,6 +78,7 @@ class HybridAStar():
         self.x_f = x_f
         self.y_f = y_f
         self.theta_f = theta_f
+        self.theta_offset = theta_offset
         self.steeringChangeCost = steeringChangeCost
         self.gearChangeCost = gearChangeCost
         self.L = L
@@ -133,7 +136,7 @@ class HybridAStar():
 
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
 
-                if childNode == endNode:
+                if self.checkPathFound(childNode):
                     print("Path Found!")
                     pathFound = True
                     currentNode = childNode
@@ -199,6 +202,33 @@ class HybridAStar():
         else:
             return path, None
 
+    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=25, distanceMargin: float=7.5, maxPerpDistance:float=1):
+        if abs(curNode.theta - self.theta_f) > thetaMargin:
+            return False
+        
+        target_x = self.x_f + c.REAR_AXLE_TO_CENTER*np.cos(self.theta_f)
+        target_y = self.y_f + c.REAR_AXLE_TO_CENTER*np.sin(self.theta_f)
+        target_x += targetDistance*np.cos(self.theta_f - self.theta_offset)
+        target_y += targetDistance*np.sin(self.theta_f - self.theta_offset)
+
+        cur_x = curNode.x + c.REAR_AXLE_TO_CENTER*np.cos(curNode.theta)
+        cur_y = curNode.y + c.REAR_AXLE_TO_CENTER*np.sin(curNode.theta)
+        
+        dist = utils.l2(target_x, target_y, cur_x, cur_y)
+
+        if dist > targetDistance + distanceMargin:
+            return False
+        if dist < targetDistance - distanceMargin:
+            return False
+        
+        projection_x = cur_x + dist*np.cos(curNode.theta - self.theta_offset)
+        projection_y = cur_y + dist*np.sin(curNode.theta - self.theta_offset)
+        perpDistance = utils.l2(projection_x, projection_y, target_x, target_y)
+        
+        if perpDistance > maxPerpDistance:
+            return False
+        
+        return True
 
     def calculate_next_node(self, currentNode, choice):
         gear = choice[0]

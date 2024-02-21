@@ -35,8 +35,8 @@ class Obstacle(pygame.sprite.Sprite):
 class VirtualWall(pygame.sprite.Sprite):
     def __init__(self, x_g: int, y_g: int) -> None:
         pygame.sprite.Sprite.__init__(self)
-        self.x_g = max(x_g - 3, 0)
-        self.y_g = max(y_g - 3, 0)
+        self.x_g = x_g - 3
+        self.y_g = y_g - 3
         self.width = (min(self.x_g + 8, c.GRID_SIZE) - self.x_g)*200/c.GRID_SIZE*c.MAP_WIDTH/200
         self.height = (min(self.y_g + 8, c.GRID_SIZE) - self.y_g)*200/c.GRID_SIZE*c.MAP_HEIGHT/200
         

@@ -62,12 +62,12 @@ class Simulator:
             self.virtual_walls.add(vw)
             self.virtual_wall_surface.blit(vw.image, (vw.rect.x - c.MAP_X0, vw.rect.y - c.MAP_Y0))
         
-        left_border_wall = VirtualBorderWall(15*c.MAP_WIDTH/200, c.MAP_HEIGHT, 0, 0)
-        right_border_wall = VirtualBorderWall(15*c.MAP_WIDTH/200, c.MAP_HEIGHT, 
-                                               c.MAP_WIDTH - 15*c.MAP_WIDTH/200, 0)
-        top_border_wall = VirtualBorderWall(c.MAP_WIDTH, 15*c.MAP_HEIGHT/200, 0, 0)
-        bottom_border_wall = VirtualBorderWall(c.MAP_WIDTH, 15*c.MAP_HEIGHT/200, 
-                                               0, c.MAP_HEIGHT - 15*c.MAP_HEIGHT/200)
+        left_border_wall = VirtualBorderWall(10*c.MAP_WIDTH/200, c.MAP_HEIGHT, 0, 0)
+        right_border_wall = VirtualBorderWall(10*c.MAP_WIDTH/200, c.MAP_HEIGHT, 
+                                               c.MAP_WIDTH - 10*c.MAP_WIDTH/200, 0)
+        top_border_wall = VirtualBorderWall(c.MAP_WIDTH, 10*c.MAP_HEIGHT/200, 0, 0)
+        bottom_border_wall = VirtualBorderWall(c.MAP_WIDTH, 10*c.MAP_HEIGHT/200, 
+                                               0, c.MAP_HEIGHT - 10*c.MAP_HEIGHT/200)
         
 
         self.virtual_walls.add(left_border_wall)
@@ -120,7 +120,7 @@ class Simulator:
                 for idx, checkpoint in enumerate(checkpoints):
                     print(f"Calculating path from {current_pos} to {checkpoint}")
                     algo = HybridAStar(map, x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
-                                    x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2], 
+                                    x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2], theta_offset=astar_args['theta_offset'],
                                     steeringChangeCost=self.astar_args['steeringChangeCost'], 
                                     gearChangeCost=self.astar_args['gearChangeCost'], 
                                     L=self.astar_args['L'], minR=self.astar_args['minR'],
@@ -173,11 +173,11 @@ class Simulator:
 
 if __name__ == "__main__":
     test_maps = get_maps()
-    map = test_maps[5][:8]
+    map = test_maps[0][:8]
     
     hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 15, 'theta_start': np.pi/2, 
                         'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 25}
-    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25*np.pi/4/5, 
+    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25*np.pi/4/5, 'theta_offset': -np.pi/2,
                     'minR': 25, 'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
 
     sim = Simulator(map, hamiltonian_args, astar_args)
