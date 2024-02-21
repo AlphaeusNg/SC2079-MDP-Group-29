@@ -14,8 +14,11 @@ def print_path(path):
 
 def construct_path(path, L, Radius):
     LF, SF, RF, LR, SB, RB = 0, 0, 0, 0, 0, 0
+    approx = 10
     command = []
+    droid = []
     for node in path:
+        droid.append([round(node.x / approx), round(node.y / approx)])
         if node.prevAction == (Gear.FORWARD, Steering.LEFT):
             LF += 1
         else:
@@ -64,14 +67,27 @@ def construct_path(path, L, Radius):
                 command.append(f"RB{int(RB):03d}")
                 RB = 0
 
-    return command
+    return command, droid
 
 
-def construct_json(command):
+def construct_json(command, path):
+
+    sample_format = {
+        "type": "NAVIGATION",
+        "data":
+            {
+                "commands": ["SF010", "RF090"],
+                "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]
+            }
+    }
+
     json_file = {
         "type": "NAVIGATION",
-        "data": command
-        # "path": path
+        "data":
+            {
+                "commands": command,
+                "path": path
+            }
     }
     return json_file
 
@@ -79,6 +95,7 @@ def construct_json(command):
 def call_algo(message, L=25*np.pi/4/5, minR=25):
     obstacles = []
     full_commands = []
+    full_path = []
     data_obstacles = message["data"]["obstacles"]
     for obstacle in data_obstacles:
         obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, obstacle["dir"]))
@@ -92,10 +109,11 @@ def call_algo(message, L=25*np.pi/4/5, minR=25):
         path, pathHistory = algo.find_path()
         print_path(path)
         current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-        commands = construct_path(path, L, minR)
+        commands, droid = construct_path(path, L, minR)
         full_commands.extend(commands)
+        full_path.extend(droid)
     # Convert to json
-    json_file = construct_json(full_commands)
+    json_file = construct_json(full_commands, full_path)
     return json_file
 
 
