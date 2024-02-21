@@ -130,8 +130,9 @@ class HybridAStar():
                     continue 
 
                 x_child, y_child, theta_child = self.calculate_next_node(currentNode, choice)
+                
 
-                if self.map.collide_with_point(x_child, y_child):
+                if self.map.collide_with_point(x_child + c.REAR_AXLE_TO_CENTER*np.cos(theta_child), y_child + c.REAR_AXLE_TO_CENTER*np.sin(theta_child)):
                     continue #skip if next node is occupied
 
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
