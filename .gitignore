@@ -1,3 +1,5 @@
+.vscode/settings.json
+*.pyc
 .idea
 .venv
 captured_images/*
