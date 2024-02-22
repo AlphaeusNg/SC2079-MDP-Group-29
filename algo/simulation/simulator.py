@@ -175,7 +175,7 @@ if __name__ == "__main__":
     test_maps = get_maps()
     map = test_maps[0][:8]
     
-    hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 15, 'theta_start': np.pi/2, 
+    hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 10, 'theta_start': np.pi/2, 
                         'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 25}
     astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25*np.pi/4/5, 'theta_offset': -np.pi/2,
                     'minR': 25, 'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
