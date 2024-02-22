@@ -50,16 +50,19 @@ def construct_path(path, L, Radius):
             if RF >= 1:
                 RF *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"RF{int(RF):03d}")
+                command.append(f"SF{int(dis):03d}")
                 RF = 0
                 dis = 0
         # Gear.REVERSE + Steering.LEFT
         if node.prevAction == (Gear.REVERSE, Steering.LEFT):
             LB += 1
         else:
-            if LR >= 1:
-                LR *= (L / (2 * np.pi * Radius)) * 360
-                command.append(f"LR{int(LR):03d}")
-                LR = 0
+            if LB >= 1:
+                LB *= (L / (2 * np.pi * Radius)) * 360
+                command.append(f"LB{int(LB):03d}")
+                command.append(f"SB{int(dis):03d}")
+                LB = 0
+                dis = 0
         # Gear.REVERSE + Steering.STRAIGHT
         if node.prevAction == (Gear.REVERSE, Steering.STRAIGHT):
             SB += 1
@@ -75,12 +78,36 @@ def construct_path(path, L, Radius):
             if RB >= 1:
                 RB *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"RB{int(RB):03d}")
+                command.append(f"SB{int(dis):03d}")
                 RB = 0
                 dis = 0
         prev = node
 
+    if LF >= 1:
+        LF *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"LF{int(LF):03d}")
+        command.append(f"SF{int(dis):03d}")
+    if SF >= 1:
+        SF *= L
+        command.append(f"SF{int(SF):03d}")
+    if RF >= 1:
+        RF *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"RF{int(RF):03d}")
+        command.append(f"SF{int(dis):03d}")
+    if LB >= 1:
+        LB *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"LB{int(LB):03d}")
+        command.append(f"SB{int(dis):03d}")
+    if SB >= 1:
+        SB *= L
+        command.append(f"SB{int(SB):03d}")
+    if RB >= 1:
+        RB *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"RB{int(RB):03d}")
+        command.append(f"SB{int(dis):03d}")
+    
     return command, droid
-
+    
 
 def construct_json(command, path):
     json_file = {

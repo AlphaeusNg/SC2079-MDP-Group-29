@@ -39,6 +39,7 @@ class task1():
         nextCommand = self.commands.pop(0)
         nextPath = self.android.pop(0)
         return construct_json(nextCommand, nextPath)
+
     
     def has_task_ended(self):
-        return self.commands.empty()
+        return not self.commands
