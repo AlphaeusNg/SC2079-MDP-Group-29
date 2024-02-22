@@ -4,12 +4,13 @@ from hybrid_astar import HybridAStar
 from objects.OccupancyMap import OccupancyMap
 
 class task1():
-    def __init__(self, message):
+    def __init__(self):
         self.checkpoints = []
         self.paths = []
         self.commands = []
+        
+    def generate_path(self, message):
         obstacles = []
-
         L=25*np.pi/4/5
         minR=25
 

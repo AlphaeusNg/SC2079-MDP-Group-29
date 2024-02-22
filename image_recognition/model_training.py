@@ -24,7 +24,9 @@ if __name__ == '__main__':
     #     imgsz=640,
     #     batch=16,
     #     epochs=200,
-    #     device='cuda')
+    #     device='cuda',
+    #     name="train (old_batch_image + current_batch_image)",
+    #     exist_ok=True)
 
     # Further fine-tuning on MDP CV.v8i.yolov8 (personally curated dataset)
     # model = YOLO("../runs/detect/train (old_batch_image + current_batch_image)/weights/best.pt")  # if training stopped
@@ -46,7 +48,7 @@ if __name__ == '__main__':
     #     name="valid (old + current + MDP CV.v8)"
     # )  # evaluate model performance on the validation set
 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("image_recognition/runs/detect/train (MDP CV.v8 only)/weights/last.pt")
     model.train(
         resume=True,
         seed=42,
@@ -56,8 +58,7 @@ if __name__ == '__main__':
         batch=16,
         epochs=300,
         device='cuda',
-        name="train (MDP CV.v8 only)",
-        exist_ok=True)  # train the model
+        name="train (MDP CV.v8 only)")  # train the model
 
     metrics = model.val(
         name="valid (MDP CV.v8 only)"

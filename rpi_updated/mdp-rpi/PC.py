@@ -81,9 +81,11 @@ class PCInterface:
                     # PC -> Rpi -> STM
                     if msg_type == 'NAVIGATION': 
                         self.RPiMain.STM.msg_queue.put(message)
+
                     # PC -> Rpi -> Android
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                         self.RPiMain.Android.msg_queue.put(message)
+
                     else:
                         print("[PC] ERROR: Received message with unknown type from PC -", message)
                 else:
@@ -94,7 +96,7 @@ class PCInterface:
                 print("[PC] ERROR:", str(e))
 
     def send(self):
-        # Continuously send messages to the PC
+        # Continuously send messages to the PC Client
         while True:
             if self.send_message:
                 # uncomment once ready
