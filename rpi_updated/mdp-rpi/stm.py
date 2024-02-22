@@ -70,38 +70,35 @@ class STMInterface:
         # Task 2: return to carpark
         self.second_arrow = None
         self.xdist = None
-        self.ydist = None 
+        self.ydist = None
         while True: 
+        # for i in range(1): 
             
             # Uncomment once implementation is done
-            message = self.msg_queue.get()
+            message_byte = self.msg_queue.get()
+            message_str = message_byte.decode("utf-8")
+            message = json.loads(message_str)
+            message_type = message["type"]
 
             # comment once implementation is done.
-            # message_json = {
+            # message = {
             #     "type": "NAVIGATION",
             #     "data": {
             #     # "commands":  ["SF010", "RF030", "SB050", "LB090"],
-            #     "commands":  ["SF010", "SB050"],
+            #     "commands":  ["SF050"],
             #     "path": [[0,1], [1,1], [2,1], [3,1]]
             #     }
             # }
-
-            # message_json = json.dumps(message)
-            # print(type(message_json))
-            # print(message)
-            # print(type(message_json))
-
-            message_str = message.decode("utf-8")
-            message_json = json.loads(message_str)
-            message_type = message_json["type"]
+            # message_type = 'NAVIGATION'
+            # end of test code
 
             if message_type == "NAVIGATION":
                 # Display path on Android
-                self.send_path_to_android(message_json) 
+                self.send_path_to_android(message) 
 
                 # Convert/adjust turn or obstacle routing commands
                 # print("hello 1: ", message)
-                commands = self.adjust_commands(message_json["data"]["commands"])
+                commands = self.adjust_commands(message["data"]["commands"])
                 # print("hello 2: ", commands)
                 # print(type(commands))
                 # print(len(commands))
@@ -111,6 +108,7 @@ class STMInterface:
                 # break
                 for command in commands:
                     self.write_to_stm(command)
+                    print("at write_to_stm")
 
                 self.obstacle_count += 1
 

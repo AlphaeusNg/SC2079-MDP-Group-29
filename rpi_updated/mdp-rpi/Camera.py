@@ -35,9 +35,9 @@ def preprocess_img(img_pth: str) -> None:
     img = cv2.imread(image_save_location)
 
     resized_img = cv2.resize(img, (640, 480))  # (Width, Height) because we trained our dataset on 640x480 images
-
+    flipped_img = cv2.flip(resized_img, -1) # we flipped it cos camera upside down
     image_save_location = os.path.join(IMAGE_PREPROCESSED_FOLDER_PATH, img_pth)
-    cv2.imwrite(image_save_location, resized_img)
+    cv2.imwrite(image_save_location, flipped_img)
     print("[Camera] Image preprocessing complete")
 
 def get_image() -> bytes:

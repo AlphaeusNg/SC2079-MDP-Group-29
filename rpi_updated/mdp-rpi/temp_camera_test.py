@@ -111,6 +111,7 @@ class PCInterface:
                 # message = message.decode("utf-8")
                 # for testing
                 message = Camera.get_image()
+                # end of testing
                 exception = True
                 while exception:
                     try:

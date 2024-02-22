@@ -115,12 +115,13 @@ class PCInterface:
                 #     }
                 # }
                 # message = json.dumps(message_ori)
+                # end of test code
                 exception = True
                 while exception:
                     try:
                         message = self.prepend_msg_size(message)
                         self.client_socket.sendall(message)
-                        print("[PC] Write to PC:", message)
+                        print("[PC] Write to PC: first 100=", message[:100])
                     except Exception as e:
                         print("[PC] ERROR: Failed to write to PC -", str(e))
                         self.reconnect()

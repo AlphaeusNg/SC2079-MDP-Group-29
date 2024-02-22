@@ -8,6 +8,7 @@ class task1():
         self.checkpoints = []
         self.paths = []
         self.commands = []
+        self.android = []
         
     def generate_path(self, message):
         obstacles = []
@@ -28,10 +29,12 @@ class task1():
             current_pos = (path[-1].x, path[-1].y, path[-1].theta)
             commands, pathDisplay = construct_path(path, L, minR)
             self.commands.append(commands)
+            self.android.append(pathDisplay)
     
     def get_command_to_next_obstacle(self):
         nextCommand = self.commands.pop()
-        return construct_json(nextCommand)
+        nextPath = self.android.pop()
+        return construct_json(nextCommand, nextPath)
     
     def has_task_ended(self):
         return self.commands.empty()
