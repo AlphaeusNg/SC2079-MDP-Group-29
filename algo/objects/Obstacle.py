@@ -1,5 +1,5 @@
 import numpy as np
-import algo.utils
+import algo.utils as utils
 import pygame
 import algo.constants as c
 

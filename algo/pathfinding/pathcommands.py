@@ -25,6 +25,7 @@ def construct_path(path, L, Radius):
             if LF >= 1:
                 LF *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"LF{int(LF):03d}")
+                command.append(f"SF{int(LF):03d}")
                 LF = 0
         # Gear.FORWARD + Steering.STRAIGHT
         if node.prevAction == (Gear.FORWARD, Steering.STRAIGHT):
@@ -41,6 +42,7 @@ def construct_path(path, L, Radius):
             if RF >= 1:
                 RF *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"RF{int(RF):03d}")
+                command.append(f"SF{int(RF):03d}")
                 RF = 0
         # Gear.REVERSE + Steering.LEFT
         if node.prevAction == (Gear.REVERSE, Steering.LEFT):
@@ -48,7 +50,8 @@ def construct_path(path, L, Radius):
         else:
             if LR >= 1:
                 LR *= (L / (2 * np.pi * Radius)) * 360
-                command.append(f"LR{int(LR):03d}")
+                command.append(f"LB{int(LR):03d}")
+                command.append(f"SB{int(LR):03d}")
                 LR = 0
         # Gear.REVERSE + Steering.STRAIGHT
         if node.prevAction == (Gear.REVERSE, Steering.STRAIGHT):
@@ -65,6 +68,7 @@ def construct_path(path, L, Radius):
             if RB >= 1:
                 RB *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"RB{int(RB):03d}")
+                command.append(f"SB{int(RB):03d}")
                 RB = 0
 
     return command, droid
@@ -95,7 +99,14 @@ def call_algo(message, L=25*np.pi/4/5, minR=25):
     current_pos = tsp.start
     checkpoints = tsp.find_brute_force_path()
     for idx, checkpoint in enumerate(checkpoints):
-        algo = HybridAStar(map, current_pos[0], current_pos[1], current_pos[2], checkpoint[0], checkpoint[1], checkpoint[2], 10, 10, L, minR, 'euclidean', False, 24)
+        # (self, map: OccupancyMap, x_0: float=15, y_0: float=10, theta_0: float=np.pi/2, 
+        #          x_f: float=15, y_f: float=180, theta_f: float=np.pi/2, theta_offset: float=0, steeringChangeCost=10, gearChangeCost=20,
+        #             L: float=5, minR: float=25, heuristic: str='hybriddiag', simulate: bool=False, thetaBins=24)
+        algo = HybridAStar(map=map, 
+                           x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
+                           x_f=checkpoint[0], y_f=checkpoint[1], 
+                           theta_f=checkpoint[2], steeringChangeCost=10, gearChangeCost=10, 
+                           L=L, minR=minR, heuristic='euclidean', simulate=False, thetaBins=24)
         path, pathHistory = algo.find_path()
         print_path(path)
         current_pos = (path[-1].x, path[-1].y, path[-1].theta)
