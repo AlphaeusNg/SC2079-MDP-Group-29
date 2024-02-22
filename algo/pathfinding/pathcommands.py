@@ -14,8 +14,11 @@ def print_path(path):
 
 def construct_path(path, L, Radius):
     LF, SF, RF, LR, SB, RB = 0, 0, 0, 0, 0, 0
+    approx = 10
     command = []
+    droid = []
     for node in path:
+        droid.append([round(node.x / approx), round(node.y / approx)])
         if node.prevAction == (Gear.FORWARD, Steering.LEFT):
             LF += 1
         else:
@@ -64,7 +67,7 @@ def construct_path(path, L, Radius):
                 command.append(f"RB{int(RB):03d}")
                 RB = 0
 
-    return command
+    return command, droid
 
 
 def construct_json(command):
