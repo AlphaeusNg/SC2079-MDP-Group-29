@@ -103,18 +103,19 @@ class PCInterface:
                 message = self.msg_queue.get()
                 message = message.decode("utf-8")
                 # for testing
-                # message_ori = {
-                #     "type": "START_TASK",
-                #     "data": {
-                #     "task": "EXPLORATION",
-                #     "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
-                #     "obstacles": [
-                #             {"id": "00", "x": 4, "y": 15, "dir": 'S'},
-                #             {"id": "01", "x": 16, "y": 17, "dir": 'W'}
-                #     ]
-                #     }
-                # }
-                # message = json.dumps(message_ori)
+                message_ori = {
+                    "type": "START_TASK",
+                    "data": {
+                    "task": "EXPLORATION",
+                    "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                    "obstacles": [
+                            {"id": "00", "x": 4, "y": 15, "dir": 'S'},
+                            {"id": "01", "x": 16, "y": 17, "dir": 'W'}
+                    ]
+                    }
+                }
+                message = json.dumps(message_ori)
+                # end of test code
                 exception = True
                 while exception:
                     try:

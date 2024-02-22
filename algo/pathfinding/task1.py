@@ -1,7 +1,7 @@
-from pathcommands import *
-from hamiltonian import Hamiltonian
-from hybrid_astar import HybridAStar
-from objects.OccupancyMap import OccupancyMap
+from algo.pathfinding.pathcommands import *
+from algo.pathfinding.hamiltonian import Hamiltonian
+from algo.pathfinding.hybrid_astar import HybridAStar
+from algo.objects.OccupancyMap import OccupancyMap
 
 class task1():
     def __init__(self):

@@ -1,8 +1,8 @@
 import numpy as np
-from enumerations import Gear, Steering
-from objects.Obstacle import Obstacle
-from pathfinding.hamiltonian import Hamiltonian
-from pathfinding.hybrid_astar import HybridAStar
+from algo.enumerations import Gear, Steering
+from algo.objects.Obstacle import Obstacle
+from algo.pathfinding.hamiltonian import Hamiltonian
+from algo.pathfinding.hybrid_astar import HybridAStar
 import algo.objects.OccupancyMap as om
 
 

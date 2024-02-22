@@ -87,9 +87,8 @@ class PCClient:
                 message = json.loads(message)
                 if message["type"] == "START_TASK":
                     # Add algo implementation here:
-                    # get command to next, will pop from list automatically
                     self.t1.generate_path(message)
-                    path_message = self.t1.get_command_to_next_obstacle()
+                    path_message = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
                     # path_message = {"type": "NAVIGATION", "data": {"commands": ["SF010", "RF090"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
                     path_message = json.dumps(path_message)
                     self.msg_queue.put(path_message)
