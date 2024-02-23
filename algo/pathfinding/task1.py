@@ -12,10 +12,18 @@ class task1():
         
     def generate_path(self, message):
         obstacles = []
-        L=25*np.pi/4/5
+        L=23*np.pi/4/5 # changed from 25 to 23
         minR=25
 
         for obstacle in message["data"]["obstacles"]:
+            if obstacle["dir"] == "N":
+                obstacle["dir"] = "S"
+            if obstacle["dir"] == "S":
+                obstacle["dir"] = "N"
+            if obstacle["dir"] == "W":
+                obstacle["dir"] = "E"
+            if obstacle["dir"] == "E":
+                obstacle["dir"] = "W"
             obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, obstacle["dir"]))
 
         map = OccupancyMap(obstacles)

@@ -48,7 +48,7 @@ def get_image() -> bytes:
         bytes: Encoded JSON message containing image data.
     """
     # Create a unique image path based on the current timestamp
-    formatted_time = datetime.fromtimestamp(time.time()).strftime('%H-%M-%S.%f')[:-3]
+    formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_pth = f"img_{formatted_time}.jpg"
 
     # Capture and preprocess the image

@@ -6,6 +6,7 @@ import time
 import serial
 from Camera import get_image
 from rpi_config import *
+import time
 
 class STMInterface:
     def __init__(self, RPiMain):
@@ -71,25 +72,25 @@ class STMInterface:
         self.second_arrow = None
         self.xdist = None
         self.ydist = None
-        while True: 
-        # for i in range(1): 
+        # while True: 
+        for i in range(1): 
             
             # Uncomment once implementation is done
-            message_byte = self.msg_queue.get()
-            message_str = message_byte.decode("utf-8")
-            message = json.loads(message_str)
-            message_type = message["type"]
+            # message_byte = self.msg_queue.get()
+            # message_str = message_byte.decode("utf-8")
+            # message = json.loads(message_str)
+            # message_type = message["type"]
 
             # comment once implementation is done.
-            # message = {
-            #     "type": "NAVIGATION",
-            #     "data": {
-            #     # "commands":  ["SF010", "RF030", "SB050", "LB090"],
-            #     "commands":  ["SF050"],
-            #     "path": [[0,1], [1,1], [2,1], [3,1]]
-            #     }
-            # }
-            # message_type = 'NAVIGATION'
+            message = {
+                "type": "NAVIGATION",
+                "data": {
+                # "commands":  ["SF010", "RF030", "SB050", "LB090"],
+                "commands":  ["SF030"],
+                "path": [[0,1], [1,1], [2,1], [3,1]]
+                }
+            }
+            message_type = 'NAVIGATION'
             # end of test code
 
             if message_type == "NAVIGATION":
@@ -97,19 +98,24 @@ class STMInterface:
                 self.send_path_to_android(message) 
 
                 # Convert/adjust turn or obstacle routing commands
-                # print("hello 1: ", message)
                 commands = self.adjust_commands(message["data"]["commands"])
-                # print("hello 2: ", commands)
-                # print(type(commands))
-                # print(len(commands))
-                # for object in commands:
-                #     obj_id = id(object)
-                #     print(f"Index: {obj_id}, object: {object}")
-                # break
-                for command in commands:
+
+                # Real code
+                for idx, command in enumerate(commands):
                     self.write_to_stm(command)
                     print("at write_to_stm")
-
+                    if idx >= len(commands) - 3:
+                        # Start a new thread to capture and send the image to PC
+                        capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                        capture_and_send_image_thread.start()
+                    
+                # test code for taking many images
+                # for i in range(32):
+                #     capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                #     capture_and_send_image_thread.start()
+                #     time.sleep(8)
+                # end of test code
+    
                 self.obstacle_count += 1
 
                 if self.second_arrow is not None:
