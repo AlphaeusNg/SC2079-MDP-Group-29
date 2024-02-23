@@ -112,6 +112,46 @@ def construct_path(path, L, Radius):
     print(command)
     print(droid)
     return command, droid
+
+
+def construct_path_2(path, L, Radius):
+    commands = []
+    unitDist = L
+    unitAngle = (L / (2 * np.pi * Radius)) * 360
+
+    prevGear = path[0][0]
+    prevSteering = path[0][1]
+    sameCommandCount = 1
+
+    for pathElement in path[1:]:
+        gear = pathElement[0]
+        steering = pathElement[1]
+
+        if gear == prevGear and steering == prevSteering:
+            sameCommandCount += 1
+            continue
+        
+        else:
+            if steering == Steering.STRAIGHT:
+                commands.append(f"S{"F" if gear == Gear.FORWARD else "B"}
+                                {int(sameCommandCount*unitDist):03d}")
+            else:
+                commands.append(f"{"L" if steering == Steering.LEFT else "R"}
+                                {"F" if gear == Gear.FORWARD else "B"}
+                                {int(sameCommandCount*unitAngle):03d}")
+            
+            sameCommandCount = 1
+            prevGear = gear
+            prevSteering = steering
+
+    return commands
+
+
+        
+
+
+
+        
     
 
 def construct_json(command, path):
