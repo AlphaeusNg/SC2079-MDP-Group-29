@@ -3,6 +3,7 @@ import numpy as np
 from sys import exit
 import os
 import sys
+import math
 sys.path.append(os.path.dirname(os.path.abspath(__file__ + '\..')))
 
 from enumerations import Gear, Steering
@@ -22,6 +23,7 @@ class Simulator:
         self.hamiltonian_args = hamiltonian_args
         self.astar_args = astar_args
         self.commands = []
+        self.car = pygame.image.load(os.path.join("..", "objects", "images", "ccar.png"))
 
         self.screen = pygame.display.set_mode((c.WIDTH, c.HEIGHT))
         self.screen.fill('white')
@@ -109,10 +111,11 @@ class Simulator:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
-            
+
             self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
             self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
             self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30*c.MAP_HEIGHT/200))
+            self.screen.blit(self.car, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30*c.MAP_HEIGHT/200))
             self.borders.draw(self.screen)
             self.obstacles.draw(self.screen)
 
@@ -135,22 +138,45 @@ class Simulator:
                     current_pos = (path[-1].x, path[-1].y, path[-1].theta)
 
                     pc.print_path(path)
-                    commands = pc.construct_path(path, self.astar_args['L'], self.astar_args['minR'])
-                    # print(f"Commands: {commands}")
+                    commands, droid = pc.construct_path(path, self.astar_args['L'], self.astar_args['minR'])
+                    print(f"Commands: {commands}")
+                    print(f"APath: {droid}")
                     self.commands.extend(commands)
 
                     color = colors[idx % len(colors)]
-                    self.draw_final_path(path, color)
-                    self.screen.blit(self.path_surface, (0, 0))
+                    # self.draw_final_path(path, color)
+                    # self.screen.blit(self.path_surface, (0, 0))
+
+                    for node in path:
+                        pygame.display.update()
+                        x, y = utils.coords_to_pixelcoords(x=node.x, y=node.y)
+                        car_rect = self.car.get_rect(center=(x, y))
+                        rotated_car = pygame.transform.rotate(self.car, math.degrees(node.theta))
+
+                        self.screen.fill((255, 255, 255))
+                        self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
+                        self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
+                        self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
+                        self.borders.draw(self.screen)
+                        self.obstacles.draw(self.screen)
+                        self.draw_final_path(path, color)
+                        self.screen.blit(self.path_surface, (0, 0))
+                        self.screen.blit(rotated_car, car_rect)
+                        pygame.time.delay(50)
+
                     pygame.display.update()
                     self.clock.tick(1000)
-                
+
                 done = True
                 print(f"Total path length: {numNodes*self.astar_args['L']}cm")
                 print(self.commands)
 
-            # self.draw_path_history(pathHistory)
+
+
+
             # pygame.display.update()
+            # self.draw_path_history(pathHistory)
+
         
     def draw_final_path(self, path, color):
         points = []
@@ -176,7 +202,7 @@ class Simulator:
 
 if __name__ == "__main__":
     test_maps = get_maps()
-    map = test_maps[1][:8]
+    map = test_maps[10][:5]
     
     hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 15, 'theta_start': np.pi/2, 
                         'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 25}
