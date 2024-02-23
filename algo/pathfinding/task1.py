@@ -12,7 +12,7 @@ class task1():
         
     def generate_path(self, message):
         obstacles = []
-        L=23*np.pi/4/5 # changed from 25 to 23
+        L=25*np.pi/4/5
         minR=25
 
         for obstacle in message["data"]["obstacles"]:

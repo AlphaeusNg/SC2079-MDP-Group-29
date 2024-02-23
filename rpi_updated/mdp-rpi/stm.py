@@ -72,25 +72,25 @@ class STMInterface:
         self.second_arrow = None
         self.xdist = None
         self.ydist = None
-        # while True: 
-        for i in range(1): 
+        while True: 
+        # for i in range(1): 
             
             # Uncomment once implementation is done
-            # message_byte = self.msg_queue.get()
-            # message_str = message_byte.decode("utf-8")
-            # message = json.loads(message_str)
-            # message_type = message["type"]
+            message_byte = self.msg_queue.get()
+            message_str = message_byte.decode("utf-8")
+            message = json.loads(message_str)
+            message_type = message["type"]
 
             # comment once implementation is done.
-            message = {
-                "type": "NAVIGATION",
-                "data": {
-                # "commands":  ["SF010", "RF030", "SB050", "LB090"],
-                "commands":  ["SF030"],
-                "path": [[0,1], [1,1], [2,1], [3,1]]
-                }
-            }
-            message_type = 'NAVIGATION'
+            # message = {
+            #     "type": "NAVIGATION",
+            #     "data": {
+            #     # "commands":  ["SF010", "RF030", "LF030", "SF010"],
+            #     "commands":  ["RB180"],
+            #     "path": [[0,1], [1,1], [2,1], [3,1]]
+            #     }
+            # }
+            # message_type = 'NAVIGATION'
             # end of test code
 
             if message_type == "NAVIGATION":
@@ -104,10 +104,11 @@ class STMInterface:
                 for idx, command in enumerate(commands):
                     self.write_to_stm(command)
                     print("at write_to_stm")
-                    if idx >= len(commands) - 3:
-                        # Start a new thread to capture and send the image to PC
-                        capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
-                        capture_and_send_image_thread.start()
+                    # time.sleep(5)
+                    # if idx >= len(commands) - 3:
+                    #     # Start a new thread to capture and send the image to PC
+                    #     capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                    #     capture_and_send_image_thread.start()
                     
                 # test code for taking many images
                 # for i in range(32):

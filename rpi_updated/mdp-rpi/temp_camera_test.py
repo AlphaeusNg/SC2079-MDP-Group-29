@@ -105,7 +105,7 @@ class PCInterface:
     def send(self):
         # Continuously send messages to the PC
         # while True:
-        for i in range(32):
+        for i in range(1):
             if self.send_message:
                 # uncomment once ready
                 # message = self.msg_queue.get()
@@ -124,7 +124,7 @@ class PCInterface:
                         self.reconnect()
                     else:
                         exception = False
-                time.sleep(8)
+                # time.sleep(8)
 
     def prepend_msg_size(self, message):
         # message_bytes = message.encode("utf-8")

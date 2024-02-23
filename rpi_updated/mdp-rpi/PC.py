@@ -85,8 +85,9 @@ class PCInterface:
                     # PC -> Rpi -> Android
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                         # Real code
-                        # self.RPiMain.Android.msg_queue.put(message)
-                        pass
+                        self.RPiMain.Android.msg_queue.put(message)
+                        # Temp code: pass
+                        # pass
 
                     else:
                         print("[PC] ERROR: Received message with unknown type from PC -", message)
