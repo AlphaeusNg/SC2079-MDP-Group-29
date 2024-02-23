@@ -84,7 +84,9 @@ class PCInterface:
 
                     # PC -> Rpi -> Android
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
-                        self.RPiMain.Android.msg_queue.put(message)
+                        # Real code
+                        # self.RPiMain.Android.msg_queue.put(message)
+                        pass
 
                     else:
                         print("[PC] ERROR: Received message with unknown type from PC -", message)
@@ -121,7 +123,7 @@ class PCInterface:
                     try:
                         message = self.prepend_msg_size(message)
                         self.client_socket.sendall(message)
-                        print("[PC] Write to PC:", message)
+                        print("[PC] Write to PC: first 100=", message[:100])
                     except Exception as e:
                         print("[PC] ERROR: Failed to write to PC -", str(e))
                         self.reconnect()

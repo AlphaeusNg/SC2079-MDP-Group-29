@@ -12,7 +12,7 @@ class task1():
         
     def generate_path(self, message):
         obstacles = []
-        L=25*np.pi/4/5
+        L=23*np.pi/4/5 # changed from 25 to 23
         minR=25
 
         for obstacle in message["data"]["obstacles"]:
@@ -39,14 +39,14 @@ class task1():
             path, pathHistory = algo.find_path()
             self.paths.append(path)
             current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-            commands, pathDisplay = construct_path(path, L, minR)
+            commands, pathDisplay = construct_path_2(path, L, minR)
             self.commands.append(commands)
             self.android.append(pathDisplay)
     
     def get_command_to_next_obstacle(self):
         nextCommand = self.commands.pop(0)
         nextPath = self.android.pop(0)
-        return construct_json(nextCommand, nextPath)
+        return construct_json(nextCommand, nextPath, nextPath)
 
     
     def has_task_ended(self):

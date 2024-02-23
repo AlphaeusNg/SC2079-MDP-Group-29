@@ -10,6 +10,7 @@ from queue import Queue
 import socket
 import json
 from rpi_config import *
+import time
 
 class PCInterface:
     def __init__(self, RPiMain):
@@ -104,13 +105,14 @@ class PCInterface:
     def send(self):
         # Continuously send messages to the PC
         # while True:
-        for i in range(1):
+        for i in range(32):
             if self.send_message:
                 # uncomment once ready
                 # message = self.msg_queue.get()
                 # message = message.decode("utf-8")
                 # for testing
                 message = Camera.get_image()
+                # end of testing
                 exception = True
                 while exception:
                     try:
@@ -122,6 +124,7 @@ class PCInterface:
                         self.reconnect()
                     else:
                         exception = False
+                time.sleep(8)
 
     def prepend_msg_size(self, message):
         # message_bytes = message.encode("utf-8")

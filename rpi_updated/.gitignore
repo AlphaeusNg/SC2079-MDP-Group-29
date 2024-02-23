@@ -1,4 +1,5 @@
 .idea
 .venv
-ImageCapture/*
-ImagePreProcessed/*
+__pycache__
+mdp-rpi/ImageCapture/*
+mdp-rpi/ImagePreProcessed/*
