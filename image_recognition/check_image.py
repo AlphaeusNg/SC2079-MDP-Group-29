@@ -109,7 +109,7 @@ def image_inference(image_path, obs_id):
     for r in results:
         # Iterate over each object
         for c in r:
-            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()], 
+            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop().split("_")[0]], 
                            "conf": c.boxes.conf.tolist().pop(), 
                            "xywh": c.boxes.xywh.tolist().pop()})
             # file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
