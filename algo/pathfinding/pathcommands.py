@@ -43,6 +43,7 @@ def construct_path(path, L, Radius):
                 SF *= L
                 command.append(f"SF{int(SF):03d}")
                 SF = 0
+                dis = 0
         # Gear.FORWARD + Steering.RIGHT
         if node.prevAction == (Gear.FORWARD, Steering.RIGHT):
             RF += 1
@@ -71,6 +72,7 @@ def construct_path(path, L, Radius):
                 SB *= L
                 command.append(f"SB{int(SB):03d}")
                 SB = 0
+                dis = 0
         # Gear.REVERSE + Steering.RIGHT
         if node.prevAction == (Gear.REVERSE, Steering.RIGHT):
             RB += 1
