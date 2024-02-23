@@ -145,9 +145,9 @@ def construct_path_2(path, L, Radius):
         else:
             #print(f"{gear} {steering}")
             if prevSteering == Steering.STRAIGHT:
-                commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
+                commands.append("S{}{:03d}".format("F" if prevGear == Gear.FORWARD else "B", int(sameCommandCount*unitDist)))
             else:
-                commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
+                commands.append("{}{}{:03d}".format("L" if prevSteering == Steering.LEFT else "R", "F" if prevGear == Gear.FORWARD else "B", int(sameCommandCount*unitAngle)))
             
             #print(commands[-1])
             sameCommandCount = 1
@@ -155,9 +155,9 @@ def construct_path_2(path, L, Radius):
             prevSteering = steering
 
     if prevSteering == Steering.STRAIGHT:
-        commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
+        commands.append("S{}{:03d}".format("F" if prevGear == Gear.FORWARD else "B", int(sameCommandCount*unitDist)))
     else:
-        commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
+        commands.append("{}{}{:03d}".format("L" if prevSteering == Steering.LEFT else "R", "F" if prevGear == Gear.FORWARD else "B", int(sameCommandCount*unitAngle)))
 
     return commands, gridPath
 

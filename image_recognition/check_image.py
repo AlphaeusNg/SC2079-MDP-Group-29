@@ -73,7 +73,8 @@ def predict_multiple_images(folder_path):
 
     # Run inference on 'bus.jpg' with arguments
     for file in source:
-        model.predict(file, save=True, imgsz=640, conf=0.8, device='cuda')
+        # model.predict(file, save=True, imgsz=640, conf=0.8, device='cuda')
+        model.predict(file, save=True, imgsz=640, conf=0.8, device='cpu')
 
 
 def find_largest_bbox_label(bboxes):
@@ -92,6 +93,8 @@ def find_largest_bbox_label(bboxes):
 
         # Check if the current bounding box has a larger area
         if bbox_area > largest_bbox_area:
+            if label == "0": #ignore bullseye
+                continue
             largest_bbox_area = bbox_area
             largest_bbox_label = label
 
@@ -103,15 +106,16 @@ def image_inference(image_path, obs_id):
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
     # run inference on the image
-    results = model.predict(source=image_path, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device='cuda')
+    results = model.predict(source=image_path, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device='cpu')
     # results = model.predict(source=image_path,imgsz=640, conf=0.8, device='cuda')
     bboxes = []
     for r in results:
         # Iterate over each object
         for c in r:
-            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop().split("_")[0]], 
+            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0], 
                            "conf": c.boxes.conf.tolist().pop(), 
                            "xywh": c.boxes.xywh.tolist().pop()})
+            print(bboxes)
             # file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
 
             # Save the image to the specified path
@@ -140,14 +144,15 @@ def test_image_inference(image_path, obs_id):
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
     # run inference on the image
-    results = model.predict(source=r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\img_23-02_12-34-08.262\decoded_image.jpg",imgsz=640, conf=0.8, device='cuda')
+    results = model.predict(source=r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\img_23-02_12-34-08.262\decoded_image.jpg",imgsz=640, conf=0.8, device='cpu')
     bboxes = []
     for r in results:
         # Iterate over each object
         for c in r:
-            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()], 
+            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0], 
                         "conf": c.boxes.conf.tolist().pop(), 
                         "xywh": c.boxes.xywh.tolist().pop()})
+            print(bboxes)
             file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
 
             # Save the image to the specified path

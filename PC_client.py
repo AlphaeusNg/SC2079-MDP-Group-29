@@ -73,6 +73,7 @@ class PCClient:
 
     def receive_messages(self):
         try:
+            image_id = 1
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
@@ -104,11 +105,12 @@ class PCClient:
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
                     
-                    image_predictions = check_image.image_inference(image_path, obs_id="1") #obs_id need to find out put what
+                    image_predictions = check_image.image_inference(image_path, obs_id=str(image_id)) #obs_id need to find out put what
+                    image_id += 1
                     # image_predictions = check_image.test_image_inference(image_path, obs_id="1") #obs_id need to find out put what
                     if image_predictions['data']['img_id'] == None:
                         # if still no img_id, repeat
-                        image_predictions['data']['img_id'] = "38_Right" # just a last hail mary effort for the weakest prediction
+                        image_predictions['data']['img_id'] = "38" # just a last hail mary effort for the weakest prediction
                     
                     message = json.dumps(image_predictions)
                     self.msg_queue.put(message)
