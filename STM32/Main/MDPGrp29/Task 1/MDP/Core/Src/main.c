@@ -144,6 +144,9 @@ int32_t IC_Val2 = 0;
 uint16_t Difference = 0;
 uint16_t uDistance = 0;
 
+// locked flag for completion of buffer transmission via UART
+int receivedInstruction = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -719,6 +722,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	/* to prevent unused argument(s) compilation warning */
 	UNUSED(huart);
 	HAL_UART_Receive_IT(&huart3, aRxBuffer, 5);
+	receivedInstruction = 1;
 }
 
 // ultrasonic
@@ -1202,64 +1206,67 @@ void StartCommunicateTask(void *argument) {
 
 	/* Infinite loop */
 	for (;;) {
-		magnitude = 0;
-		if ((aRxBuffer[0] == 'G' && aRxBuffer[1] == 'Y' && aRxBuffer[2] == 'R'
-				&& aRxBuffer[3] == 'O' && aRxBuffer[4] == 'R')
-				|| (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'R'
-						|| aRxBuffer[0] == 'L')
-						&& (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
-						&& (0 <= aRxBuffer[2] - '0' <= 9)
-						&& (0 <= aRxBuffer[3] - '0' <= 9)
-						&& (0 <= aRxBuffer[4] - '0' <= 9)) {
+		if (receivedInstruction == 1)
+		{
+			magnitude = 0;
+					if ((aRxBuffer[0] == 'G' && aRxBuffer[1] == 'Y' && aRxBuffer[2] == 'R'
+							&& aRxBuffer[3] == 'O' && aRxBuffer[4] == 'R')
+							|| (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'R'
+									|| aRxBuffer[0] == 'L')
+									&& (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
+									&& (0 <= aRxBuffer[2] - '0' <= 9)
+									&& (0 <= aRxBuffer[3] - '0' <= 9)
+									&& (0 <= aRxBuffer[4] - '0' <= 9)) {
 
-			magnitude = ((int) (aRxBuffer[2]) - 48) * 100
-					+ ((int) (aRxBuffer[3]) - 48) * 10
-					+ ((int) (aRxBuffer[4]) - 48);
+						magnitude = ((int) (aRxBuffer[2]) - 48) * 100
+								+ ((int) (aRxBuffer[3]) - 48) * 10
+								+ ((int) (aRxBuffer[4]) - 48);
 
-			if (aRxBuffer[1] == 'B') {
-				magnitude *= -1;
-			}
+						if (aRxBuffer[1] == 'B') {
+							magnitude *= -1;
+						}
 
-			osDelay(300);
-			switch (aRxBuffer[0]) {
-			case 'S':
-				moveCarStraight(magnitude);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'R':
-				moveCarRight(magnitude);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'L':
-				moveCarLeft(magnitude);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'G':
-				NVIC_SystemReset();
-				break;
-			}
+						osDelay(300);
+						switch (aRxBuffer[0]) {
+						case 'S':
+							moveCarStraight(magnitude);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'R':
+							moveCarRight(magnitude);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'L':
+							moveCarLeft(magnitude);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'G':
+							NVIC_SystemReset();
+							break;
+						}
+					}
 		}
 
-
 		if (flagDone == 1) {
+			receivedInstruction = 0;
 			osDelay(300);
 			HAL_UART_Transmit(&huart3, (uint8_t*) &ack, 1, 0xFFFF);
 			flagDone = 0;
