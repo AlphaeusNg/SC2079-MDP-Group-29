@@ -2,7 +2,7 @@ from threading import Thread
 from Android import AndroidInterface
 from PC import PCInterface
 from stm import STMInterface
-
+from rpi_config import STM_GYRO_RESET_COMMAND
 
 class RPiMain:
     def __init__(self):
@@ -10,6 +10,7 @@ class RPiMain:
         self.Android = AndroidInterface(self)
         self.PC = PCInterface(self)
         self.STM = STMInterface(self)
+        # self.STM.write_to_stm(STM_GYRO_RESET_COMMAND)
 
     def connect_components(self):
         # Connect all components

@@ -109,8 +109,13 @@ class STMInterface:
                 #     obj_id = id(object)
                 #     print(f"Index: {obj_id}, object: {object}")
                 # break
-                for command in commands:
+                for idx, command in enumerate(commands):
                     self.write_to_stm(command)
+
+                    # if idx >= len(commands) - 3:
+                    #     # Start a new thread to capture and send the image to PC
+                    #     capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                    #     capture_and_send_image_thread.start()
 
                 self.obstacle_count += 1
 

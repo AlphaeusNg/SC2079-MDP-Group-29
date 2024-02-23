@@ -11,8 +11,8 @@ from objects.Obstacle import Obstacle, VirtualWall
 from objects.OccupancyMap import OccupancyMap
 from pathfinding.hybrid_astar import HybridAStar
 from pathfinding.hamiltonian import Hamiltonian
-from testing import get_maps
-import utils
+from simulation.testing import get_maps
+import utils as utils
 from typing import List
 import constants as c
 

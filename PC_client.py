@@ -105,10 +105,9 @@ class PCClient:
                         img_file.write(decoded_image)
                     
                     image_predictions = check_image.image_inference(image_path, obs_id="1") #obs_id need to find out put what
-                    while image_predictions['data']['img_id'] == None:
+                    if image_predictions['data']['img_id'] == None:
                         # if still no img_id, repeat
-                        # Update robot to skiddle abit, backwards/forward/left/right then take picture again.
-                        continue
+                        image_predictions['data']['img_id'] = "38_Right" # just a last hail mary effort for our weakness prediction
                     
                     message = json.dumps(image_predictions)
                     self.msg_queue.put(message)

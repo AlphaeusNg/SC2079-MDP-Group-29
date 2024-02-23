@@ -24,7 +24,7 @@ def construct_path(path, L, Radius):
     prev = path[0]
     dis = 0
     for node in path:
-        droid.append([round(node.x / approx), round(node.y / approx)])
+        droid.append([round(node.x / approx)-1, round(node.y / approx)-1])
         dis += distance(prev, node)
         if node.prevAction == (Gear.FORWARD, Steering.LEFT):
             LF += 1
@@ -195,7 +195,7 @@ def call_algo(message, L=25*np.pi/4/5, minR=25):
         path, pathHistory = algo.find_path()
         print_path(path)
         current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-        commands, droid = construct_path_2(path, L, minR)
+        commands, droid = construct_path(path, L, minR)
         full_commands.extend(commands)
         full_path.extend(droid)
     # Convert to json
