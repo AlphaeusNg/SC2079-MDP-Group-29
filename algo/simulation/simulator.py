@@ -23,7 +23,7 @@ class Simulator:
         self.hamiltonian_args = hamiltonian_args
         self.astar_args = astar_args
         self.commands = []
-        self.car = pygame.image.load(os.path.join("..", "objects", "images", "ccar.png"))
+        self.car = pygame.image.load(os.path.join("..", "objects", "images", "car.png"))
 
         self.screen = pygame.display.set_mode((c.WIDTH, c.HEIGHT))
         self.screen.fill('white')
