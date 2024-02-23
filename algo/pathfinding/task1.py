@@ -39,7 +39,7 @@ class task1():
             path, pathHistory = algo.find_path()
             self.paths.append(path)
             current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-            commands, pathDisplay = construct_path_2(path, L, minR)
+            commands, pathDisplay = construct_path(path, L, minR)
             self.commands.append(commands)
             self.android.append(pathDisplay)
     
