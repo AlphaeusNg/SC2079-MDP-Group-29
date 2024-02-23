@@ -113,14 +113,22 @@ def construct_path(path, L, Radius):
 
 def construct_path_2(path, L, Radius):
     commands = []
+    gridPath = []
     unitDist = L
     unitAngle = (L / (2 * np.pi * Radius)) * 360
 
     prevGear = path[0][0]
     prevSteering = path[0][1]
     sameCommandCount = 1
+    gridPath.append([round(path[0].x / 10), round(path[0].y / 10)])
 
     for pathElement in path[1:]:
+        curX = round(pathElement.x / 10)
+        curY = round(pathElement.y / 10)
+
+        if curX != gridPath[-1][0] or curY != gridPath[-1][1]:
+            gridPath.append([curX, curY])
+
         gear = pathElement[0]
         steering = pathElement[1]
 
@@ -141,7 +149,7 @@ def construct_path_2(path, L, Radius):
             prevGear = gear
             prevSteering = steering
 
-    return commands
+    return commands, gridPath
 
 
         
