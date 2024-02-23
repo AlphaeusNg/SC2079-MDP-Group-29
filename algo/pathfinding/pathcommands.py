@@ -106,6 +106,9 @@ def construct_path(path, L, Radius):
         command.append(f"RB{int(RB):03d}")
         command.append(f"SB{int(dis):03d}")
     
+
+    print(command)
+    print(droid)
     return command, droid
     
 
@@ -127,6 +130,14 @@ def call_algo(message, L=25*np.pi/4/5, minR=25):
     full_path = []
     data_obstacles = message["data"]["obstacles"]
     for obstacle in data_obstacles:
+        if obstacle["dir"] == "N":
+            obstacle["dir"] = "S"
+        if obstacle["dir"] == "S":
+            obstacle["dir"] = "N"
+        if obstacle["dir"] == "W":
+            obstacle["dir"] = "E"
+        if obstacle["dir"] == "E":
+            obstacle["dir"] = "W"
         obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, obstacle["dir"]))
     # Run algo
     map = om.OccupancyMap(obstacles)

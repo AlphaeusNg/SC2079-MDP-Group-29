@@ -57,7 +57,7 @@ class PCClient:
                     try:
                         # message_sized = self.prepend_msg_size(message)
                         self.client_socket.send(self.prepend_msg_size(message))
-                        print("[PC Client] Write to RPI:", message)
+                        print("[PC Client] Write to RPI: first 100=", message[:100])
                         # self.send_message = False
                     except Exception as e:
                         print("[PC Client] ERROR: Failed to write to RPI -", str(e))

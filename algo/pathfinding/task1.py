@@ -16,10 +16,18 @@ class task1():
         minR=25
 
         for obstacle in message["data"]["obstacles"]:
+            if obstacle["dir"] == "N":
+                obstacle["dir"] = "S"
+            if obstacle["dir"] == "S":
+                obstacle["dir"] = "N"
+            if obstacle["dir"] == "W":
+                obstacle["dir"] = "E"
+            if obstacle["dir"] == "E":
+                obstacle["dir"] = "W"
             obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, obstacle["dir"]))
 
         map = OccupancyMap(obstacles)
-        tsp = Hamiltonian(obstacles, 15, 15, np.pi/2, -np.pi/2, 'euclidean', minR)
+        tsp = Hamiltonian(obstacles, 15, 15, np.pi/2, -np.pi/2, 'euclidean', minR) # N:np.pi/2 
         current_pos = tsp.start
         checkpoints = tsp.find_nearest_neighbor_path()
         for idx, checkpoint in enumerate(checkpoints):
