@@ -157,7 +157,7 @@ def construct_path_2(path, L, Radius):
     if prevSteering == Steering.STRAIGHT:
         commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
     else:
-        commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevSteering == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
+        commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
 
     return commands, gridPath
 

@@ -83,20 +83,20 @@ class PCClient:
 
                 # Receive the actual message data
                 message = self.receive_all(message_length)
-                print("[PC Client] Received message:", message)
+                print("[PC Client] Received message: first 100:", message[:100])
 
                 message = json.loads(message)
                 if message["type"] == "START_TASK":
                     # Add algo implementation here:
-                    # path_message = pathcommands.call_algo(message)
                     self.t1.generate_path(message)
                     path_message = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
-                    # path_message = {"type": "NAVIGATION", "data": {"commands": ["SF010", "RF090"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    # Test code below
+                    # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    # End of test code
                     path_message = json.dumps(path_message)
                     self.msg_queue.put(path_message)
                 
                 elif message["type"] == "IMAGE_TAKEN":
-                    print(message)
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
@@ -105,9 +105,10 @@ class PCClient:
                         img_file.write(decoded_image)
                     
                     image_predictions = check_image.image_inference(image_path, obs_id="1") #obs_id need to find out put what
+                    # image_predictions = check_image.test_image_inference(image_path, obs_id="1") #obs_id need to find out put what
                     if image_predictions['data']['img_id'] == None:
                         # if still no img_id, repeat
-                        image_predictions['data']['img_id'] = "38_Right" # just a last hail mary effort for our weakness prediction
+                        image_predictions['data']['img_id'] = "38_Right" # just a last hail mary effort for the weakest prediction
                     
                     message = json.dumps(image_predictions)
                     self.msg_queue.put(message)

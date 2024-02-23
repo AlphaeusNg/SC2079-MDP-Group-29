@@ -100,18 +100,61 @@ def find_largest_bbox_label(bboxes):
 
 def image_inference(image_path, obs_id):
     # Create a unique image path based on the current timestamp (and also check the delay)
-    formatted_time = datetime.fromtimestamp(time.time()).strftime('%H-%M-%S.%f')[:-3]
+    formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
     # run inference on the image
     results = model.predict(source=image_path, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device='cuda')
+    # results = model.predict(source=image_path,imgsz=640, conf=0.8, device='cuda')
     bboxes = []
     for r in results:
-
         # Iterate over each object
         for c in r:
             bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()], 
                            "conf": c.boxes.conf.tolist().pop(), 
                            "xywh": c.boxes.xywh.tolist().pop()})
+            # file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
+
+            # Save the image to the specified path
+            # r.orig_img.save(file_path+".jpg")
+            # with open(file_path+".txt", 'w') as output_file:
+            #     for value in c.boxes.xywhn.tolist().pop():
+            #         output_file.write(f"{value} ")
+
+    # To make it display, useful for testing
+    # results[0].show()
+
+    largest_bbox_label = find_largest_bbox_label(bboxes)
+
+    image_prediction = {
+        "type": "IMAGE_RESULTS",
+        "data": {
+            "obs_id": obs_id, 
+            "img_id": largest_bbox_label, 
+            }
+        }
+
+    return image_prediction
+
+def test_image_inference(image_path, obs_id):
+    # Create a unique image path based on the current timestamp (and also check the delay)
+    formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
+    img_name = f"img_{formatted_time}"
+    # run inference on the image
+    results = model.predict(source=r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\img_23-02_12-34-08.262\decoded_image.jpg",imgsz=640, conf=0.8, device='cuda')
+    bboxes = []
+    for r in results:
+        # Iterate over each object
+        for c in r:
+            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()], 
+                        "conf": c.boxes.conf.tolist().pop(), 
+                        "xywh": c.boxes.xywh.tolist().pop()})
+            file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
+
+            # Save the image to the specified path
+            r.orig_img.save(file_path+".jpg")
+            with open(file_path+".txt", 'w') as output_file:
+                for value in c.boxes.xywhn.tolist().pop():
+                    output_file.write(f"{value} ")
 
     # To make it display, useful for testing
     # results[0].show()
@@ -133,3 +176,4 @@ def image_inference(image_path, obs_id):
 if __name__ == '__main__':
     folder_path = r"image recognition\dataset\MDP CV.v7i.yolov8"
     # predict_multiple_images(folder_path)
+    _ = image_inference(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\img_10-24-33.134\decoded_image.jpg", "00")
