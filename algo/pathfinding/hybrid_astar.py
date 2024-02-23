@@ -137,7 +137,7 @@ class HybridAStar():
 
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
 
-                if self.checkPathFound(childNode):
+                if childNode == endNode:
                     print("Path Found!")
                     pathFound = True
                     currentNode = childNode
