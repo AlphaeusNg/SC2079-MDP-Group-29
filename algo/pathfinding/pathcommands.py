@@ -112,6 +112,7 @@ def construct_path(path, L, Radius):
 
 
 def construct_path_2(path, L, Radius):
+    print_path(path)
     commands = []
     gridPath = []
     unitDist = L
@@ -120,31 +121,40 @@ def construct_path_2(path, L, Radius):
     prevGear = path[0].prevAction[0]
     prevSteering = path[0].prevAction[1]
     sameCommandCount = 1
-    gridPath.append([round(path[0].x / 10), round(path[0].y / 10)])
+    gridPath.append([int(path[0].x / 10), int(path[0].y / 10)])
 
-    for pathElement in path[1:]:
-        curX = round(pathElement.x / 10)
-        curY = round(pathElement.y / 10)
+    for node in path[1:]:
+        curX = round(node.x / 10)
+        curY = round(node.y / 10)
 
         if curX != gridPath[-1][0] or curY != gridPath[-1][1]:
             gridPath.append([curX, curY])
 
-        gear = pathElement.prevAction[0]
-        steering = pathElement.prevAction[1]
+        gear = node.prevAction[0]
+        steering = node.prevAction[1]
+
+        #print(f"{gear} {steering}")
 
         if gear == prevGear and steering == prevSteering:
             sameCommandCount += 1
             continue
         
         else:
-            if steering == Steering.STRAIGHT:
-                commands.append(f"S{"F" if gear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
+            #print(f"{gear} {steering}")
+            if prevSteering == Steering.STRAIGHT:
+                commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
             else:
-                commands.append(f"{"L" if steering == Steering.LEFT else "R"}{"F" if gear == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
+                commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
             
+            #print(commands[-1])
             sameCommandCount = 1
             prevGear = gear
             prevSteering = steering
+
+    if prevSteering == Steering.STRAIGHT:
+        commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
+    else:
+        commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevSteering == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
 
     return commands, gridPath
 
@@ -182,7 +192,7 @@ def call_algo(message, L=25*np.pi/4/5, minR=25):
                            theta_f=checkpoint[2], steeringChangeCost=10, gearChangeCost=10, 
                            L=L, minR=minR, heuristic='euclidean', simulate=False, thetaBins=24)
         path, pathHistory = algo.find_path()
-        print_path(path)
+        #print_path(path)
         current_pos = (path[-1].x, path[-1].y, path[-1].theta)
         commands, droid = construct_path_2(path, L, minR)
         full_commands.extend(commands)
