@@ -1,7 +1,7 @@
-from pathcommands import *
-from hamiltonian import Hamiltonian
-from hybrid_astar import HybridAStar
-from objects.OccupancyMap import OccupancyMap
+from algo.pathfinding.pathcommands import *
+from algo.pathfinding.hamiltonian import Hamiltonian
+from algo.pathfinding.hybrid_astar import HybridAStar
+from algo.objects.OccupancyMap import OccupancyMap
 
 class task1():
     def __init__(self):
@@ -31,18 +31,25 @@ class task1():
         current_pos = tsp.start
         checkpoints = tsp.find_nearest_neighbor_path()
         for idx, checkpoint in enumerate(checkpoints):
-            algo = HybridAStar(map, current_pos[0], current_pos[1], current_pos[2], checkpoint[0], checkpoint[1], checkpoint[2], 10, 10, L, minR, 'euclidean', False, 24)
+            algo = HybridAStar(map=map, 
+                           x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
+                           x_f=checkpoint[0], y_f=checkpoint[1], 
+                           theta_f=checkpoint[2], steeringChangeCost=10, gearChangeCost=10, 
+                           L=L, minR=minR, heuristic='euclidean', simulate=False, thetaBins=24)
             path, pathHistory = algo.find_path()
             self.paths.append(path)
             current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-            commands, pathDisplay = construct_path(path, L, minR)
+            commands, pathDisplay = construct_path_2(path, L, minR)
             self.commands.append(commands)
             self.android.append(pathDisplay)
     
     def get_command_to_next_obstacle(self):
-        nextCommand = self.commands.pop()
-        nextPath = self.android.pop()
-        return construct_json(nextCommand, nextPath)
+        nextCommand = self.commands.pop(0)
+        nextPath = self.android.pop(0)
+        return construct_json(nextCommand, nextPath, nextPath)
+
     
     def has_task_ended(self):
-        return self.commands.empty()
+        return not self.commands
+    
+

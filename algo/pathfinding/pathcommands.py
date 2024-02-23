@@ -1,8 +1,8 @@
 import numpy as np
-from enumerations import Gear, Steering
-from objects.Obstacle import Obstacle
-from pathfinding.hamiltonian import Hamiltonian
-from pathfinding.hybrid_astar import HybridAStar
+from algo.enumerations import Gear, Steering
+from algo.objects.Obstacle import Obstacle
+from algo.pathfinding.hamiltonian import Hamiltonian
+from algo.pathfinding.hybrid_astar import HybridAStar
 import algo.objects.OccupancyMap as om
 
 
@@ -12,20 +12,29 @@ def print_path(path):
             f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " + f"theta: {node.theta * 180 / np.pi:.2f}), Action: {node.prevAction}")
 
 
+def distance(prev, node):
+    return np.sqrt((node.x - prev.x) ** 2 + (node.y - prev.y) ** 2)
+
+
 def construct_path(path, L, Radius):
-    LF, SF, RF, LR, SB, RB = 0, 0, 0, 0, 0, 0
+    LF, SF, RF, LB, SB, RB = 0, 0, 0, 0, 0, 0
     approx = 10
     command = []
     droid = []
+    prev = path[0]
+    dis = 0
     for node in path:
         droid.append([round(node.x / approx), round(node.y / approx)])
+        dis += distance(prev, node)
         if node.prevAction == (Gear.FORWARD, Steering.LEFT):
             LF += 1
         else:
             if LF >= 1:
                 LF *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"LF{int(LF):03d}")
+                command.append(f"SF{int(dis):03d}")
                 LF = 0
+                dis = 0
         # Gear.FORWARD + Steering.STRAIGHT
         if node.prevAction == (Gear.FORWARD, Steering.STRAIGHT):
             SF += 1
@@ -34,6 +43,7 @@ def construct_path(path, L, Radius):
                 SF *= L
                 command.append(f"SF{int(SF):03d}")
                 SF = 0
+                dis = 0
         # Gear.FORWARD + Steering.RIGHT
         if node.prevAction == (Gear.FORWARD, Steering.RIGHT):
             RF += 1
@@ -41,15 +51,19 @@ def construct_path(path, L, Radius):
             if RF >= 1:
                 RF *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"RF{int(RF):03d}")
+                command.append(f"SF{int(dis):03d}")
                 RF = 0
+                dis = 0
         # Gear.REVERSE + Steering.LEFT
         if node.prevAction == (Gear.REVERSE, Steering.LEFT):
-            LR += 1
+            LB += 1
         else:
-            if LR >= 1:
-                LR *= (L / (2 * np.pi * Radius)) * 360
-                command.append(f"LR{int(LR):03d}")
-                LR = 0
+            if LB >= 1:
+                LB *= (L / (2 * np.pi * Radius)) * 360
+                command.append(f"LB{int(LB):03d}")
+                command.append(f"SB{int(dis):03d}")
+                LB = 0
+                dis = 0
         # Gear.REVERSE + Steering.STRAIGHT
         if node.prevAction == (Gear.REVERSE, Steering.STRAIGHT):
             SB += 1
@@ -58,6 +72,7 @@ def construct_path(path, L, Radius):
                 SB *= L
                 command.append(f"SB{int(SB):03d}")
                 SB = 0
+                dis = 0
         # Gear.REVERSE + Steering.RIGHT
         if node.prevAction == (Gear.REVERSE, Steering.RIGHT):
             RB += 1
@@ -65,10 +80,83 @@ def construct_path(path, L, Radius):
             if RB >= 1:
                 RB *= (L / (2 * np.pi * Radius)) * 360
                 command.append(f"RB{int(RB):03d}")
+                command.append(f"SB{int(dis):03d}")
                 RB = 0
+                dis = 0
+        prev = node
 
+    if LF >= 1:
+        LF *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"LF{int(LF):03d}")
+        command.append(f"SF{int(dis):03d}")
+    if SF >= 1:
+        SF *= L
+        command.append(f"SF{int(SF):03d}")
+    if RF >= 1:
+        RF *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"RF{int(RF):03d}")
+        command.append(f"SF{int(dis):03d}")
+    if LB >= 1:
+        LB *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"LB{int(LB):03d}")
+        command.append(f"SB{int(dis):03d}")
+    if SB >= 1:
+        SB *= L
+        command.append(f"SB{int(SB):03d}")
+    if RB >= 1:
+        RB *= (L / (2 * np.pi * Radius)) * 360
+        command.append(f"RB{int(RB):03d}")
+        command.append(f"SB{int(dis):03d}")
+    
     return command, droid
 
+
+def construct_path_2(path, L, Radius):
+    print_path(path)
+    commands = []
+    gridPath = []
+    unitDist = L
+    unitAngle = (L / (2 * np.pi * Radius)) * 360
+
+    prevGear = path[0].prevAction[0]
+    prevSteering = path[0].prevAction[1]
+    sameCommandCount = 1
+    gridPath.append([int(path[0].x / 10), int(path[0].y / 10)])
+
+    for node in path[1:]:
+        curX = round(node.x / 10)
+        curY = round(node.y / 10)
+
+        if curX != gridPath[-1][0] or curY != gridPath[-1][1]:
+            gridPath.append([curX, curY])
+
+        gear = node.prevAction[0]
+        steering = node.prevAction[1]
+
+        #print(f"{gear} {steering}")
+
+        if gear == prevGear and steering == prevSteering:
+            sameCommandCount += 1
+            continue
+        
+        else:
+            #print(f"{gear} {steering}")
+            if prevSteering == Steering.STRAIGHT:
+                commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
+            else:
+                commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
+            
+            #print(commands[-1])
+            sameCommandCount = 1
+            prevGear = gear
+            prevSteering = steering
+
+    if prevSteering == Steering.STRAIGHT:
+        commands.append(f"S{"F" if prevGear == Gear.FORWARD else "B"}{int(sameCommandCount*unitDist):03d}")
+    else:
+        commands.append(f"{"L" if prevSteering == Steering.LEFT else "R"}{"F" if prevSteering == Gear.FORWARD else "B"}{int(sameCommandCount*unitAngle):03d}")
+
+    return commands, gridPath
 
 def construct_json(command, path):
     json_file = {
@@ -95,11 +183,18 @@ def call_algo(message, L=25*np.pi/4/5, minR=25):
     current_pos = tsp.start
     checkpoints = tsp.find_brute_force_path()
     for idx, checkpoint in enumerate(checkpoints):
-        algo = HybridAStar(map, current_pos[0], current_pos[1], current_pos[2], checkpoint[0], checkpoint[1], checkpoint[2], 10, 10, L, minR, 'euclidean', False, 24)
+        # (self, map: OccupancyMap, x_0: float=15, y_0: float=10, theta_0: float=np.pi/2, 
+        #          x_f: float=15, y_f: float=180, theta_f: float=np.pi/2, theta_offset: float=0, steeringChangeCost=10, gearChangeCost=20,
+        #             L: float=5, minR: float=25, heuristic: str='hybriddiag', simulate: bool=False, thetaBins=24)
+        algo = HybridAStar(map=map, 
+                           x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
+                           x_f=checkpoint[0], y_f=checkpoint[1], 
+                           theta_f=checkpoint[2], steeringChangeCost=10, gearChangeCost=10, 
+                           L=L, minR=minR, heuristic='euclidean', simulate=False, thetaBins=24)
         path, pathHistory = algo.find_path()
-        print_path(path)
+        #print_path(path)
         current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-        commands, droid = construct_path(path, L, minR)
+        commands, droid = construct_path_2(path, L, minR)
         full_commands.extend(commands)
         full_path.extend(droid)
     # Convert to json

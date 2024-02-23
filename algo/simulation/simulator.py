@@ -144,10 +144,22 @@ class Simulator:
                 
                 done = True
                 print(f"Total path length: {numNodes*self.astar_args['L']}cm")
+            
+            animateIndex = 0
+
+            node = path[animateIndex]
+            # Draw car here
+            
+
+            # Delay 100ms
+
+            animateIndex += 1
+            if animateIndex == len(path):
+                animateIndex = 0
 
             #self.draw_path_history(pathHistory)
 
-            #pygame.display.update()
+            pygame.display.update()
         
     def draw_final_path(self, path, color):
         points = []

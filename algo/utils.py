@@ -1,5 +1,5 @@
 import numpy as np
-import constants as c
+import algo.constants as c
 import math
 
 def grid_to_coords(x_g: int, y_g: int):

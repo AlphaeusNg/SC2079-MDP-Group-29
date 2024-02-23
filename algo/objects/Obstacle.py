@@ -1,7 +1,7 @@
 import numpy as np
-import utils
+import algo.utils as utils
 import pygame
-import constants as c
+import algo.constants as c
 
 class Obstacle(pygame.sprite.Sprite):
     def __init__(self, x_g: int, y_g: int, facing: str) -> None:

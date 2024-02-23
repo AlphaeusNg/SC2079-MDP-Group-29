@@ -66,11 +66,11 @@ class HybridAStar():
         """
         
         assert -np.pi <= theta_0, theta_f <= np.pi
-        assert 0 <= x_0, y_0 <= 200
-        assert 0 <= x_f, y_f <= 200
+        assert -10 <= x_0, y_0 <= 210 # we changed this on 22/2/24
+        assert -10 <= x_f, y_f <= 210
 
         self.map = map
-        assert not map.collide_with_point(x_f, y_f)
+        # assert not map.collide_with_point(x_f, y_f) # we changed this on 22/2/24
 
         self.x = x_0
         self.y = y_0
@@ -137,7 +137,7 @@ class HybridAStar():
 
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
 
-                if self.checkPathFound(childNode):
+                if childNode == endNode:
                     print("Path Found!")
                     pathFound = True
                     currentNode = childNode
