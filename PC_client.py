@@ -110,8 +110,12 @@ class PCClient:
                     # image_predictions = check_image.test_image_inference(image_path, obs_id="1") #obs_id need to find out put what
                     if image_predictions['data']['img_id'] == None:
                         # if still no img_id, repeat
-                        image_predictions['data']['img_id'] = "38" # just a last hail mary effort for the weakest prediction
-                    
+                        image_predictions['data']['img_id'] = "0" # just a last hail mary effort for the weakest prediction
+                        
+                    # For A.5
+                    # else:
+                    #      print("[Algo] Find the non-bulleye ended")
+                    #      return
                     message = json.dumps(image_predictions)
                     self.msg_queue.put(message)
                     # For testing
