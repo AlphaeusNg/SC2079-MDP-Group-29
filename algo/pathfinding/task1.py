@@ -9,6 +9,7 @@ class task1():
         self.paths = []
         self.commands = []
         self.android = []
+        self.obstacleID = []
         
     def generate_path(self, message):
         obstacles = []
@@ -25,7 +26,7 @@ class task1():
                 invertObs = "E"
             elif obsDIR == "E":
                 invertObs = "W"
-            obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, invertObs))
+            obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, invertObs, int(obstacle["id"])))
 
         map = OccupancyMap(obstacles)
         tsp = Hamiltonian(obstacles, 0, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
@@ -43,6 +44,7 @@ class task1():
             commands, pathDisplay = construct_path_2(path, L, minR)
             self.commands.append(commands)
             self.android.append(pathDisplay)
+            self.obstacleID.append(checkpoint[3])
             print("[Task 1] self.paths:", print_path(path))
         
     
@@ -51,8 +53,21 @@ class task1():
         nextPath = self.android.pop(0)
         return construct_json(nextCommand, nextPath)
 
+    def get_obstacle_id(self):
+        obstacle_id = self.obstacleID.pop(0)
+        return obstacle_id
     
     def has_task_ended(self):
         return not self.commands
-    
 
+
+if __name__ == "__main__":
+    message = {"type": "START_TASK", "data": {"task": "EXPLORATION", "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                                               "obstacles": [{"id": "00", "x": 8, "y": 5, "dir": 'S'},
+                                                             {"id": "01", "x": 10, "y": 17, "dir": 'W'},
+                                                             {"id": "02", "x": 15, "y": 10, "dir": 'N'}]}}
+    main = task1()
+    main.generate_path(message)
+    while not main.has_task_ended():
+        print(main.get_command_to_next_obstacle())
+        print("ID: " + str(main.get_obstacle_id()))
