@@ -1605,15 +1605,18 @@ void StartIRTask(void *argument) {
 	/* USER CODE BEGIN StartIRTask */
 	/* Infinite loop */
 	for (;;) {
+		/*
 		if (irResumeFlag == 1) {
 			vTaskSuspend(IRTaskHandle);
 		}
+		*/
+
 		IR_Left_Read();
 		IR_Right_Read();
 
-		if ((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500)
+		if ((aRxBuffer[1] == 'L' && (iDistanceL >= irThreshold)
 				&& irFlag == 1)
-				|| (aRxBuffer[1] == 'R' && (iDistanceR <= irThreshold - 500)
+				|| (aRxBuffer[1] == 'R' && (iDistanceR >= irThreshold)
 						&& irFlag == 1)) {
 			irFlag = 0;
 			moveCarStop();

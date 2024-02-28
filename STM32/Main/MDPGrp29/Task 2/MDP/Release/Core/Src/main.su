@@ -24,4 +24,4 @@
 ../Core/Src/main.c:1065:6:IR_Left_Read	8	static
 ../Core/Src/main.c:1072:6:IR_Right_Read	8	static
 ../Core/Src/main.c:1604:6:StartIRTask	8	static
-../Core/Src/main.c:1631:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:1634:6:Error_Handler	0	static,ignoring_inline_asm

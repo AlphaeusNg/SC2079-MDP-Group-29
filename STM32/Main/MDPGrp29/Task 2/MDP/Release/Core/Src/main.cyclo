@@ -23,5 +23,5 @@
 ../Core/Src/main.c:1255:6:StartGyroTask	2
 ../Core/Src/main.c:1065:6:IR_Left_Read	1
 ../Core/Src/main.c:1072:6:IR_Right_Read	1
-../Core/Src/main.c:1604:6:StartIRTask	7
-../Core/Src/main.c:1631:6:Error_Handler	1
+../Core/Src/main.c:1604:6:StartIRTask	6
+../Core/Src/main.c:1634:6:Error_Handler	1
