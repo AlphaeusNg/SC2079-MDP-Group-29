@@ -79,8 +79,9 @@ def predict_multiple_images(folder_path):
 
 def find_largest_bbox_label(bboxes):
 
-    largest_bbox_area = 0
+    largest_bbox_area = 0.0
     largest_bbox_label = None
+    conf = 0.0
 
     for bbox in bboxes:            
         # Extract label, x, y, width, height
@@ -98,7 +99,23 @@ def find_largest_bbox_label(bboxes):
             largest_bbox_area = bbox_area
             largest_bbox_label = label
 
-    return largest_bbox_label
+    return largest_bbox_label, largest_bbox_area, conf
+
+
+def get_highest_confidence(predictions_list:list[dict]) -> dict:
+    if not predictions_list:
+        return None  # Return None if the list is empty
+
+    max_confidence = float('-inf')  # Start with a very low value
+    highest_conf_pred = None
+
+    for prediction in predictions_list:
+        conf = prediction["data"].get("conf", 0)
+        if conf > max_confidence:
+            max_confidence = conf
+            highest_conf_pred = prediction
+
+    return highest_conf_pred
 
 
 def image_inference(image_path, obs_id):
@@ -127,14 +144,17 @@ def image_inference(image_path, obs_id):
     # To make it display, useful for testing
     # results[0].show()
 
-    largest_bbox_label = find_largest_bbox_label(bboxes)
+    largest_bbox_label, largest_bbox_area, conf = find_largest_bbox_label(bboxes)
 
     image_prediction = {
         "type": "IMAGE_RESULTS",
         "data": {
             "obs_id": obs_id, 
             "img_id": largest_bbox_label, 
-            }
+            "bbox_area": largest_bbox_area,
+            "conf": conf
+            },
+        "image_path": f"./captured_images/{img_name}/decoded_image.jpg"
         }
 
     return image_prediction

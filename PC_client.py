@@ -23,6 +23,7 @@ class PCClient:
         self.msg_queue = Queue()
         self.send_message = False
         self.t1 = task1.task1()
+        self.image_record = []
 
     def connect(self):
         # Establish a connection with the PC
@@ -73,7 +74,7 @@ class PCClient:
 
     def receive_messages(self):
         try:
-            image_id = 1
+            image_counter = 0
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
@@ -101,35 +102,47 @@ class PCClient:
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
-                    image_path = "captured_images/decoded_image.jpg"
+                    image_id = message["obs_id"]
+                    image_path = f"captured_images/obs_id_{image_id}_{image_counter}.jpg"
+
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
-                    
-                    image_predictions = check_image.image_inference(image_path, obs_id=str(image_id)) #obs_id need to find out put what
-                    image_id += 1
-                    # image_predictions = check_image.test_image_inference(image_path, obs_id="1") #obs_id need to find out put what
-                    if image_predictions['data']['img_id'] == None:
-                        # if still no img_id, repeat
-                        image_predictions['data']['img_id'] = "0" # just a last hail mary effort for the weakest prediction
-                        
-                    # For A.5
-                    # else:
-                    #      print("[Algo] Find the non-bulleye ended")
-                    #      return
-                    message = json.dumps(image_predictions)
-                    self.msg_queue.put(message)
-                    # For testing
-                    # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
-                    # end of temp test code
-                
-                    # Update self.t1 to input new path, may put this above the image inference if we don't want to wait and stop
-                    if not self.t1.has_task_ended():
-                        command = self.t1.get_command_to_next_obstacle()
-                        command = json.dumps(command)
-                        self.msg_queue.put(command)
-                    else:
-                        print("[Algo] Task 1 ended")
 
+                    image_prediction = check_image.image_inference(image_path, obs_id=str(image_id))
+                    self.image_record.append(image_prediction)
+
+                    image_counter += 1
+
+                    if message["final_image"] == True:
+                        image_counter = 0
+                        image_prediction = check_image.get_highest_confidence(self.image_record)
+                        
+                        if image_prediction['data']['img_id'] == None:
+                            image_prediction['data']['img_id'] = "0" # just a last hail mary effort for the weakest prediction
+                            
+                        # For checklist A.5
+                        # else:
+                        #      print("[Algo] Find the non-bulleye ended")
+                        #      return
+
+                        message = json.dumps(image_prediction)
+                        self.msg_queue.put(message)
+
+                        # For testing
+                        # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
+                        # end of temp test code
+
+                        # Update self.t1 to input new path, may put this above the image inference if we don't want to wait and stop
+                        if not self.t1.has_task_ended():
+                            command = self.t1.get_command_to_next_obstacle()
+                            command = json.dumps(command)
+                            self.msg_queue.put(command)
+                        else:
+                            print("[Algo] Task 1 ended")
+                        
+                        image_id += 1
+                        self.image_record = [] # reset the image record
+                    
         except socket.error as e:
             print("[PC Client] ERROR:", str(e))
 
