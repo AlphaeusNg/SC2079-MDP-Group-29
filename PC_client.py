@@ -93,7 +93,7 @@ class PCClient:
                     # Add algo implementation here:
                     self.t1.generate_path(message)
                     path_message = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
-                    obs_id = self.t1.get_obstacle_id() + 1 # algo starts from 0, android starts from 1
+                    obs_id = str(self.t1.get_obstacle_id())
                     # Test code below
                     # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
                     # End of test code
@@ -138,7 +138,7 @@ class PCClient:
                             command = self.t1.get_command_to_next_obstacle()
                             command = json.dumps(command)
                             self.msg_queue.put(command)
-                            obs_id = self.t1.get_obstacle_id() + 1 # algo starts from 0, android starts from 1
+                            obs_id = str(self.t1.get_obstacle_id())
                         else:
                             print("[Algo] Task 1 ended")
 
