@@ -102,12 +102,15 @@ class STMInterface:
 
                 # Real code
                 for idx, command in enumerate(commands):
-                    self.write_to_stm(command)
-                    print("[RPI] Writing to STM:", command)
+                    # Capture an image before every instruction
                     if idx >= len(commands) - NUM_IMAGES:
                         # Start a new thread to capture and send the image to PC
-                        capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(obs_id=self.obstacle_count, final_image=False), daemon=True)
+                        capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=False), daemon=True)
                         capture_and_send_image_thread.start()
+
+                    self.write_to_stm(command)
+                    print("[RPI] Writing to STM:", command)
+                    
 
                 if self.second_arrow is not None:
                     self.return_to_carpark()
@@ -115,7 +118,7 @@ class STMInterface:
                     return
 
                 # Start a new thread to capture and send the image to PC
-                capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(obs_id=self.obstacle_count, final_image=True), daemon=True)
+                capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=True), daemon=True)
                 capture_and_send_image_thread.start()
 
                 self.obstacle_count += 1
@@ -191,10 +194,10 @@ class STMInterface:
         print(f"[STM] Read final DIST =", distance) 
         return distance
 
-    def send_image_to_pc(self, obs_id:int, final_image:bool):
+    def send_image_to_pc(self, final_image:bool):
         # Send captured image to PC
         print("[STM] Adding image from camera to PC message queue")
-        self.RPiMain.PC.msg_queue.put(get_image(obs_id=obs_id, final_image=final_image))      
+        self.RPiMain.PC.msg_queue.put(get_image(final_image=final_image))      
 
     def send_path_to_android(self, message):
         # Send path to Android for display

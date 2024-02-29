@@ -40,7 +40,7 @@ def preprocess_img(img_pth: str) -> None:
     cv2.imwrite(image_save_location, resized_img)
     print("[Camera] Image preprocessing complete")
 
-def get_image(obs_id:int, final_image:bool=False) -> bytes:
+def get_image(final_image:bool=False) -> bytes:
     """
     Capture an image, preprocess it, and return a JSON message with the encoded image.
 
@@ -65,7 +65,6 @@ def get_image(obs_id:int, final_image:bool=False) -> bytes:
     # Create a JSON message containing the image data
     message: Dict[str, Any] = {
         "type": 'IMAGE_TAKEN',
-        "obs_id": obs_id,
         "final_image": final_image,
         "data": {
             "image": encoded_string

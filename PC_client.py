@@ -75,6 +75,7 @@ class PCClient:
     def receive_messages(self):
         try:
             image_counter = 0
+            obs_id = 0
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
@@ -92,6 +93,7 @@ class PCClient:
                     # Add algo implementation here:
                     self.t1.generate_path(message)
                     path_message = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
+                    obs_id = self.t1.get_obstacle_id() + 1 # algo starts from 0, android starts from 1
                     # Test code below
                     # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
                     # End of test code
@@ -102,13 +104,12 @@ class PCClient:
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
-                    image_id = message["obs_id"]
-                    image_path = f"captured_images/obs_id_{image_id}_{image_counter}.jpg"
+                    image_path = f"captured_images/obs_id_{obs_id}_{image_counter}.jpg"
 
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_path, obs_id=str(image_id))
+                    image_prediction = check_image.image_inference(image_path, obs_id=str(obs_id))
                     self.image_record.append(image_prediction)
 
                     image_counter += 1
@@ -137,10 +138,10 @@ class PCClient:
                             command = self.t1.get_command_to_next_obstacle()
                             command = json.dumps(command)
                             self.msg_queue.put(command)
+                            obs_id = self.t1.get_obstacle_id() + 1 # algo starts from 0, android starts from 1
                         else:
                             print("[Algo] Task 1 ended")
-                        
-                        image_id += 1
+
                         self.image_record = [] # reset the image record
                     
         except socket.error as e:
