@@ -34,8 +34,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SERVOCENTER 148
-#define SERVORIGHT 230
-#define SERVOLEFT 85
+#define SERVORIGHT 250
+#define SERVOLEFT 95
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -163,6 +163,9 @@ int xFlag = 0;
 uint16_t x = 0;
 uint16_t irThreshold = 1500;
 int irResumeFlag = 1;
+
+// locked flag for completion of buffer transmission via UART
+int receivedInstruction = 0;
 
 /* USER CODE END 0 */
 
@@ -838,6 +841,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	/* to prevent unused argument(s) compilation warning */
 	UNUSED(huart);
 	HAL_UART_Receive_IT(&huart3, aRxBuffer, 5);
+	receivedInstruction = 1;
 }
 
 // ultrasonic
@@ -1329,160 +1333,164 @@ void StartCommunicateTask(void *argument) {
 
 	/* Infinite loop */
 	for (;;) {
-		magnitude = 0;
-		if (((aRxBuffer[0] == 'T' || aRxBuffer[0] == 'I' || aRxBuffer[0] == 'X')
-				&& (aRxBuffer[1] == 'R' || aRxBuffer[1] == 'L')
-				&& (0 <= aRxBuffer[2] - '0' <= 9)
-				&& (0 <= aRxBuffer[3] - '0' <= 9)
-				&& (0 <= aRxBuffer[4] - '0' <= 9))
-				|| (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'U'
-						|| aRxBuffer[0] == 'Y' || aRxBuffer[0] == 'V'
-						|| aRxBuffer[0] == 'R' || aRxBuffer[0] == 'L')
-						&& (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
-						&& (0 <= aRxBuffer[2] - '0' <= 9)
-						&& (0 <= aRxBuffer[3] - '0' <= 9)
-						&& (0 <= aRxBuffer[4] - '0' <= 9)) {
+		if (receivedInstruction == 1)
+		{
+			magnitude = 0;
+					if (((aRxBuffer[0] == 'T' || aRxBuffer[0] == 'I' || aRxBuffer[0] == 'X')
+							&& (aRxBuffer[1] == 'R' || aRxBuffer[1] == 'L')
+							&& (0 <= aRxBuffer[2] - '0' <= 9)
+							&& (0 <= aRxBuffer[3] - '0' <= 9)
+							&& (0 <= aRxBuffer[4] - '0' <= 9))
+							|| (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'U'
+									|| aRxBuffer[0] == 'Y' || aRxBuffer[0] == 'V'
+									|| aRxBuffer[0] == 'R' || aRxBuffer[0] == 'L')
+									&& (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
+									&& (0 <= aRxBuffer[2] - '0' <= 9)
+									&& (0 <= aRxBuffer[3] - '0' <= 9)
+									&& (0 <= aRxBuffer[4] - '0' <= 9)) {
 
-			magnitude = ((int) (aRxBuffer[2]) - 48) * 100
-					+ ((int) (aRxBuffer[3]) - 48) * 10
-					+ ((int) (aRxBuffer[4]) - 48);
+						magnitude = ((int) (aRxBuffer[2]) - 48) * 100
+								+ ((int) (aRxBuffer[3]) - 48) * 10
+								+ ((int) (aRxBuffer[4]) - 48);
 
-			if (aRxBuffer[1] == 'B') {
-				magnitude *= -1;
-			}
+						if (aRxBuffer[1] == 'B') {
+							magnitude *= -1;
+						}
 
-			osDelay(300);
-			switch (aRxBuffer[0]) {
-			case 'S':
-				moveCarStraight(magnitude);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'I':
-				irFlag = 1;
-				if (!((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500))
-						|| (aRxBuffer[1] == 'R'
-								&& (iDistanceR <= irThreshold - 500)))) {
-					moveCarStraight(magnitude);
-				}
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'U':
-				usFlag = 1;
-				if (uDistance > usThreshold) {
-					moveCarStraight(magnitude);
-				}
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'X':
-				xFlag = 1;
-				irFlag = 1;
-				if (!((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500))
-						|| (aRxBuffer[1] == 'R'
-								&& (iDistanceR <= irThreshold - 500)))) {
-					moveCarStraight(magnitude);
-				}
-				vTaskSuspend(IRTaskHandle);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'Y':
-				yFlag = 1;
-				usFlag = 1;
-				if (uDistance - usThreshold < 10) {
-					usSmall = 1;
-				}
+						osDelay(300);
+						switch (aRxBuffer[0]) {
+						case 'S':
+							moveCarStraight(magnitude);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'I':
+							irFlag = 1;
+							if (!((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500))
+									|| (aRxBuffer[1] == 'R'
+											&& (iDistanceR <= irThreshold - 500)))) {
+								moveCarStraight(magnitude);
+							}
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'U':
+							usFlag = 1;
+							if (uDistance > usThreshold) {
+								moveCarStraight(magnitude);
+							}
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'X':
+							xFlag = 1;
+							irFlag = 1;
+							if (!((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500))
+									|| (aRxBuffer[1] == 'R'
+											&& (iDistanceR <= irThreshold - 500)))) {
+								moveCarStraight(magnitude);
+							}
+							vTaskSuspend(IRTaskHandle);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'Y':
+							yFlag = 1;
+							usFlag = 1;
+							if (uDistance - usThreshold < 10) {
+								usSmall = 1;
+							}
 
-				if (uDistance > usThreshold) {
-					moveCarStraight(magnitude);
-				}
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'T':
-				if (irResumeFlag == 1) {
-					vTaskResume(IRTaskHandle);
-					irResumeFlag = 0;
-				}
-				moveCarStraight(-magnitude);
-				if (aRxBuffer[1] == 'R') {
-					irThreshold = iDistanceR;
-				} else if (aRxBuffer[1] == 'L') {
-					irThreshold = iDistanceL;
-				}
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'V':
-				usThreshold = 25;
-				usFlag = 1;
-				if (uDistance > usThreshold) {
-					moveCarStraight(magnitude);
-				}
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'R':
-				moveCarRight(magnitude);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			case 'L':
-				moveCarLeft(magnitude);
-				flagDone = 1;
-				aRxBuffer[0] = 'D';
-				aRxBuffer[1] = 'O';
-				aRxBuffer[2] = 'N';
-				aRxBuffer[3] = 'E';
-				aRxBuffer[4] = '!';
-				osDelay(100);
-				break;
-			}
+							if (uDistance > usThreshold) {
+								moveCarStraight(magnitude);
+							}
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'T':
+							if (irResumeFlag == 1) {
+								vTaskResume(IRTaskHandle);
+								irResumeFlag = 0;
+							}
+							moveCarStraight(-magnitude);
+							if (aRxBuffer[1] == 'R') {
+								irThreshold = iDistanceR;
+							} else if (aRxBuffer[1] == 'L') {
+								irThreshold = iDistanceL;
+							}
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'V':
+							usThreshold = 25;
+							usFlag = 1;
+							if (uDistance > usThreshold) {
+								moveCarStraight(magnitude);
+							}
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'R':
+							moveCarRight(magnitude);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						case 'L':
+							moveCarLeft(magnitude);
+							flagDone = 1;
+							aRxBuffer[0] = 'D';
+							aRxBuffer[1] = 'O';
+							aRxBuffer[2] = 'N';
+							aRxBuffer[3] = 'E';
+							aRxBuffer[4] = '!';
+							osDelay(100);
+							break;
+						}
+					}
 		}
 
 		if (flagDone == 1) {
+			receivedInstruction = 0;
 			if (xFlag == 1) {
 				osDelay(100);
 				x = ((((((float) (leftEncoderVal - 75000)
@@ -1597,15 +1605,18 @@ void StartIRTask(void *argument) {
 	/* USER CODE BEGIN StartIRTask */
 	/* Infinite loop */
 	for (;;) {
+		/*
 		if (irResumeFlag == 1) {
 			vTaskSuspend(IRTaskHandle);
 		}
+		*/
+
 		IR_Left_Read();
 		IR_Right_Read();
 
-		if ((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500)
+		if ((aRxBuffer[1] == 'L' && (iDistanceL >= irThreshold)
 				&& irFlag == 1)
-				|| (aRxBuffer[1] == 'R' && (iDistanceR <= irThreshold - 500)
+				|| (aRxBuffer[1] == 'R' && (iDistanceR >= irThreshold)
 						&& irFlag == 1)) {
 			irFlag = 0;
 			moveCarStop();

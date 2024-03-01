@@ -4,7 +4,7 @@ import pygame
 import algo.constants as c
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, x_g: int, y_g: int, facing: str) -> None:
+    def __init__(self, x_g: int, y_g: int, facing: str, id: int = -1) -> None:
         """Obstacle constructor
 
         Args:
@@ -23,6 +23,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.x_g = x_g
         self.y_g = y_g
         self.facing = facing
+        self.id = id
         self.theta = utils.facing_to_rad(facing)
 
         if facing == 'E':

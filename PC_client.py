@@ -23,6 +23,7 @@ class PCClient:
         self.msg_queue = Queue()
         self.send_message = False
         self.t1 = task1.task1()
+        self.image_record = []
 
     def connect(self):
         # Establish a connection with the PC
@@ -73,6 +74,8 @@ class PCClient:
 
     def receive_messages(self):
         try:
+            image_counter = 0
+            obs_id = 0
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
@@ -83,46 +86,64 @@ class PCClient:
 
                 # Receive the actual message data
                 message = self.receive_all(message_length)
-                print("[PC Client] Received message:", message)
+                print("[PC Client] Received message: first 100:", message[:100])
 
                 message = json.loads(message)
                 if message["type"] == "START_TASK":
                     # Add algo implementation here:
-                    # path_message = pathcommands.call_algo(message)
                     self.t1.generate_path(message)
                     path_message = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
-                    # path_message = {"type": "NAVIGATION", "data": {"commands": ["SF010", "RF090"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    obs_id = str(self.t1.get_obstacle_id())
+                    # Test code below
+                    # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    # End of test code
                     path_message = json.dumps(path_message)
                     self.msg_queue.put(path_message)
                 
                 elif message["type"] == "IMAGE_TAKEN":
-                    print(message)
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
-                    image_path = "captured_images/decoded_image.jpg"
+                    image_path = f"captured_images/obs_id_{obs_id}_{image_counter}.jpg"
+
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
-                    
-                    image_predictions = check_image.image_inference(image_path, obs_id="1") #obs_id need to find out put what
-                    if image_predictions['data']['img_id'] == None:
-                        # if still no img_id, repeat
-                        image_predictions['data']['img_id'] = "38_Right" # just a last hail mary effort for our weakness prediction
-                    
-                    message = json.dumps(image_predictions)
-                    self.msg_queue.put(message)
-                    # For testing
-                    # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
-                    # end of temp test code
-                
-                    # Update self.t1 to input new path, may put this above the image inference if we don't want to wait and stop
-                    if not self.t1.has_task_ended():
-                        command = self.t1.get_command_to_next_obstacle()
-                        command = json.dumps(command)
-                        self.msg_queue.put(command)
-                    else:
-                        print("[Algo] Task 1 ended")
 
+                    image_prediction = check_image.image_inference(image_path, obs_id=str(obs_id))
+                    self.image_record.append(image_prediction)
+
+                    image_counter += 1
+
+                    if message["final_image"] == True:
+                        image_counter = 0
+                        image_prediction = check_image.get_highest_confidence(self.image_record)
+                        
+                        if image_prediction['data']['img_id'] == None:
+                            image_prediction['data']['img_id'] = "0" # just a last hail mary effort for the weakest prediction
+                            
+                        # For checklist A.5
+                        # else:
+                        #      print("[Algo] Find the non-bulleye ended")
+                        #      return
+
+                        message = json.dumps(image_prediction)
+                        self.msg_queue.put(message)
+
+                        # For testing
+                        # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
+                        # end of temp test code
+
+                        # Update self.t1 to input new path, may put this above the image inference if we don't want to wait and stop
+                        if not self.t1.has_task_ended():
+                            command = self.t1.get_command_to_next_obstacle()
+                            command = json.dumps(command)
+                            self.msg_queue.put(command)
+                            obs_id = str(self.t1.get_obstacle_id())
+                        else:
+                            print("[Algo] Task 1 ended")
+
+                        self.image_record = [] # reset the image record
+                    
         except socket.error as e:
             print("[PC Client] ERROR:", str(e))
 

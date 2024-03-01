@@ -68,7 +68,7 @@ def obstacle_to_checkpoint(obstacle: Obstacle, theta_offset):
     x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
     y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
 
-    return (x, y, theta)
+    return (x, y, theta, obstacle.id)
 
 def offset_x(facing: str):
     if facing == 'N':

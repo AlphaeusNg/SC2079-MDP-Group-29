@@ -137,7 +137,7 @@ class HybridAStar():
 
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
 
-                if childNode == endNode:
+                if self.checkPathFound(childNode):
                     print("Path Found!")
                     pathFound = True
                     currentNode = childNode
@@ -203,7 +203,7 @@ class HybridAStar():
         else:
             return path, None
 
-    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=25, distanceMargin: float=7.5, maxPerpDistance:float=1):
+    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=25, distanceMargin: float=7.5, maxPerpDistance:float=0.5):
         if abs(curNode.theta - self.theta_f) > thetaMargin:
             return False
         
@@ -226,7 +226,7 @@ class HybridAStar():
         projection_y = cur_y + dist*np.sin(curNode.theta - self.theta_offset)
         perpDistance = utils.l2(projection_x, projection_y, target_x, target_y)
         
-        if perpDistance > maxPerpDistance:
+        if perpDistance > maxPerpDistance*targetDistance/dist:
             return False
         
         return True

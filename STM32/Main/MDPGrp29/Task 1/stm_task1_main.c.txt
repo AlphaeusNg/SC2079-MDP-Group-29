@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "oled.h"
+#include "time.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,8 +34,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SERVOCENTER 148
-#define SERVORIGHT 210
-#define SERVOLEFT 85
+#define SERVORIGHT 250
+#define SERVOLEFT 95
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -155,6 +156,13 @@ int receivedInstruction = 0;
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
+	time_t start_time, current_time;
+
+	time(&start_time);
+
+	int timer_duration = 6 * 60;
+
+	printf("Timer started for 6 minutes.\n");
 
 	/* USER CODE END 1 */
 
@@ -253,9 +261,19 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		/* USER CODE END WHILE */
+		time(&current_time);
 
+		int elapsed_time = difftime(current_time, start_time);
+
+		if (elapsed_time >= timer_duration)
+		{
+			printf("Timer expired! 6 minutes have passed.\n");
+			break;
+		}
 		/* USER CODE BEGIN 3 */
 	}
+
+	return 0;
 	/* USER CODE END 3 */
 }
 
@@ -1226,7 +1244,7 @@ void StartCommunicateTask(void *argument) {
 							magnitude *= -1;
 						}
 
-						osDelay(300);
+						osDelay(10);
 						switch (aRxBuffer[0]) {
 						case 'S':
 							moveCarStraight(magnitude);
@@ -1236,7 +1254,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'R':
 							moveCarRight(magnitude);
@@ -1246,7 +1264,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'L':
 							moveCarLeft(magnitude);
@@ -1256,7 +1274,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'G':
 							NVIC_SystemReset();
@@ -1267,12 +1285,12 @@ void StartCommunicateTask(void *argument) {
 
 		if (flagDone == 1) {
 			receivedInstruction = 0;
-			osDelay(300);
+			osDelay(10);
 			HAL_UART_Transmit(&huart3, (uint8_t*) &ack, 1, 0xFFFF);
 			flagDone = 0;
 		}
 
-		osDelay(100);
+		osDelay(10);
 	}
 	/* USER CODE END StartCommunicateTask */
 }

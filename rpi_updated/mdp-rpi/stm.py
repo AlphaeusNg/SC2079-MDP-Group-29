@@ -67,7 +67,7 @@ class STMInterface:
             
     def send(self):
         # Send commands to STM based on the received messages from PC
-        self.obstacle_count = 0 # Task 1: Gyro reset
+        self.obstacle_count = 1 # Task 1: Gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
         self.xdist = None
@@ -85,8 +85,8 @@ class STMInterface:
             # message = {
             #     "type": "NAVIGATION",
             #     "data": {
-            #     # "commands":  ["SF010", "RF030", "LF030", "SF010"],
-            #     "commands":  ["RB180"],
+            #     "commands":  ["SF010", "RF030", "LF030", "SF010"],
+            #     # "commands":  ["SF030"],
             #     "path": [[0,1], [1,1], [2,1], [3,1]]
             #     }
             # }
@@ -102,22 +102,15 @@ class STMInterface:
 
                 # Real code
                 for idx, command in enumerate(commands):
+                    # Capture an image before every instruction
+                    if idx >= len(commands) - NUM_IMAGES:
+                        # Start a new thread to capture and send the image to PC
+                        capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=False), daemon=True)
+                        capture_and_send_image_thread.start()
+
                     self.write_to_stm(command)
-                    print("at write_to_stm")
-                    # time.sleep(5)
-                    # if idx >= len(commands) - 3:
-                    #     # Start a new thread to capture and send the image to PC
-                    #     capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
-                    #     capture_and_send_image_thread.start()
+                    print("[RPI] Writing to STM:", command)
                     
-                # test code for taking many images
-                # for i in range(32):
-                #     capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
-                #     capture_and_send_image_thread.start()
-                #     time.sleep(8)
-                # end of test code
-    
-                self.obstacle_count += 1
 
                 if self.second_arrow is not None:
                     self.return_to_carpark()
@@ -125,9 +118,12 @@ class STMInterface:
                     return
 
                 # Start a new thread to capture and send the image to PC
-                capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc, daemon=True)
+                capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=True), daemon=True)
                 capture_and_send_image_thread.start()
 
+                self.obstacle_count += 1
+                
+                # Was previously in the code when we ran on 23/2/24, but may not be necessary?
                 if self.obstacle_count % STM_GYRO_RESET_FREQ == 0:
                     print("[STM] Resetting gyroscope after %d obstacles" % self.obstacle_count)
                     self.write_to_stm(STM_GYRO_RESET_COMMAND)
@@ -198,11 +194,10 @@ class STMInterface:
         print(f"[STM] Read final DIST =", distance) 
         return distance
 
-    def send_image_to_pc(self):
+    def send_image_to_pc(self, final_image:bool):
         # Send captured image to PC
         print("[STM] Adding image from camera to PC message queue")
-        # t = get_image()
-        self.RPiMain.PC.msg_queue.put(get_image())      
+        self.RPiMain.PC.msg_queue.put(get_image(final_image=final_image))      
 
     def send_path_to_android(self, message):
         # Send path to Android for display

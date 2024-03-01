@@ -9,6 +9,9 @@ MSG_LOG_MAX_SIZE = 150 # characters
 PC_PORT = 8888
 PC_BUFFER_SIZE = 2048
 
+# Camera Interface
+NUM_IMAGES = 3
+
 # Android Interface
 BT_UUID = "00001101-0000-1000-8000-00805f9b34fb"
 BT_BUFFER_SIZE = 2048
