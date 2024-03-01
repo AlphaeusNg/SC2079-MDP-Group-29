@@ -6,10 +6,16 @@ import os
 from typing import List
 import time
 from datetime import datetime
+import torch
 
-# Load a pretrained YOLOv8n model
 MODEL_PATH = r"image_recognition\runs\detect\train (old + current + MDP CV.v8)\weights\best.pt"
+
+# Initialize the YOLO model
 model = YOLO(MODEL_PATH)
+
+# Check if GPU is available and move the model to the device
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+model.to(device)
 
 
 def map_yoloid_to_mdp_image_id(yoloid: int) -> str:
@@ -73,8 +79,7 @@ def predict_multiple_images(folder_path):
 
     # Run inference on 'bus.jpg' with arguments
     for file in source:
-        # model.predict(file, save=True, imgsz=640, conf=0.8, device='cuda')
-        model.predict(file, save=True, imgsz=640, conf=0.8, device='cpu')
+        model.predict(file, save=True, imgsz=640, conf=0.8, device=device)
 
 
 def find_largest_bbox_label(bboxes):
@@ -123,7 +128,7 @@ def image_inference(image_path, obs_id):
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
     # run inference on the image
-    results = model.predict(source=image_path, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device='cpu')
+    results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device=device)
     # results = model.predict(source=image_path,imgsz=640, conf=0.8, device='cuda')
     bboxes = []
     for r in results:
@@ -132,7 +137,7 @@ def image_inference(image_path, obs_id):
             bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0], 
                            "conf": c.boxes.conf.tolist().pop(), 
                            "xywh": c.boxes.xywh.tolist().pop()})
-            print(bboxes)
+            # print(bboxes)
             # file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
 
             # Save the image to the specified path
@@ -164,7 +169,7 @@ def test_image_inference(image_path, obs_id):
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
     # run inference on the image
-    results = model.predict(source=r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\img_23-02_12-34-08.262\decoded_image.jpg",imgsz=640, conf=0.8, device='cpu')
+    results = model.predict(source=image_path,imgsz=640, conf=0.8, device=device)
     bboxes = []
     for r in results:
         # Iterate over each object
@@ -199,6 +204,7 @@ def test_image_inference(image_path, obs_id):
 
     
 if __name__ == '__main__':
-    folder_path = r"image recognition\dataset\MDP CV.v7i.yolov8"
+    # folder_path = r"image recognition\dataset\MDP CV.v7i.yolov8"
     # predict_multiple_images(folder_path)
-    _ = image_inference(r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\img_10-24-33.134\decoded_image.jpg", "00")
+    image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_1_0.jpg"
+    _ = image_inference(image_path, "00")

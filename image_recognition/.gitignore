@@ -2,3 +2,4 @@
 .venv
 dataset*
 image archive
+__pycache__

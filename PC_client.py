@@ -1,3 +1,4 @@
+import os
 import socket
 import json
 from queue import Queue
@@ -5,6 +6,8 @@ from image_recognition import check_image
 import base64
 from algo.pathfinding import task1
 from algo.pathfinding import pathcommands
+from datetime import datetime
+import time
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
@@ -104,8 +107,10 @@ class PCClient:
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
+                    # Remove extra dir creation
+                    # formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
                     image_path = f"captured_images/obs_id_{obs_id}_{image_counter}.jpg"
-
+                    # os.makedirs(directory_path, exist_ok=True)
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
@@ -116,15 +121,22 @@ class PCClient:
 
                     if message["final_image"] == True:
                         image_counter = 0
-                        image_prediction = check_image.get_highest_confidence(self.image_record)
+                        # image_prediction = check_image.get_highest_confidence(self.image_record)
+                        # Get last prediction and move forward
+                        while image_prediction['data']['img_id'] == None and self.image_record is not None:
+                            image_prediction = self.image_record.pop()
+
+                        del image_prediction["data"]["bbox_area"]
+                        del image_prediction["data"]["conf"]
+                        del image_prediction["image_path"]
                         
                         if image_prediction['data']['img_id'] == None:
-                            image_prediction['data']['img_id'] = "0" # just a last hail mary effort for the weakest prediction
+                            image_prediction['data']['img_id'] = "35" # Z. just a last hail mary effort for the weakest prediction
                             
-                        # For checklist A.5
+                        # # For checklist A.5
                         # else:
-                        #      print("[Algo] Find the non-bulleye ended")
-                        #      return
+                        #     print("[Algo] Find the non-bulleye ended")
+                        #     return
 
                         message = json.dumps(image_prediction)
                         self.msg_queue.put(message)
