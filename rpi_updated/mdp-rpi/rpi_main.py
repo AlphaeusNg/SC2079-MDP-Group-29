@@ -74,7 +74,7 @@ class RPiMain:
 #         # self.Android = AndroidInterface(self)
 #         # self.PC = PCInterface(self)
 #         self.STM = STMInterface(self)
-#         self.STM.write_to_stm(STM_GYRO_RESET_COMMAND)
+#         # self.STM.write_to_stm(STM_GYRO_RESET_COMMAND)
 
 #     def connect_components(self):
 #         # Connect all components
@@ -103,7 +103,7 @@ class RPiMain:
 
 #         # Create threads for receiving messages
 #         # Android_listen = Thread(target=self.Android.listen, name="Android_listen_thread")
-#         PC_listen = Thread(target=self.PC.listen, name="PC_listen_thread")
+#         # PC_listen = Thread(target=self.PC.listen, name="PC_listen_thread")
 
 #         # Start sending threads
 #         # Android_send.start()

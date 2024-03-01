@@ -86,6 +86,7 @@ class PCInterface:
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                         # Real code
                         self.RPiMain.Android.msg_queue.put(message)
+                        # Temp code: pass
                         # pass
 
                     else:
