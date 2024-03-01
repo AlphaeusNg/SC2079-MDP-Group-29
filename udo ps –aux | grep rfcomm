@@ -1,0 +1,21 @@
+[0;1;32m●[0m bluetooth.service - Bluetooth service
+   Loaded: loaded (/lib/systemd/system/bluetooth.service; enabled; vendor preset: enabled)
+   Active: [0;1;32mactive (running)[0m since Fri 2024-02-23 13:17:06 +08; 26min ago
+     Docs: man:bluetoothd(8)
+  Process: 577 ExecStartPost=/usr/bin/sdptool add SP (code=exited, status=0/SUCCESS)
+ Main PID: 554 (bluetoothd)
+   Status: "Running"
+    Tasks: 1 (limit: 4915)
+   CGroup: /system.slice/bluetooth.service
+           └─554 /usr/lib/bluetooth/bluetoothd -C --noplugin=sap
+
+Feb 23 13:25:58 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mUnable to get io data for :1.39/Profile/HSPHSProfile/00001108-0000-1000-8000-00805f9b34fb: getpeername: Transport endpoint is not connected (107)[0m
+Feb 23 13:30:09 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mUnable to get io data for :1.39/Profile/HSPHSProfile/00001108-0000-1000-8000-00805f9b34fb: getpeername: Transport endpoint is not connected (107)[0m
+Feb 23 13:31:15 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mNo agent available for request type 2[0m
+Feb 23 13:31:15 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mdevice_confirm_passkey: Operation not permitted[0m
+Feb 23 13:31:33 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mNo agent available for request type 2[0m
+Feb 23 13:31:33 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mdevice_confirm_passkey: Operation not permitted[0m
+Feb 23 13:32:20 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mNo agent available for request type 2[0m
+Feb 23 13:32:20 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31mdevice_confirm_passkey: Operation not permitted[0m
+Feb 23 13:41:45 MDPGrp29 bluetoothd[554]: [0;1;39m[0;1;31m[0;1;39mAuthentication attempt without agent[0m
+Feb 23 13:41:45 MDPGrp29 bluetoothd[554]: [0;1;31m[0;1;39m[0;1;31m:1.39/Profile/HSPHSProfile/00001108-0000-1000-8000-00805f9b34fb rejected 90:EE:C7:E7:D3:96: org.bluez.Error.Rejected[0m
