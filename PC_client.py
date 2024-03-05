@@ -120,7 +120,7 @@ class PCClient:
                     image_counter += 1
 
                     if message["final_image"] == True:
-                        image_counter = 0
+                        
                         # image_prediction = check_image.get_highest_confidence(self.image_record)
                         # Get last prediction and move forward
                         while image_prediction['data']['img_id'] == None and self.image_record is not None:
@@ -131,6 +131,19 @@ class PCClient:
                         del image_prediction["image_path"]
                         
                         if image_prediction['data']['img_id'] == None:
+                            # Repeat the last command to try to locate the image
+                            last_command = path_message['data']['commands'][-1]
+                            last_path = path_message['data']['path'][-1]
+                            if "F" in last_command:
+                                command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
+                            elif "B" in last_command:
+                                command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
+                            
+                            command = json.dumps(command)
+                            self.msg_queue.put(command)
+
+                            continue
+
                             image_prediction['data']['img_id'] = "35" # Z. just a last hail mary effort for the weakest prediction
                             
                         # # For checklist A.5
@@ -140,6 +153,7 @@ class PCClient:
 
                         message = json.dumps(image_prediction)
                         self.msg_queue.put(message)
+                        image_counter = 0
 
                         # For testing
                         # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}

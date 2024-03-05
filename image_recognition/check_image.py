@@ -1,14 +1,12 @@
 from ultralytics import YOLO
 from pathlib import Path
-import cv2 as cv
-import numpy as np
 import os
 from typing import List
 import time
 from datetime import datetime
 import torch
 
-MODEL_PATH = r"image_recognition\runs\detect\train (old + current + MDP CV.v8)\weights\best.pt"
+MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"
 
 # Initialize the YOLO model
 model = YOLO(MODEL_PATH)
@@ -88,19 +86,26 @@ def find_largest_bbox_label(bboxes):
     largest_bbox_label = None
     conf = 0.0
 
-    for bbox in bboxes:            
+    for bbox in bboxes: 
+        
         # Extract label, x, y, width, height
         label = bbox['label']
         x, y, width, height = bbox['xywh']
         conf = bbox['conf']
+
+        # ignore bullseye      
+        if label == "0":
+            continue  
+        # factor in '1' being thinner
+        if label == "11":
+            width *= 1.2
 
         # Calculate the area of the bounding box
         bbox_area = width * height
 
         # Check if the current bounding box has a larger area
         if bbox_area > largest_bbox_area:
-            if label == "0": #ignore bullseye
-                continue
+            
             largest_bbox_area = bbox_area
             largest_bbox_label = label
 
@@ -138,16 +143,9 @@ def image_inference(image_path, obs_id):
                            "conf": c.boxes.conf.tolist().pop(), 
                            "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
-            # file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
-
-            # Save the image to the specified path
-            # r.orig_img.save(file_path+".jpg")
-            # with open(file_path+".txt", 'w') as output_file:
-            #     for value in c.boxes.xywhn.tolist().pop():
-            #         output_file.write(f"{value} ")
 
     # To make it display, useful for testing
-    # results[0].show()
+    results[0].show()
 
     largest_bbox_label, largest_bbox_area, conf = find_largest_bbox_label(bboxes)
 
@@ -206,5 +204,6 @@ def test_image_inference(image_path, obs_id):
 if __name__ == '__main__':
     # folder_path = r"image recognition\dataset\MDP CV.v7i.yolov8"
     # predict_multiple_images(folder_path)
-    image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_1_0.jpg"
+    # image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_5_1.jpg"
+    image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_6_1.jpg"
     _ = image_inference(image_path, "00")
