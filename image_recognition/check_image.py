@@ -17,7 +17,7 @@ model.to(device)
 
 
 def map_yoloid_to_mdp_image_id(yoloid: int) -> str:
-    # Code out a function that checks the yoloid and returns the corresponding MDP image id, the given yoloid to MDP image id mapping is as follows:
+    # a function that checks the yoloid and returns the corresponding MDP image id, the given yoloid to MDP image id mapping is as follows:
     return {
         0: '0_BullsEye',
         1: '11_1',
@@ -84,14 +84,12 @@ def find_largest_bbox_label(bboxes):
 
     largest_bbox_area = 0.0
     largest_bbox_label = None
-    conf = 0.0
 
     for bbox in bboxes: 
         
         # Extract label, x, y, width, height
         label = bbox['label']
         x, y, width, height = bbox['xywh']
-        conf = bbox['conf']
 
         # ignore bullseye      
         if label == "0":
@@ -105,11 +103,10 @@ def find_largest_bbox_label(bboxes):
 
         # Check if the current bounding box has a larger area
         if bbox_area > largest_bbox_area:
-            
             largest_bbox_area = bbox_area
             largest_bbox_label = label
 
-    return largest_bbox_label, largest_bbox_area, conf
+    return largest_bbox_label, largest_bbox_area
 
 
 def get_highest_confidence(predictions_list:list[dict]) -> dict:
@@ -132,73 +129,34 @@ def image_inference(image_path, obs_id):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
+
     # run inference on the image
     results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device=device)
-    # results = model.predict(source=image_path,imgsz=640, conf=0.8, device='cuda')
     bboxes = []
+
     for r in results:
         # Iterate over each object
         for c in r:
-            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0], 
-                           "conf": c.boxes.conf.tolist().pop(), 
+            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0],
                            "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
 
     # To make it display, useful for testing
-    results[0].show()
-
-    largest_bbox_label, largest_bbox_area, conf = find_largest_bbox_label(bboxes)
-
-    image_prediction = {
-        "type": "IMAGE_RESULTS",
-        "data": {
-            "obs_id": obs_id, 
-            "img_id": largest_bbox_label, 
-            "bbox_area": largest_bbox_area,
-            "conf": conf
-            },
-        "image_path": f"./captured_images/{img_name}/decoded_image.jpg"
-        }
-
-    return image_prediction
-
-def test_image_inference(image_path, obs_id):
-    # Create a unique image path based on the current timestamp (and also check the delay)
-    formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
-    img_name = f"img_{formatted_time}"
-    # run inference on the image
-    results = model.predict(source=image_path,imgsz=640, conf=0.8, device=device)
-    bboxes = []
-    for r in results:
-        # Iterate over each object
-        for c in r:
-            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0], 
-                        "conf": c.boxes.conf.tolist().pop(), 
-                        "xywh": c.boxes.xywh.tolist().pop()})
-            print(bboxes)
-            file_path = rf"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\{img_name}"
-
-            # Save the image to the specified path
-            r.orig_img.save(file_path+".jpg")
-            with open(file_path+".txt", 'w') as output_file:
-                for value in c.boxes.xywhn.tolist().pop():
-                    output_file.write(f"{value} ")
-
-    # To make it display, useful for testing
     # results[0].show()
 
-    largest_bbox_label = find_largest_bbox_label(bboxes)
+    largest_bbox_label, largest_bbox_area = find_largest_bbox_label(bboxes)
 
     image_prediction = {
         "type": "IMAGE_RESULTS",
         "data": {
             "obs_id": obs_id, 
             "img_id": largest_bbox_label, 
-            }
+            "bbox_area": largest_bbox_area
+            },
+        "image_path": Path("captured_images") / img_name
         }
 
     return image_prediction
-
 
     
 if __name__ == '__main__':
