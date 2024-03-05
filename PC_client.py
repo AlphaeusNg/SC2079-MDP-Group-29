@@ -13,6 +13,7 @@ import time
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
 PC_PORT = 8888  # Replace with the port used by the PC server
 PC_BUFFER_SIZE = 1024
+NUM_OF_RETRIES = 2
 
 import socket
 import threading
@@ -79,6 +80,8 @@ class PCClient:
         try:
             image_counter = 0
             obs_id = 0
+            retries = 0
+            path_message = None
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
@@ -100,15 +103,14 @@ class PCClient:
                     # Test code below
                     # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
                     # End of test code
-                    path_message = json.dumps(path_message)
-                    self.msg_queue.put(path_message)
+                    path_message_json = json.dumps(path_message)
+                    self.msg_queue.put(path_message_json)
                 
                 elif message["type"] == "IMAGE_TAKEN":
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
-                    # Remove extra dir creation
-                    # formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
+                    
                     image_path = f"captured_images/obs_id_{obs_id}_{image_counter}.jpg"
                     # os.makedirs(directory_path, exist_ok=True)
                     with open(image_path, "wb") as img_file:
@@ -130,8 +132,9 @@ class PCClient:
                         del image_prediction["data"]["conf"]
                         del image_prediction["image_path"]
                         
-                        if image_prediction['data']['img_id'] == None:
-                            # Repeat the last command to try to locate the image
+                        # If still can't find a prediction, repeat the last command
+                        if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
+
                             last_command = path_message['data']['commands'][-1]
                             last_path = path_message['data']['path'][-1]
                             if "F" in last_command:
@@ -141,7 +144,7 @@ class PCClient:
                             
                             command = json.dumps(command)
                             self.msg_queue.put(command)
-
+                            retries += 1
                             continue
 
                             image_prediction['data']['img_id'] = "35" # Z. just a last hail mary effort for the weakest prediction
@@ -154,6 +157,7 @@ class PCClient:
                         message = json.dumps(image_prediction)
                         self.msg_queue.put(message)
                         image_counter = 0
+                        retries = 0
 
                         # For testing
                         # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
