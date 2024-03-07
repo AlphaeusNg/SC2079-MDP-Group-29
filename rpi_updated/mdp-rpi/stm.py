@@ -284,7 +284,7 @@ class STMInterface:
                 if is_turn_command(command): 
                     adj_commands = adjust_turn_command(command)
                 # Just added to check it: 
-                #if is_validturn_command(command):
+                # if is_validturn_command(command):
                 #    adj_commands = adjust_turn_command(command)
                 elif is_obstacle_routing_command(command): 
                     adj_commands = adjust_obstacle_routing_command(command)
