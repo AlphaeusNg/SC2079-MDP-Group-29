@@ -31,25 +31,32 @@ class PCClient:
 
     def connect(self):
         # Establish a connection with the PC
-        try:
-            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((self.host, self.port))
-            self.send_message = True
-            print("[PC Client] Connected to PC successfully.")
-        except socket.error as e:
-            print("[PC Client] ERROR: Failed to connect -", str(e))
+        retries:int = 0
+        while not self.send_message:  # Keep trying until successful connection
+            try:
+                self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.client_socket.connect((self.host, self.port))
+                self.send_message = True
+                print("[PC Client] Connected to PC successfully.")
+            except socket.error as e:
+                retries += 1
+                print("[PC Client] ERROR: Failed to connect -", str(e), "Retry no." + retries, "in 1 second...")
+                time.sleep(1)
 
     def disconnect(self):
         # Disconnect from the PC
         try:
             if self.client_socket is not None:
                 self.client_socket.close()
+                self.send_message = False
                 print("[PC Client] Disconnected from rpi.")
         except Exception as e:
             print("[PC Client] Failed to disconnect from rpi:", str(e))
     
     def reconnect(self):
         # Disconnect and then connect again
+        print("[PC Client] Reconnecting...")
+        self.send_message = False
         self.disconnect()
         self.connect()
 
@@ -60,10 +67,8 @@ class PCClient:
                 exception = True
                 while exception:
                     try:
-                        # message_sized = self.prepend_msg_size(message)
-                        self.client_socket.send(self.prepend_msg_size(message))
+                        self.client_socket.sendall(self.prepend_msg_size(message))
                         print("[PC Client] Write to RPI: first 100=", message[:100])
-                        # self.send_message = False
                     except Exception as e:
                         print("[PC Client] ERROR: Failed to write to RPI -", str(e))
                         self.reconnect()
@@ -86,12 +91,16 @@ class PCClient:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
                 if not length_bytes:
-                    print("[PC Server] Client disconnected.")
-                    break
+                    print("[PC Client] PC Server disconnected.")
+                    self.reconnect()
                 message_length = int.from_bytes(length_bytes, byteorder="big")
 
                 # Receive the actual message data
                 message = self.receive_all(message_length)
+                if not message:
+                    print("[PC Client] PC Server disconnected remotely.")
+                    self.reconnect()
+
                 print("[PC Client] Received message: first 100:", message[:100])
 
                 message = json.loads(message)
