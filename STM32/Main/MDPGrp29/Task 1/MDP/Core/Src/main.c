@@ -230,8 +230,8 @@ int main(void) {
 	gyroTaskHandle = osThreadNew(StartGyroTask, NULL, &gyroTask_attributes);
 
 	/* creation of ultrasonicTask */
-	ultrasonicTaskHandle = osThreadNew(StartUltrasonicTask, NULL,
-			&ultrasonicTask_attributes);
+//	ultrasonicTaskHandle = osThreadNew(StartUltrasonicTask, NULL,
+//			&ultrasonicTask_attributes);
 
 	/* creation of communicateTask */
 	communicateTaskHandle = osThreadNew(StartCommunicateTask, NULL,
@@ -1151,8 +1151,9 @@ void StartGyroTask(void *argument) {
 	double offset = 0;
 	double trash = 0;
 	int i = 0;
-	while (i < 100) {
-		osDelay(50);
+	osDelay(50);
+	while (i < 1000) {
+		osDelay(1);
 		readByte(0x37, val);
 		angular_speed = (val[0] << 8) | val[1];
 		trash += (double) ((double) angular_speed)
