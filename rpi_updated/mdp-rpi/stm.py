@@ -76,21 +76,21 @@ class STMInterface:
         # for i in range(1): 
             
             # Uncomment once implementation is done
-            message_byte = self.msg_queue.get()
-            message_str = message_byte.decode("utf-8")
-            message = json.loads(message_str)
-            message_type = message["type"]
+            # message_byte = self.msg_queue.get()
+            # message_str = message_byte.decode("utf-8")
+            # message = json.loads(message_str)
+            # message_type = message["type"]
 
             # comment once implementation is done.
-            # message = {
-            #     "type": "NAVIGATION",
-            #     "data": {
-            #     "commands":  ["SF010", "RF030", "LF030", "SF010"],
-            #     # "commands":  ["SF030"],
-            #     "path": [[0,1], [1,1], [2,1], [3,1]]
-            #     }
-            # }
-            # message_type = 'NAVIGATION'
+            message = {
+                "type": "NAVIGATION",
+                "data": {
+                "commands":  ["LF045", "RF045", "SF040", "RF045", "LF045"],
+                # "commands":  ["SF030"],
+                "path": [[0,1], [1,1], [2,1], [3,1], [3,3]]
+                }
+            }
+            message_type = 'NAVIGATION'
             # end of test code
 
             if message_type == "NAVIGATION":
@@ -194,6 +194,7 @@ class STMInterface:
         print(f"[STM] Read final DIST =", distance) 
         return distance
 
+    # Testing for 6 March, Kelvin 
     def send_image_to_pc(self, final_image:bool):
         # Send captured image to PC
         print("[STM] Adding image from camera to PC message queue")
