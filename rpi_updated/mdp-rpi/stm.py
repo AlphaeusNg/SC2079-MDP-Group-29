@@ -86,7 +86,8 @@ class STMInterface:
                 "type": "NAVIGATION",
                 "data": {
                 "commands":  ["LF045", "RF045", "SF040", "RF045", "LF045"],
-                # "commands":  ["SF030"],
+                # "commands": ["UF150"],
+
                 "path": [[0,1], [1,1], [2,1], [3,1], [3,3]]
                 }
             }

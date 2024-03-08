@@ -40,7 +40,7 @@ class PCClient:
                 print("[PC Client] Connected to PC successfully.")
             except socket.error as e:
                 retries += 1
-                print("[PC Client] ERROR: Failed to connect -", str(e), "Retry no." + retries, "in 1 second...")
+                print("[PC Client] ERROR: Failed to connect -", str(e), "Retry no." + str(retries), "in 1 second...")
                 time.sleep(1)
 
     def disconnect(self):
@@ -114,7 +114,17 @@ class PCClient:
                     # End of test code
                     path_message_json = json.dumps(path_message)
                     self.msg_queue.put(path_message_json)
+
+                elif message["type"] == "FASTEST_PATH":
+                    path_message = {"type": "FASTEST_PATH"}
+                    path_message_json = json.dumps(path_message)
+                    self.msg_queue.put(path_message_json)
                 
+                elif message["type"] == "test":
+                    message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "39"}}
+                    command = json.dumps(command)
+                    self.msg_queue.put(command)
+
                 elif message["type"] == "IMAGE_TAKEN":
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
@@ -127,7 +137,6 @@ class PCClient:
 
                     image_prediction = check_image.image_inference(image_path, obs_id=str(obs_id))
                     self.image_record.append(image_prediction)
-
                     image_counter += 1
 
                     if message["final_image"] == True:
@@ -135,28 +144,31 @@ class PCClient:
                         # image_prediction = check_image.get_highest_confidence(self.image_record)
                         # Get last prediction and move forward
                         while image_prediction['data']['img_id'] == None and self.image_record is not None:
-                            image_prediction = self.image_record.pop()
+                            if self.image_record:
+                                image_prediction = self.image_record.pop()
+                            else:
+                                break
 
                         del image_prediction["data"]["bbox_area"]
-                        del image_prediction["data"]["conf"]
                         del image_prediction["image_path"]
                         
                         # If still can't find a prediction, repeat the last command
                         if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
-
-                            last_command = path_message['data']['commands'][-1]
-                            last_path = path_message['data']['path'][-1]
-                            if "F" in last_command:
-                                command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
-                            elif "B" in last_command:
-                                command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
                             
-                            command = json.dumps(command)
-                            self.msg_queue.put(command)
-                            retries += 1
-                            continue
-
-                            image_prediction['data']['img_id'] = "35" # Z. just a last hail mary effort for the weakest prediction
+                            if path_message['type'] == 'FASTEST_PATH':
+                                image_prediction['data']['img_id'] = "39"
+                            else:
+                                last_command = path_message['data']['commands'][-1]
+                                last_path = path_message['data']['path'][-1]
+                                if "F" in last_command:
+                                    command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
+                                elif "B" in last_command:
+                                    command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
+                            
+                                command = json.dumps(command)
+                                self.msg_queue.put(command)
+                                retries += 1
+                                continue
                             
                         # # For checklist A.5
                         # else:
