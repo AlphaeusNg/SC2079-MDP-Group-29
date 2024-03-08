@@ -123,7 +123,7 @@ class AndroidInterface:
             exception = True
             while exception: 
                 try:
-                    self.client_socket.send(message)
+                    self.client_socket.sendall(message)
                     print("[Android] Write to Android: " + message.decode("utf-8")[:MSG_LOG_MAX_SIZE])
                 except Exception as e:
                     print("[Android] ERROR: Failed to write to Android -", str(e))

@@ -1222,7 +1222,7 @@ void StartOLEDTask(void *argument) {
 	uint8_t command[20] = { 0 };
 
 	for (;;) {
-		sprintf(usVal, "Distance: %d \0", (int) uDistance);
+		sprintf(usVal, "USensor Distance: %d \0", (int) uDistance);
 		OLED_ShowString(0, 10, usVal);
 
 		int decimals = abs((int) ((total_angle - (int) (total_angle)) * 1000));
@@ -1232,12 +1232,12 @@ void StartOLEDTask(void *argument) {
 		sprintf(encoderVal, "X: %d Y: %d \0", (int) x, (int) y);
 		OLED_ShowString(0, 30, encoderVal);
 
-		sprintf(irVal, "L: %d R: %d \0", (int) iDistanceL, iDistanceR);
-		OLED_ShowString(0, 40, irVal);
+//		sprintf(irVal, "L: %d R: %d \0", (int) iDistanceL, iDistanceR);
+//		OLED_ShowString(0, 40, irVal);
 
 		sprintf(command, "C: %c%c%c%c%c \0", aRxBuffer[0], aRxBuffer[1],
 				aRxBuffer[2], aRxBuffer[3], aRxBuffer[4]);
-		OLED_ShowString(0, 50, command);
+		OLED_ShowString(0, 40, command);
 
 		OLED_Refresh_Gram();
 		osDelay(100);
@@ -1308,7 +1308,6 @@ void StartUltrasonicTask(void *argument) {
 			usFlag = 0;
 			moveCarStop();
 		}
-
 		osDelay(100);
 	}
 	/* USER CODE END StartUltrasonicTask */
@@ -1621,7 +1620,6 @@ void StartIRTask(void *argument) {
 			irFlag = 0;
 			moveCarStop();
 		}
-
 		osDelay(100);
 	}
 	/* USER CODE END StartIRTask */

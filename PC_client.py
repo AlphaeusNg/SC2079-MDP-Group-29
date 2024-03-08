@@ -1,3 +1,4 @@
+import os
 import socket
 import json
 from queue import Queue
@@ -5,11 +6,14 @@ from image_recognition import check_image
 import base64
 from algo.pathfinding import task1
 from algo.pathfinding import pathcommands
+from datetime import datetime
+import time
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
 PC_PORT = 8888  # Replace with the port used by the PC server
 PC_BUFFER_SIZE = 1024
+NUM_OF_RETRIES = 2
 
 import socket
 import threading
@@ -27,25 +31,32 @@ class PCClient:
 
     def connect(self):
         # Establish a connection with the PC
-        try:
-            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((self.host, self.port))
-            self.send_message = True
-            print("[PC Client] Connected to PC successfully.")
-        except socket.error as e:
-            print("[PC Client] ERROR: Failed to connect -", str(e))
+        retries:int = 0
+        while not self.send_message:  # Keep trying until successful connection
+            try:
+                self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.client_socket.connect((self.host, self.port))
+                self.send_message = True
+                print("[PC Client] Connected to PC successfully.")
+            except socket.error as e:
+                retries += 1
+                print("[PC Client] ERROR: Failed to connect -", str(e), "Retry no." + retries, "in 1 second...")
+                time.sleep(1)
 
     def disconnect(self):
         # Disconnect from the PC
         try:
             if self.client_socket is not None:
                 self.client_socket.close()
+                self.send_message = False
                 print("[PC Client] Disconnected from rpi.")
         except Exception as e:
             print("[PC Client] Failed to disconnect from rpi:", str(e))
     
     def reconnect(self):
         # Disconnect and then connect again
+        print("[PC Client] Reconnecting...")
+        self.send_message = False
         self.disconnect()
         self.connect()
 
@@ -56,10 +67,8 @@ class PCClient:
                 exception = True
                 while exception:
                     try:
-                        # message_sized = self.prepend_msg_size(message)
-                        self.client_socket.send(self.prepend_msg_size(message))
+                        self.client_socket.sendall(self.prepend_msg_size(message))
                         print("[PC Client] Write to RPI: first 100=", message[:100])
-                        # self.send_message = False
                     except Exception as e:
                         print("[PC Client] ERROR: Failed to write to RPI -", str(e))
                         self.reconnect()
@@ -76,16 +85,22 @@ class PCClient:
         try:
             image_counter = 0
             obs_id = 0
+            retries = 0
+            path_message = None
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
                 if not length_bytes:
-                    print("[PC Server] Client disconnected.")
-                    break
+                    print("[PC Client] PC Server disconnected.")
+                    self.reconnect()
                 message_length = int.from_bytes(length_bytes, byteorder="big")
 
                 # Receive the actual message data
                 message = self.receive_all(message_length)
+                if not message:
+                    print("[PC Client] PC Server disconnected remotely.")
+                    self.reconnect()
+
                 print("[PC Client] Received message: first 100:", message[:100])
 
                 message = json.loads(message)
@@ -97,15 +112,16 @@ class PCClient:
                     # Test code below
                     # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
                     # End of test code
-                    path_message = json.dumps(path_message)
-                    self.msg_queue.put(path_message)
+                    path_message_json = json.dumps(path_message)
+                    self.msg_queue.put(path_message_json)
                 
                 elif message["type"] == "IMAGE_TAKEN":
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
                     decoded_image = base64.b64decode(encoded_image)
+                    
                     image_path = f"captured_images/obs_id_{obs_id}_{image_counter}.jpg"
-
+                    # os.makedirs(directory_path, exist_ok=True)
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
@@ -115,19 +131,42 @@ class PCClient:
                     image_counter += 1
 
                     if message["final_image"] == True:
-                        image_counter = 0
-                        image_prediction = check_image.get_highest_confidence(self.image_record)
                         
-                        if image_prediction['data']['img_id'] == None:
-                            image_prediction['data']['img_id'] = "0" # just a last hail mary effort for the weakest prediction
+                        # image_prediction = check_image.get_highest_confidence(self.image_record)
+                        # Get last prediction and move forward
+                        while image_prediction['data']['img_id'] == None and self.image_record is not None:
+                            image_prediction = self.image_record.pop()
+
+                        del image_prediction["data"]["bbox_area"]
+                        del image_prediction["data"]["conf"]
+                        del image_prediction["image_path"]
+                        
+                        # If still can't find a prediction, repeat the last command
+                        if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
+
+                            last_command = path_message['data']['commands'][-1]
+                            last_path = path_message['data']['path'][-1]
+                            if "F" in last_command:
+                                command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
+                            elif "B" in last_command:
+                                command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
                             
-                        # For checklist A.5
+                            command = json.dumps(command)
+                            self.msg_queue.put(command)
+                            retries += 1
+                            continue
+
+                            image_prediction['data']['img_id'] = "35" # Z. just a last hail mary effort for the weakest prediction
+                            
+                        # # For checklist A.5
                         # else:
-                        #      print("[Algo] Find the non-bulleye ended")
-                        #      return
+                        #     print("[Algo] Find the non-bulleye ended")
+                        #     return
 
                         message = json.dumps(image_prediction)
                         self.msg_queue.put(message)
+                        image_counter = 0
+                        retries = 0
 
                         # For testing
                         # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}

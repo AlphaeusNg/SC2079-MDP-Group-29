@@ -29,7 +29,7 @@ class task1():
             obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, invertObs, int(obstacle["id"])))
 
         map = OccupancyMap(obstacles)
-        tsp = Hamiltonian(obstacles, 0, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
+        tsp = Hamiltonian(obstacles, 5, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
         current_pos = tsp.start
         checkpoints = tsp.find_nearest_neighbor_path()
         for idx, checkpoint in enumerate(checkpoints):
@@ -45,7 +45,7 @@ class task1():
             self.commands.append(commands)
             self.android.append(pathDisplay)
             self.obstacleID.append(checkpoint[3])
-            print("[Task 1] self.paths:", print_path(path))
+            print_path(path)
         
     
     def get_command_to_next_obstacle(self):
