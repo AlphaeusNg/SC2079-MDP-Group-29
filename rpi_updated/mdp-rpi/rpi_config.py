@@ -22,7 +22,7 @@ STM_ACK_MSG = "A"
 STM_NAV_COMMAND_FORMAT = '^[SLR][FB][0-9]{3}$' # task 1
 # STM_NAV_COMMAND_FORMAT = '^(([SLR][FB])|([UYV]F)|([IXT][LR]))[0-9]{3}$' # task 2
 STM_GYRO_RESET_COMMAND = "GYROR"
-STM_GYRO_RESET_DELAY = 8 # time to wait for gyro reset
+STM_GYRO_RESET_DELAY = 4 # time to wait for gyro reset
 STM_GYRO_RESET_FREQ = 3 # number of obstacles before GRYO RESET command is sent
 
 # Task 1: adjust commands for turns to correct turning radius to 30cm, as expected by PC-algo
@@ -67,10 +67,12 @@ STM_COMMAND_ADJUSTMENT_MAP = STM_COMMAND_ADJUSTMENT_DICT[LOCATION]
 
 # Task 2: translate PC commands for moving around obstacles to STM_NAV_COMMAND_FORMAT
 STM_OBS_ROUTING_MAP = {
-    "FIRSTLEFT": ["LF050", "RF050", "RF060", "LF040", "RB020"],
-    "FIRSTRIGHT": ["RF050", "LF050", "LF060", "RF040", "LB020"],
-    "SECONDLEFT": ["LF090", "TR040", "IR100", "RF180", "TR000", "XR200", "RF090"],
-    "SECONDRIGHT": ["RF090", "TL040", "IL100", "LF180", "TL000", "XL200", "LF090"]
+    "FIRSTLEFT": ["LF056", "RF056", "SF010", "RF056", "LF056"],
+    "FIRSTRIGHT": ["RF056", "LF056", "SF010", "LF056", "RF056"],
+    # "FIRSTRIGHT": ["RF090", "RF090", "RF090", "RF090"], # testing
+    "SECONDLEFT": ["LF090", "XF300", "RF090", "SF020", "RF090", "XF300", "RF090", ],
+    "SECONDRIGHT": ["RF090", "XF300", "LF090", "SF020", "LF090", "XF300", "LF090",]
+    # "SECONDLEFT": ["LF090", "TR040", "IR100", "RF180", "TR000", "XR200", "RF090"], # reference code
 }
-STM_XDIST_COMMAND_FORMAT = "^X[LR][0-9]{3}$"
+STM_XDIST_COMMAND_FORMAT = "^XF[0-9]{3}$"
 STM_YDIST_COMMAND_FORMAT = "^YF[0-9]{3}$"

@@ -115,6 +115,11 @@ class PCClient:
                     path_message_json = json.dumps(path_message)
                     self.msg_queue.put(path_message_json)
                 
+                elif message["type"] == "FASTEST_PATH":
+                    path_message = {"type": "FASTEST_PATH"}
+                    path_message_json = json.dumps(path_message)
+                    self.RPiMain.STM.msg_queue.put(path_message_json)
+                
                 elif message["type"] == "IMAGE_TAKEN":
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
@@ -182,7 +187,7 @@ class PCClient:
                             print("[Algo] Task 1 ended")
 
                         self.image_record = [] # reset the image record
-                    
+
         except socket.error as e:
             print("[PC Client] ERROR:", str(e))
 

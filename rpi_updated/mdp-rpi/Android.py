@@ -99,7 +99,7 @@ class AndroidInterface:
                 if msg_type == 'NAVIGATION':
                     self.RPiMain.STM.msg_queue.put(message) 
 
-                elif msg_type == 'START_TASK':
+                elif msg_type == 'START_TASK' or msg_type == 'FASTEST_PATH':
                     self.RPiMain.PC.msg_queue.put(message)
 
             
@@ -111,15 +111,27 @@ class AndroidInterface:
         # Continuously send messages to Android
         while True: 
             message = self.msg_queue.get()
-            # message_ori =   {
-            #     "type": "IMAGE_RESULTS",
+            # Test code start
+#             message_ori =   {
+#                 "type": "IMAGE_RESULTS",
+               # "data": {
+                #"obs_id": "11", 
+               # "img_id": "30", 
+               # }
+            #}
+            # message = {
+            #     "type": "NAVIGATION",
             #     "data": {
-            #     "obs_id": "11", 
-            #     "img_id": "30", 
+            #     "commands":  ["LF045", "RF045", "SF040", "RF045", "LF045"],
+            #     # "commands": ["UF150"],
+
+            #     "path": [[0,1], [1,1], [2,1], [3,1], [3,3]]
             #     }
             # }
             # message_ori = "hello from rpi"
-            # message = json.dumps(message_ori).encode("utf-8")
+#             message = json.dumps(message).encode("utf-8")
+            # test code end
+
             exception = True
             while exception: 
                 try:
