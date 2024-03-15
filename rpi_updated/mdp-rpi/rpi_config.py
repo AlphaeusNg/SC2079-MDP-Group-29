@@ -70,9 +70,12 @@ STM_OBS_ROUTING_MAP = {
     "FIRSTLEFT": ["LF056", "RF056", "SF010", "RF056", "LF056"],
     "FIRSTRIGHT": ["RF056", "LF056", "SF010", "LF056", "RF056"],
     # "FIRSTRIGHT": ["RF090", "RF090", "RF090", "RF090"], # testing
-    "SECONDLEFT": ["LF090", "XF300", "RF090", "SF020", "RF090", "XF300", "RF090", ],
-    "SECONDRIGHT": ["RF090", "XF300", "LF090", "SF020", "LF090", "XF300", "LF090",]
-    # "SECONDLEFT": ["LF090", "TR040", "IR100", "RF180", "TR000", "XR200", "RF090"], # reference code
+    "SECONDLEFT": ["RF090", "SB056", "command to go backwards until IR returns false", 
+                   "RB090", "SF036", "RF090"],
+    "SECONDRIGHT": ["RF090", "SF004", "command to go forward until IR returns false",
+                    "LF090", "SF010", "LF090"],
+    # "SECONDLEFT": ["LF090", "XF300", "RF090", "SF020", "RF090", "XF300", "RF090"], # ref code
+    # "SECONDRIGHT": ["RF090", "XF300", "LF090", "SF020", "LF090", "XF300", "LF090",]
 }
 STM_XDIST_COMMAND_FORMAT = "^XF[0-9]{3}$"
 STM_YDIST_COMMAND_FORMAT = "^YF[0-9]{3}$"

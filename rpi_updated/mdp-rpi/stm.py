@@ -74,7 +74,7 @@ class STMInterface:
         self.obstacle_count = 1 # Task 1: Gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
-        task = 2 # temp code
+        # task = 2 # temp code
         while True: 
         # for i in range(1): 
             
@@ -104,11 +104,24 @@ class STMInterface:
                 self.send_path_to_android(message) 
 
                 # Convert/adjust turn or obstacle routing commands
-                commands = self.adjust_commands(message["data"]["commands"])
-
+                commands: list[str] = self.adjust_commands(message["data"]["commands"])
+                
                 # Real code
                 for idx, command in enumerate(commands):
                     
+                    # This if-else is so that we don't spam capture image for task 2 after 2nd obstacle
+                    # if message["data"]["commands"] == "SECONDLEFT" or message["data"]["commands"] == "SECONDRIGHT":
+                    #     # Write a check for Task 2 on side ultrasonic sensor.
+                    #     self.write_to_stm() # write in command for side ultrasonic sensor
+                            
+                    #     if not self.check_IR_sensor_status():  # If IR sensor returns false
+                    #         sb_or_sf_count = idx - 1 # calculate how many "sb/sf" commands
+                    #         distance_to_move_forward = f"SF{sb_or_sf_count * 10 * 2:03d}" # 10cm per command, double the distance
+                    #         # Add the distance to move forward to the commands list
+                    #         commands.append(distance_to_move_forward)
+                    #         commands = commands[-4:] # remove so that last 4 commands are the only ones left
+                    #         break
+                    # else:
                     # Capture an image before every instruction
                     if idx >= len(commands) - NUM_IMAGES:
                         # Start a new thread to capture and send the image to PC
@@ -116,8 +129,6 @@ class STMInterface:
                         capture_and_send_image_thread.start()
                     print("[RPI] Writing to STM:", command)
                     self.write_to_stm(command)
-                    
-                    
 
                 if self.second_arrow is not None:
                     self.return_to_carpark()
@@ -260,6 +271,7 @@ class STMInterface:
             if obs_routing_command.startswith("SECOND"):
                 self.second_arrow = obs_routing_command[len("SECOND")]
                 print("[STM] Saving second arrow as", self.second_arrow)
+                # add a loop to keep checking whether the side's ultrasonic sensor is detecting something or not
             return STM_OBS_ROUTING_MAP[obs_routing_command]
         
         def is_straight_command(command):

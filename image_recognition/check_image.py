@@ -125,7 +125,7 @@ def get_highest_confidence(predictions_list:list[dict]) -> dict:
     return highest_conf_pred
 
 
-def image_inference(image_path, obs_id):
+def image_inference(image_path, obs_id, image_id_map:list[str]):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
@@ -137,8 +137,11 @@ def image_inference(image_path, obs_id):
     for r in results:
         # Iterate over each object
         for c in r:
-            bboxes.append({"label": c.names[c.boxes.cls.tolist().pop()].split("_")[0],
-                           "xywh": c.boxes.xywh.tolist().pop()})
+            label = c.names[c.boxes.cls.tolist().pop()].split("_")[0]
+            # If label previously detected, skip
+            if label in image_id_map:
+                continue
+            bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
 
     # To make it display, useful for testing

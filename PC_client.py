@@ -135,7 +135,7 @@ class PCClient:
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_path, obs_id=str(obs_id))
+                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), image_id_map=self.t1.get_image_id())
                     self.image_record.append(image_prediction)
                     image_counter += 1
 
@@ -177,6 +177,7 @@ class PCClient:
 
                         message = json.dumps(image_prediction)
                         self.msg_queue.put(message)
+                        self.t1.update_image_id(image_prediction['data']['img_id'])
                         image_counter = 0
                         retries = 0
 

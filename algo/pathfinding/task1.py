@@ -10,10 +10,11 @@ class task1():
         self.commands = []
         self.android = []
         self.obstacleID = []
+        self.imageID: list[str] = []
         
     def generate_path(self, message):
         obstacles = []
-        L=26.5*np.pi/4/5
+        L=26.5*np.pi/4/5 # Can try changing to 26.25 
         minR=26.5
 
         for obstacle in message["data"]["obstacles"]:
@@ -59,6 +60,12 @@ class task1():
     
     def has_task_ended(self):
         return not self.commands
+    
+    def update_image_id(self, imageID):
+        self.imageID.append(imageID)
+
+    def get_image_id(self):
+        return self.imageID
 
 
 if __name__ == "__main__":
