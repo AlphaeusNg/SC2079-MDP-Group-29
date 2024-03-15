@@ -15,6 +15,7 @@ class PCInterface:
         self.send_message = False
         self.obs_id = 1
         self.task2 = False # Make false for task 1
+        #TODO
 
     def connect(self):
         # Establish a connection with the PC
