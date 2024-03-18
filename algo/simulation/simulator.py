@@ -4,6 +4,7 @@ from sys import exit
 import os
 import sys
 import math
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__ + '\..')))
 
 from enumerations import Gear, Steering
@@ -18,12 +19,13 @@ import utils
 from typing import List
 import constants as c
 
+
 class Simulator:
-    def __init__(self, obstacles:List[Obstacle], hamiltonian_args, astar_args):
+    def __init__(self, obstacles: List[Obstacle], hamiltonian_args, astar_args):
         self.hamiltonian_args = hamiltonian_args
         self.astar_args = astar_args
         self.commands = []
-        self.car = pygame.image.load(os.path.join("..", "objects", "images", "car.png"))
+        self.car = pygame.image.load(os.path.join("..", "objects", "images", "angle.png"))
 
         self.screen = pygame.display.set_mode((c.WIDTH, c.HEIGHT))
         self.screen.fill('white')
@@ -32,22 +34,21 @@ class Simulator:
 
         self.map_surface = pygame.Surface((c.MAP_WIDTH, c.MAP_HEIGHT))
         self.map_surface.fill('azure')
-        self.start_surface = pygame.Surface((30*c.MAP_WIDTH/200, 30*c.MAP_HEIGHT/200))
+        self.start_surface = pygame.Surface((30 * c.MAP_WIDTH / 200, 30 * c.MAP_HEIGHT / 200))
         self.start_surface.fill('aquamarine')
 
         self.path_surface = pygame.Surface((c.MAP_WIDTH, c.MAP_HEIGHT))
         self.path_surface = self.path_surface.convert_alpha()
-        self.path_surface.fill((0,0,0,0))
+        self.path_surface.fill((0, 0, 0, 0))
 
-        left_border = Border(c.BORDER_THICKNESS, c.MAP_HEIGHT + 2*c.BORDER_THICKNESS, 
+        left_border = Border(c.BORDER_THICKNESS, c.MAP_HEIGHT + 2 * c.BORDER_THICKNESS,
+                             c.MAP_X0 - c.BORDER_THICKNESS, c.MAP_Y0 - c.BORDER_THICKNESS)
+        right_border = Border(c.BORDER_THICKNESS, c.MAP_HEIGHT + 2 * c.BORDER_THICKNESS,
+                              c.MAP_X0 + c.MAP_WIDTH, c.MAP_Y0 - c.BORDER_THICKNESS)
+        top_border = Border(c.MAP_WIDTH + 2 * c.BORDER_THICKNESS, c.BORDER_THICKNESS,
                             c.MAP_X0 - c.BORDER_THICKNESS, c.MAP_Y0 - c.BORDER_THICKNESS)
-        right_border = Border(c.BORDER_THICKNESS, c.MAP_HEIGHT + 2*c.BORDER_THICKNESS, 
-                            c.MAP_X0 + c.MAP_WIDTH, c.MAP_Y0 - c.BORDER_THICKNESS)
-        top_border = Border(c.MAP_WIDTH + 2*c.BORDER_THICKNESS, c.BORDER_THICKNESS, 
-                            c.MAP_X0 - c.BORDER_THICKNESS, c.MAP_Y0 - c.BORDER_THICKNESS)
-        bottom_border = Border(c.MAP_WIDTH + 2*c.BORDER_THICKNESS, c.BORDER_THICKNESS, 
-                            c.MAP_X0 - c.BORDER_THICKNESS, c.MAP_Y0 + c.MAP_HEIGHT)
-
+        bottom_border = Border(c.MAP_WIDTH + 2 * c.BORDER_THICKNESS, c.BORDER_THICKNESS,
+                               c.MAP_X0 - c.BORDER_THICKNESS, c.MAP_Y0 + c.MAP_HEIGHT)
 
         self.borders = pygame.sprite.Group()
         self.borders.add(left_border)
@@ -65,14 +66,13 @@ class Simulator:
             vw = VirtualWall(obstacle.x_g, obstacle.y_g)
             self.virtual_walls.add(vw)
             self.virtual_wall_surface.blit(vw.image, (vw.rect.x - c.MAP_X0, vw.rect.y - c.MAP_Y0))
-        
-        left_border_wall = VirtualBorderWall(0*c.MAP_WIDTH/200, c.MAP_HEIGHT, 0, 0)
-        right_border_wall = VirtualBorderWall(0*c.MAP_WIDTH/200, c.MAP_HEIGHT,
-                                               c.MAP_WIDTH - 0*c.MAP_WIDTH/200, 0)
-        top_border_wall = VirtualBorderWall(c.MAP_WIDTH, 0*c.MAP_HEIGHT/200, 0, 0)
-        bottom_border_wall = VirtualBorderWall(c.MAP_WIDTH, 0*c.MAP_HEIGHT/200,
-                                               0, c.MAP_HEIGHT - 0*c.MAP_HEIGHT/200)
-        
+
+        left_border_wall = VirtualBorderWall(0 * c.MAP_WIDTH / 200, c.MAP_HEIGHT, 0, 0)
+        right_border_wall = VirtualBorderWall(0 * c.MAP_WIDTH / 200, c.MAP_HEIGHT,
+                                              c.MAP_WIDTH - 0 * c.MAP_WIDTH / 200, 0)
+        top_border_wall = VirtualBorderWall(c.MAP_WIDTH, 0 * c.MAP_HEIGHT / 200, 0, 0)
+        bottom_border_wall = VirtualBorderWall(c.MAP_WIDTH, 0 * c.MAP_HEIGHT / 200,
+                                               0, c.MAP_HEIGHT - 0 * c.MAP_HEIGHT / 200)
 
         self.virtual_walls.add(left_border_wall)
         self.virtual_walls.add(right_border_wall)
@@ -84,27 +84,27 @@ class Simulator:
         self.virtual_wall_surface.blit(top_border_wall.image, top_border_wall.rect.topleft)
         self.virtual_wall_surface.blit(bottom_border_wall.image, bottom_border_wall.rect.topleft)
 
-        self.virtual_wall_surface.fill((255, 0, 0, 24),special_flags=pygame.BLEND_RGBA_MIN)
+        self.virtual_wall_surface.fill((255, 0, 0, 24), special_flags=pygame.BLEND_RGBA_MIN)
 
     def start_simulation(self):
-        map = OccupancyMap(self. obstacles)
+        map = OccupancyMap(self.obstacles)
         done = False
 
-        tsp = Hamiltonian(obstacles=self.obstacles, x_start=self.hamiltonian_args['x_start'],
-                          y_start=self.hamiltonian_args['y_start'], 
+        tsp = Hamiltonian(map=map, obstacles=self.obstacles, x_start=self.hamiltonian_args['x_start'],
+                          y_start=self.hamiltonian_args['y_start'],
                           theta_start=self.hamiltonian_args['theta_start'],
-                          theta_offset=self.hamiltonian_args['theta_offset'], 
+                          theta_offset=self.hamiltonian_args['theta_offset'],
                           metric=self.hamiltonian_args['metric'],
                           minR=self.hamiltonian_args['minR'])
-        checkpoints = tsp.find_brute_force_path()
+        checkpoints = tsp.find_nearest_neighbor_path()
 
         print("Starting simulator...")
         print(f"Optimal path found: {checkpoints}")
-        
+
         current_pos = tsp.start
         allPaths = []
         numNodes = 0
-        
+
         pygame.init()
         while True:
             for event in pygame.event.get():
@@ -114,8 +114,8 @@ class Simulator:
 
             self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
             self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
-            self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30*c.MAP_HEIGHT/200))
-            self.screen.blit(self.car, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30*c.MAP_HEIGHT/200))
+            self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
+            self.screen.blit(self.car, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
             self.borders.draw(self.screen)
             self.obstacles.draw(self.screen)
 
@@ -124,14 +124,14 @@ class Simulator:
             if not done:
                 for idx, checkpoint in enumerate(checkpoints):
                     print(f"Calculating path from {current_pos} to {checkpoint}")
-                    algo = HybridAStar(map, x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
-                                    x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2], 
-                                    steeringChangeCost=self.astar_args['steeringChangeCost'], 
-                                    gearChangeCost=self.astar_args['gearChangeCost'], 
-                                    L=self.astar_args['L'], minR=self.astar_args['minR'],
-                                    heuristic=self.astar_args['heuristic'], simulate=self.astar_args['simulate'],
-                                    thetaBins=self.astar_args['thetaBins'])
-                    
+                    algo = HybridAStar(map, x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2],
+                                       x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2],
+                                       steeringChangeCost=self.astar_args['steeringChangeCost'],
+                                       gearChangeCost=self.astar_args['gearChangeCost'],
+                                       L=self.astar_args['L'], minR=self.astar_args['minR'],
+                                       heuristic=self.astar_args['heuristic'], simulate=self.astar_args['simulate'],
+                                       thetaBins=self.astar_args['thetaBins'])
+
                     path, pathHistory = algo.find_path()
                     allPaths.append(path)
                     numNodes += len(path)
@@ -146,7 +146,6 @@ class Simulator:
                     color = colors[idx % len(colors)]
                     # self.draw_final_path(path, color)
                     # self.screen.blit(self.path_surface, (0, 0))
-
                     for node in path:
                         pygame.display.update()
                         x, y = utils.coords_to_pixelcoords(x=node.x, y=node.y)
@@ -156,28 +155,26 @@ class Simulator:
                         self.screen.fill((255, 255, 255))
                         self.screen.blit(self.map_surface, (c.MAP_X0, c.MAP_Y0))
                         self.screen.blit(self.virtual_wall_surface, (c.MAP_X0, c.MAP_Y0))
-                        self.screen.blit(self.start_surface, (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
+                        self.screen.blit(self.start_surface,
+                                         (c.MAP_X0, c.MAP_Y0 + c.MAP_HEIGHT - 30 * c.MAP_HEIGHT / 200))
                         self.borders.draw(self.screen)
                         self.obstacles.draw(self.screen)
                         self.draw_final_path(path, color)
                         self.screen.blit(self.path_surface, (0, 0))
                         self.screen.blit(rotated_car, car_rect)
-                        pygame.time.delay(50)
+
+                        pygame.time.delay(30)
 
                     pygame.display.update()
                     self.clock.tick(1000)
 
                 done = True
-                print(f"Total path length: {numNodes*self.astar_args['L']}cm")
+                print(f"Total path length: {numNodes * self.astar_args['L']}cm")
                 print(self.commands)
-
-
-
 
             # pygame.display.update()
             # self.draw_path_history(pathHistory)
 
-        
     def draw_final_path(self, path, color):
         points = []
         x, y = utils.coords_to_pixelcoords(x=path[0].parent.x, y=path[0].parent.y)
@@ -191,7 +188,11 @@ class Simulator:
                 pygame.draw.circle(self.path_surface, (255, 0, 0, 255), (x, y), 4)
 
         pygame.draw.lines(self.path_surface, color, False, points, width=3)
-    
+        # Draw X on pygame
+        size = 10
+        pygame.draw.line(self.path_surface, (255, 0, 0, 255), (x - size, y - size), (x + size, y + size), 5)
+        pygame.draw.line(self.path_surface, (255, 0, 0, 255), (x - size, y + size), (x + size, y - size), 5)
+
     def draw_path_history(self, pathHistory):
 
         for node in pathHistory[1:]:
@@ -202,12 +203,12 @@ class Simulator:
 
 if __name__ == "__main__":
     test_maps = get_maps()
-    map = test_maps[10][:5]
-    
-    hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 15, 'theta_start': np.pi/2, 
-                        'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 25}
-    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25*np.pi/4/5, 
-                    'minR': 25, 'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
+    map = test_maps[5][:8]
+
+    hamiltonian_args = {'obstacles': map, 'x_start': 5, 'y_start': 15, 'theta_start': 0,
+                        'theta_offset': -np.pi / 2, 'metric': 'euclidean', 'minR': 26.5}
+    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 26.5 * np.pi / 4 / 5,
+                  'minR': 26.5, 'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
 
     sim = Simulator(map, hamiltonian_args, astar_args)
     sim.start_simulation()
