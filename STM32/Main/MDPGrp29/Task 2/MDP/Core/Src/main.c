@@ -151,26 +151,27 @@ uint16_t Difference = 0;
 uint16_t uDistance = 0;
 int usFlag = 0;
 int yFlag = 0;
-int xFlag = 0;
 uint16_t y = 0;
-uint16_t x = 0;
 uint16_t usThreshold = 40;
 int usSmall = 0;
+
 // Low-Pass Filter for Ultrasonic Sensor
 #define FILTER_ALPHA 0.1 // Filter coefficient (adjust as needed)
 float filtered_distance = 60; // Initialize filtered distance variable
+uint16_t filtered_distance_int = 0;
 
 // ir sensor
 uint16_t iDistanceL = 0;
 uint16_t iDistanceR = 0;
 int irFlag = 0;
-//int xFlag = 0;
-//uint16_t x = 0;
+int xFlag = 0;
+uint16_t x = 0;
 uint16_t irThreshold = 1500;
 int irResumeFlag = 1;
 
 // locked flag for completion of buffer transmission via UART
 int receivedInstruction = 0;
+
 
 /* USER CODE END 0 */
 
@@ -877,6 +878,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 
 			uDistance = Difference * .0343 / 2;
 			filtered_distance = (FILTER_ALPHA * uDistance) + ((1 - FILTER_ALPHA) * filtered_distance); // Low-pass filter equation
+			filtered_distance_int = (int) filtered_distance;
 
 			Is_First_Captured = 0;
 
@@ -1228,22 +1230,22 @@ void StartOLEDTask(void *argument) {
 	uint8_t command[20] = { 0 };
 
 	for (;;) {
-		sprintf(usVal, "Distance: %.2f \0", (float) filtered_distance);
+		sprintf(usVal, "Distance: %d \0", filtered_distance_int);
 		OLED_ShowString(0, 10, usVal);
 
 		int decimals = abs((int) ((total_angle - (int) (total_angle)) * 1000));
 		sprintf(gyroVal, "Gyro: %d.%d \0", (int) total_angle, decimals);
 		OLED_ShowString(0, 20, gyroVal);
 
-		sprintf(encoderVal, "X: %d Y: %d \0", (int) x, (int) y);
-		OLED_ShowString(0, 30, encoderVal);
+//		sprintf(encoderVal, "X: %d Y: %d \0", (int) x, (int) y);
+//		OLED_ShowString(0, 30, encoderVal);
 
-//		sprintf(irVal, "L: %d R: %d \0", (int) iDistanceL, iDistanceR);
-//		OLED_ShowString(0, 40, irVal);
+		sprintf(irVal, "L: %d R: %d \0", (int) iDistanceL, iDistanceR);
+		OLED_ShowString(0, 40, irVal);
 
 		sprintf(command, "C: %c%c%c%c%c \0", aRxBuffer[0], aRxBuffer[1],
 				aRxBuffer[2], aRxBuffer[3], aRxBuffer[4]);
-		OLED_ShowString(0, 40, command);
+		OLED_ShowString(0, 50, command);
 
 		OLED_Refresh_Gram();
 		osDelay(100);
@@ -1310,11 +1312,11 @@ void StartUltrasonicTask(void *argument) {
 	/* Infinite loop */
 	for (;;) {
 		HCSR04_Read();
-
 		if (filtered_distance <= usThreshold && usFlag == 1) {
 			usFlag = 0;
 			moveCarStop();
 		}
+
 		osDelay(10);
 	}
 	/* USER CODE END StartUltrasonicTask */
@@ -1349,7 +1351,7 @@ void StartCommunicateTask(void *argument) {
 							&& (0 <= aRxBuffer[4] - '0' <= 9))
 							|| (aRxBuffer[0] == 'S' || aRxBuffer[0] == 'U'
 									|| aRxBuffer[0] == 'Y' || aRxBuffer[0] == 'V'
-									|| aRxBuffer[0] == 'R' || aRxBuffer[0] == 'L' || aRxBuffer[0] == 'X')
+									|| aRxBuffer[0] == 'R' || aRxBuffer[0] == 'L')
 									&& (aRxBuffer[1] == 'F' || aRxBuffer[1] == 'B')
 									&& (0 <= aRxBuffer[2] - '0' <= 9)
 									&& (0 <= aRxBuffer[3] - '0' <= 9)
@@ -1392,7 +1394,7 @@ void StartCommunicateTask(void *argument) {
 							break;
 						case 'U':
 							usFlag = 1;
-							if (filtered_distance > usThreshold) {
+							if (uDistance > usThreshold) {
 								moveCarStraight(magnitude);
 							}
 							flagDone = 1;
@@ -1404,15 +1406,14 @@ void StartCommunicateTask(void *argument) {
 							osDelay(10);
 							break;
 						case 'X':
-							yFlag = 1;
-							usFlag = 1;
-							if (filtered_distance - usThreshold <= 10) {
-								usSmall = 1;
-							}
-
-							if (filtered_distance > usThreshold) {
+							xFlag = 1;
+							irFlag = 1;
+							if (!((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500))
+									|| (aRxBuffer[1] == 'R'
+											&& (iDistanceR <= irThreshold - 500)))) {
 								moveCarStraight(magnitude);
 							}
+							vTaskSuspend(IRTaskHandle);
 							flagDone = 1;
 							aRxBuffer[0] = 'D';
 							aRxBuffer[1] = 'O';
@@ -1424,11 +1425,11 @@ void StartCommunicateTask(void *argument) {
 						case 'Y':
 							yFlag = 1;
 							usFlag = 1;
-							if (filtered_distance - usThreshold <= 10) {
+							if (uDistance - usThreshold < 10) {
 								usSmall = 1;
 							}
 
-							if (filtered_distance > usThreshold) {
+							if (uDistance > usThreshold) {
 								moveCarStraight(magnitude);
 							}
 							flagDone = 1;
@@ -1461,7 +1462,7 @@ void StartCommunicateTask(void *argument) {
 						case 'V':
 							usThreshold = 25;
 							usFlag = 1;
-							if (filtered_distance > usThreshold) {
+							if (uDistance > usThreshold) {
 								moveCarStraight(magnitude);
 							}
 							flagDone = 1;
@@ -1496,35 +1497,25 @@ void StartCommunicateTask(void *argument) {
 					}
 		}
 
+
 		if (flagDone == 1) {
-			receivedInstruction = 0;
 			if (xFlag == 1) {
 				osDelay(100);
-				if (usSmall == 1) {
-					if (filtered_distance < 40) {
-						x = 0;
-					} else {
-						x = filtered_distance - usThreshold;
-					}
-					usSmall = 0;
-				} else {
-					x =
-							((((((float) (leftEncoderVal - 75000)
-									+ (float) (rightEncoderVal - 75000)) / 2)
-									/ 4) / 379) * (M_PI * 6.5));
-				}
+				x = ((((((float) (leftEncoderVal - 75000)
+						+ (float) (rightEncoderVal - 75000)) / 2) / 4) / 379)
+						* (M_PI * 6.5));
 				xFlag = 0;
 				sprintf(dataBuffer, "%03d", x);
-				osDelay(100);
+				osDelay(300);
 				HAL_UART_Transmit(&huart3, (uint8_t*) dataBuffer,
 						strlen(dataBuffer), 0xFFFF);
 			} else if (yFlag == 1) {
 				osDelay(100);
 				if (usSmall == 1) {
-					if (filtered_distance < 40) {
+					if (uDistance < 40) {
 						y = 0;
 					} else {
-						y = filtered_distance - usThreshold;
+						y = uDistance - usThreshold;
 					}
 					usSmall = 0;
 				} else {
@@ -1535,11 +1526,11 @@ void StartCommunicateTask(void *argument) {
 				}
 				yFlag = 0;
 				sprintf(dataBuffer, "%03d", y);
-				osDelay(100);
+				osDelay(300);
 				HAL_UART_Transmit(&huart3, (uint8_t*) dataBuffer,
 						strlen(dataBuffer), 0xFFFF);
 			} else {
-				osDelay(100);
+				osDelay(300);
 				HAL_UART_Transmit(&huart3, (uint8_t*) &ack, 1, 0xFFFF);
 			}
 			flagDone = 0;
@@ -1625,19 +1616,18 @@ void StartIRTask(void *argument) {
 		/*
 		if (irResumeFlag == 1) {
 			vTaskSuspend(IRTaskHandle);
-		}
-		*/
-
+		}*/
 		IR_Left_Read();
 		IR_Right_Read();
 
-		if ((aRxBuffer[1] == 'L' && (iDistanceL >= irThreshold)
+		if ((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500)
 				&& irFlag == 1)
-				|| (aRxBuffer[1] == 'R' && (iDistanceR >= irThreshold)
+				|| (aRxBuffer[1] == 'R' && (iDistanceR <= irThreshold - 500)
 						&& irFlag == 1)) {
 			irFlag = 0;
 			moveCarStop();
 		}
+
 		osDelay(100);
 	}
 	/* USER CODE END StartIRTask */
