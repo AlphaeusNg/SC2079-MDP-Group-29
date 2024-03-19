@@ -23,7 +23,9 @@ class Hamiltonian():
         self.map = map
 
         for obstacle in obstacles:
-            self.checkpoints.append(obstacle_to_checkpoint(map, obstacle, theta_offset))
+            checkpoint = obstacle_to_checkpoint(map, obstacle, theta_offset)
+            if checkpoint is not None:
+                self.checkpoints.append(checkpoint)
 
     def find_brute_force_path(self):
         checkpoint_permutations = itertools.permutations(self.checkpoints)
@@ -49,8 +51,7 @@ class Hamiltonian():
         current_pos = self.start
         path = []
 
-        # checkpoints = self.checkpoints[:]
-        checkpoints = [checkpoint for checkpoint in self.checkpoints if checkpoint is not None]
+        checkpoints = self.checkpoints[:]
         while checkpoints:
             if self.metric == 'euclidean':
                 nearest_neighbor = min(checkpoints, key=lambda checkpoint: 
