@@ -203,7 +203,7 @@ class HybridAStar():
         else:
             return path, None
 
-    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=25, distanceMargin: float=7.5, maxPerpDistance:float=0.5):
+    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=27, distanceMargin: float=7.5, maxPerpDistance:float=0.5):
         if abs(curNode.theta - self.theta_f) > thetaMargin:
             return False
         
