@@ -67,14 +67,20 @@ STM_COMMAND_ADJUSTMENT_MAP = STM_COMMAND_ADJUSTMENT_DICT[LOCATION]
 
 # Task 2: translate PC commands for moving around obstacles to STM_NAV_COMMAND_FORMAT
 STM_OBS_ROUTING_MAP = {
-    "FIRSTLEFT": ["LF056", "RF056", "SF010", "RF056", "LF056"],
-    "FIRSTRIGHT": ["RF056", "LF056", "SF010", "LF056", "RF056"],
+    "FIRSTLEFT": ["LF056", "RF056", "SF005", "RF056", "LF056"],
+    "FIRSTRIGHT": ["RF056", "LF056", "SF005", "LF056", "RF056"],
     # "FIRSTRIGHT": ["RF090", "RF090", "RF090", "RF090"], # testing
-    "SECONDLEFT": ["RF090", "SB056", "IB100", "LB090", "SB010", "LB090", "IB200", "RB090", "SF026"],
-    "SECONDRIGHT": ["RF090", "SF004", "IF100", "LF090", "SF010", "LF090", "IF200", "LF090"]
+    "SECONDLEFT": ["RF090", "JB100", "IB100", "SF015",
+                   "LB090", "SB010", "LB090", "JB100", 
+                   "IB200", "SF020", 
+                   "RB090"],
+    "SECONDRIGHT": ["RF090", "JB100", "IF100",
+                    "LF090", "LF090", "JF100",
+                    "IF200", 
+                    "LF090"]
     # "SECONDLEFT": ["LF090", "XF300", "RF090", "SF020", "RF090", "XF300", "RF090"], # ref code
     # "SECONDRIGHT": ["RF090", "XF300", "LF090", "SF020", "LF090", "XF300", "LF090",]
 }
-STM_XBDIST_COMMAND_FORMAT = "IB[0-9]{3}$"
-STM_XFDIST_COMMAND_FORMAT = "IF[0-9]{3}$"
+# STM_XDIST_COMMAND_FORMAT = "I[FB][0-9]{3}$"
+STM_XDIST_COMMAND_FORMAT = "^[IJ][FB][0-9]{3}$"
 STM_YDIST_COMMAND_FORMAT = "^YF[0-9]{3}$"

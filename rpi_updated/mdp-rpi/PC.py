@@ -14,8 +14,8 @@ class PCInterface:
         self.msg_queue = Queue()
         self.send_message = False
         self.obs_id = 1
-        self.task2 = False # Make false for task 1
-        #TODO
+        self.task2 = False #TODO: Make false for task 1
+        
 
     def connect(self):
         # Establish a connection with the PC
@@ -58,7 +58,7 @@ class PCInterface:
         while True:
             try:
                 if self.client_socket is not None:
-                    # Receive the length of the message
+                    # # Receive the length of the message
                     length_bytes = self.client_socket.recv(4)
                     if not length_bytes:
                         print("[PC] Client disconnected.")
@@ -88,14 +88,14 @@ class PCInterface:
                     # PC -> Rpi -> Android
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                         # Real code
-                        self.RPiMain.Android.msg_queue.put(message)
+                        self.RPiMain.Android.msg_queue.put(message) #TODO: comment if no android connection
                         if self.task2:
                             if self.obs_id == 1:
                                 if parsed_msg["data"]["img_id"] == "39": #left
                                     direction = "FIRSTLEFT"
                                 else:
                                     direction = "FIRSTRIGHT"
-                                path_message = {"type": "NAVIGATION", "data": {"commands": [direction, "SB030", "YF150"], "path": []}}
+                                path_message = {"type": "NAVIGATION", "data": {"commands": [direction, "SB025", "YF150"], "path": []}}
                                 self.obs_id += 1
                             else:
                                 if parsed_msg["data"]["img_id"] == "39": #left
@@ -127,26 +127,32 @@ class PCInterface:
 
     def send(self):
         # Continuously send messages to the PC Client
+        i=2 # test code
         while True:
             if self.send_message:
-                # uncomment once ready
-                message = self.msg_queue.get()
-                message = message.decode("utf-8")
-
                 # for testing
-                # message_ori = {
-                #     "type": "START_TASK",
-                #     "data": {
-                #     "task": "EXPLORATION",
-                #     "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
-                #     "obstacles": [
-                #             {"id": "00", "x": 4, "y": 15, "dir": 'S'},
-                #             {"id": "01", "x": 16, "y": 17, "dir": 'W'}
-                #     ]
+                if i==1:
+                    pass
+                #     message_ori = {
+                #         "type": "FASTEST_PATH",
+                #         "data": {
+                #         "task": "FASTEST_PATH",
+                #         "robot": {"id": "R", "x": 1, "y": 1, "dir": 'N'},
+                #         "obstacles": [
+                #                 {"id": "00", "x": 4, "y": 15, "dir": 'S'},
+                #                 {"id": "01", "x": 16, "y": 17, "dir": 'W'}
+                #         ]
+                #         }
                 #     }
-                # }
-                # message = json.dumps(message_ori)
+                #     message = json.dumps(message_ori)
+                #     i+=1
                 # end of test code
+                else:
+                    # uncomment once ready
+                    message = self.msg_queue.get()
+                    message = message.decode("utf-8")
+
+                
                 exception = True
                 while exception:
                     try:

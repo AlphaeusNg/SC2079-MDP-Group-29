@@ -18,11 +18,10 @@ class STMInterface:
         self.obstacle_count = 0 # Task 1 gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
-        self.xbdist = 0
-        self.xfdist = 0
+        self.xdist = 0
         self.ydist = 0 # first_y_dist + 35 + 10 + 5 + second_y_dist + 35 = 85
-        self.negative = True
-        self.task2 = False
+        self.move_counter = 0
+        self.task2 = False #TODO: if task1 put False, if task2 put True
 
     def connect(self):
         # Connect to STM using available serial ports
@@ -170,20 +169,26 @@ class STMInterface:
                 if command == STM_GYRO_RESET_COMMAND:
                     print("[STM] Waiting %ss for reset" % STM_GYRO_RESET_DELAY)
                     time.sleep(STM_GYRO_RESET_DELAY)
-                elif re.match(STM_XBDIST_COMMAND_FORMAT, command):
+                elif re.match(STM_XDIST_COMMAND_FORMAT, command):
                     dist = self.wait_for_dist()
                     if dist >= 0:
-                        self.xbdist += dist
-                        print("[STM] updated XBDIST =", self.xbdist)
+                        if self.second_arrow == 'L':
+                            if self.move_counter >= 0 and self.move_counter <2:
+                                self.xdist -= dist
+                                print("[STM] updated XDIST =", self.xdist)
+                                self.move_counter += 1
+                            else:
+                                self.xdist += dist
+                                print("[STM] updated XDIST =", self.xdist)
+                        if self.second_arrow == 'R':
+                            if self.move_counter == 1:
+                                self.xdist -= dist
+                            else: 
+                                self.xdist += dist
+                                print("[STM] updated XDIST =", self.xdist)
+                            self.move_counter += 1
                     else:
                         print("[STM] ERROR: failed to update XBDIST, received invalid value:", dist)
-                elif re.match(STM_XFDIST_COMMAND_FORMAT, command):
-                    dist = self.wait_for_dist()
-                    if dist >= 0:
-                        self.xfdist += dist
-                        print("[STM] updated XFDIST =", self.xfdist)
-                    else:
-                        print("[STM] ERROR: failed to update XFDIST, received invalid value:", dist)
                 elif re.match(STM_YDIST_COMMAND_FORMAT, command):
                     dist = self.wait_for_dist()
                     if dist >= 0: 
@@ -306,7 +311,6 @@ class STMInterface:
         for i in range(len(commands)):
             command = commands[i].upper()
             #if is_straight_command(command):
-            #TODO
             if not self.task2:
                 final_commands = add_command(final_commands, command)
             else:
@@ -346,8 +350,14 @@ class STMInterface:
         # Calculate the path to return to the carpark based on the obtained information
         print(f"[STM] Calculating path to carpark...")
         movement_list = []
-        x_adjustment = abs(self.xbdist - self.xfdist)
-        y_adjustment = self.ydist + 55
+
+        
+        if self.second_arrow == 'L':
+            x_adjustment = self.xdist - 10
+            y_adjustment = self.ydist + 107
+        elif self.second_arrow == 'R':
+            x_adjustment = self.xdist - 52
+            y_adjustment = self.ydist + 45
 
         movement_list.append(f"SF{y_adjustment:03d}")
         if self.second_arrow == 'R':

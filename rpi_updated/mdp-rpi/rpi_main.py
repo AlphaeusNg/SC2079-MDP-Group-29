@@ -65,7 +65,7 @@ class RPiMain:
 
         print("[RPiMain] Exiting RPiMain...")
 
-# for individual testing (STM)
+# for individual testing (STM+PC)
 # class RPiMain:
 #     def __init__(self):
 #         # Initialize interfaces
