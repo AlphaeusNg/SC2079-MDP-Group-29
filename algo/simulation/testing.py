@@ -29,7 +29,7 @@ def get_maps():
                     Obstacle(10, 22, 'S'), Obstacle(36, 19, 'E'), Obstacle(32, 5, 'S'), Obstacle(26, 10, 'W')])
 
     maps.append([Obstacle(10, 38, 'N'), Obstacle(17, 36, 'N'), Obstacle(24, 10, 'S'), Obstacle(38, 20, 'S'), 
-                    Obstacle(10, 16, 'S'), Obstacle(18, 17, 'N'), Obstacle(10, 7, 'E'), Obstacle(26, 10, 'W')])
+                    Obstacle(10, 16, 'S'), Obstacle(22, 17, 'N'), Obstacle(10, 7, 'E'), Obstacle(26, 10, 'W')])
 
     maps.append([Obstacle(10, 38, 'N'), Obstacle(17, 36, 'N'), Obstacle(25, 30, 'E'), Obstacle(16, 6, 'E'), 
                     Obstacle(10, 15, 'S'), Obstacle(16, 19, 'N'), Obstacle(23, 26, 'W'), Obstacle(30, 10, 'E')])
