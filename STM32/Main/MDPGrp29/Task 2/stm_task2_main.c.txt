@@ -155,6 +155,11 @@ uint16_t y = 0;
 uint16_t usThreshold = 40;
 int usSmall = 0;
 
+// Low-Pass Filter for Ultrasonic Sensor
+#define FILTER_ALPHA 0.1 // Filter coefficient (adjust as needed)
+float filtered_distance = 60; // Initialize filtered distance variable
+uint16_t filtered_distance_int = 0;
+
 // ir sensor
 uint16_t iDistanceL = 0;
 uint16_t iDistanceR = 0;
@@ -166,6 +171,7 @@ int irResumeFlag = 1;
 
 // locked flag for completion of buffer transmission via UART
 int receivedInstruction = 0;
+
 
 /* USER CODE END 0 */
 
@@ -871,6 +877,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 			}
 
 			uDistance = Difference * .0343 / 2;
+			filtered_distance = (FILTER_ALPHA * uDistance) + ((1 - FILTER_ALPHA) * filtered_distance); // Low-pass filter equation
+			filtered_distance_int = (int) filtered_distance;
 
 			Is_First_Captured = 0;
 
@@ -884,7 +892,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 void HCSR04_Read(void) //Call when u want to get reading from US
 {
 	HAL_GPIO_WritePin(Trigger_GPIO_Port, Trigger_Pin, GPIO_PIN_SET);
-	delay(10);
+	delay(20);
 	HAL_GPIO_WritePin(Trigger_GPIO_Port, Trigger_Pin, GPIO_PIN_RESET);
 	__HAL_TIM_ENABLE_IT(&htim4, TIM_IT_CC1);
 }
@@ -1222,22 +1230,22 @@ void StartOLEDTask(void *argument) {
 	uint8_t command[20] = { 0 };
 
 	for (;;) {
-		sprintf(usVal, "USensor Distance: %d \0", (int) uDistance);
+		sprintf(usVal, "Distance: %d \0", filtered_distance_int);
 		OLED_ShowString(0, 10, usVal);
 
 		int decimals = abs((int) ((total_angle - (int) (total_angle)) * 1000));
 		sprintf(gyroVal, "Gyro: %d.%d \0", (int) total_angle, decimals);
 		OLED_ShowString(0, 20, gyroVal);
 
-		sprintf(encoderVal, "X: %d Y: %d \0", (int) x, (int) y);
-		OLED_ShowString(0, 30, encoderVal);
+//		sprintf(encoderVal, "X: %d Y: %d \0", (int) x, (int) y);
+//		OLED_ShowString(0, 30, encoderVal);
 
-//		sprintf(irVal, "L: %d R: %d \0", (int) iDistanceL, iDistanceR);
-//		OLED_ShowString(0, 40, irVal);
+		sprintf(irVal, "L: %d R: %d \0", (int) iDistanceL, iDistanceR);
+		OLED_ShowString(0, 40, irVal);
 
 		sprintf(command, "C: %c%c%c%c%c \0", aRxBuffer[0], aRxBuffer[1],
 				aRxBuffer[2], aRxBuffer[3], aRxBuffer[4]);
-		OLED_ShowString(0, 40, command);
+		OLED_ShowString(0, 50, command);
 
 		OLED_Refresh_Gram();
 		osDelay(100);
@@ -1263,8 +1271,9 @@ void StartGyroTask(void *argument) {
 	double offset = 0;
 	double trash = 0;
 	int i = 0;
-	while (i < 100) {
-		osDelay(50);
+	osDelay(50);
+	while (i < 1000) {
+		osDelay(1);
 		readByte(0x37, val);
 		angular_speed = (val[0] << 8) | val[1];
 		trash += (double) ((double) angular_speed)
@@ -1303,12 +1312,12 @@ void StartUltrasonicTask(void *argument) {
 	/* Infinite loop */
 	for (;;) {
 		HCSR04_Read();
-
-		if (uDistance <= usThreshold && usFlag == 1) {
+		if (filtered_distance <= usThreshold && usFlag == 1) {
 			usFlag = 0;
 			moveCarStop();
 		}
-		osDelay(100);
+
+		osDelay(10);
 	}
 	/* USER CODE END StartUltrasonicTask */
 }
@@ -1356,7 +1365,7 @@ void StartCommunicateTask(void *argument) {
 							magnitude *= -1;
 						}
 
-						osDelay(300);
+						osDelay(10);
 						switch (aRxBuffer[0]) {
 						case 'S':
 							moveCarStraight(magnitude);
@@ -1366,7 +1375,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'I':
 							irFlag = 1;
@@ -1381,7 +1390,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'U':
 							usFlag = 1;
@@ -1394,7 +1403,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'X':
 							xFlag = 1;
@@ -1411,7 +1420,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'Y':
 							yFlag = 1;
@@ -1429,7 +1438,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'T':
 							if (irResumeFlag == 1) {
@@ -1448,7 +1457,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'V':
 							usThreshold = 25;
@@ -1462,7 +1471,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'R':
 							moveCarRight(magnitude);
@@ -1472,7 +1481,7 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						case 'L':
 							moveCarLeft(magnitude);
@@ -1482,14 +1491,14 @@ void StartCommunicateTask(void *argument) {
 							aRxBuffer[2] = 'N';
 							aRxBuffer[3] = 'E';
 							aRxBuffer[4] = '!';
-							osDelay(100);
+							osDelay(10);
 							break;
 						}
 					}
 		}
 
+
 		if (flagDone == 1) {
-			receivedInstruction = 0;
 			if (xFlag == 1) {
 				osDelay(100);
 				x = ((((((float) (leftEncoderVal - 75000)
@@ -1607,19 +1616,18 @@ void StartIRTask(void *argument) {
 		/*
 		if (irResumeFlag == 1) {
 			vTaskSuspend(IRTaskHandle);
-		}
-		*/
-
+		}*/
 		IR_Left_Read();
 		IR_Right_Read();
 
-		if ((aRxBuffer[1] == 'L' && (iDistanceL >= irThreshold)
+		if ((aRxBuffer[1] == 'L' && (iDistanceL <= irThreshold - 500)
 				&& irFlag == 1)
-				|| (aRxBuffer[1] == 'R' && (iDistanceR >= irThreshold)
+				|| (aRxBuffer[1] == 'R' && (iDistanceR <= irThreshold - 500)
 						&& irFlag == 1)) {
 			irFlag = 0;
 			moveCarStop();
 		}
+
 		osDelay(100);
 	}
 	/* USER CODE END StartIRTask */

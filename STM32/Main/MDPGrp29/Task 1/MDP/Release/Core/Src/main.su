@@ -1,8 +1,7 @@
-../Core/Src/main.c:1188:6:StartUltrasonicTask	8	static
 ../Core/Src/main.c:983:6:StartDefaultTask	8	static
 ../Core/Src/main.c:1113:6:StartOLEDTask	112	static
-../Core/Src/main.c:1305:6:StartEncoderRTask	16	static
-../Core/Src/main.c:1346:6:StartEncoderLTask	16	static
+../Core/Src/main.c:1306:6:StartEncoderRTask	16	static
+../Core/Src/main.c:1347:6:StartEncoderLTask	16	static
 ../Core/Src/main.c:284:6:SystemClock_Config	88	static,ignoring_inline_asm
 ../Core/Src/main.c:157:5:main	152	static,ignoring_inline_asm
 ../Core/Src/main.c:739:6:HAL_UART_RxCpltCallback	8	static
@@ -17,9 +16,10 @@
 ../Core/Src/main.c:792:6:moveCarStraight	16	static
 ../Core/Src/main.c:818:6:moveCarRight	16	static
 ../Core/Src/main.c:832:6:moveCarLeft	16	static
-../Core/Src/main.c:1215:6:StartCommunicateTask	16	static,ignoring_inline_asm
+../Core/Src/main.c:1216:6:StartCommunicateTask	16	static,ignoring_inline_asm
 ../Core/Src/main.c:942:6:readByte	24	static
 ../Core/Src/main.c:948:6:writeByte	16	static
 ../Core/Src/main.c:954:6:gyroInit	8	static
 ../Core/Src/main.c:1143:6:StartGyroTask	56	static
-../Core/Src/main.c:1384:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:1189:6:StartUltrasonicTask	8	static
+../Core/Src/main.c:1385:6:Error_Handler	0	static,ignoring_inline_asm

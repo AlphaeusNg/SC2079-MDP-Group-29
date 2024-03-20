@@ -18,8 +18,10 @@ class STMInterface:
         self.obstacle_count = 0 # Task 1 gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
-        self.xdist = None
-        self.ydist = None
+        self.xdist = 0
+        self.ydist = 0 # first_y_dist + 35 + 10 + 5 + second_y_dist + 35 = 85
+        self.negative = True
+        self.task2 = False
 
     def connect(self):
         # Connect to STM using available serial ports
@@ -34,6 +36,8 @@ class STMInterface:
                 self.clean_buffers()
             except Exception as e:
                 print("[STM] ERROR: Failed to connect to STM -", str(e))
+        # print("[STM] Resetting gyroscope at the start")
+        # self.write_to_stm(STM_GYRO_RESET_COMMAND)
     
     def reconnect(self): 
         # Reconnect to STM by closing the current connection and establishing a new one
@@ -70,48 +74,61 @@ class STMInterface:
         self.obstacle_count = 1 # Task 1: Gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
-        self.xdist = None
-        self.ydist = None
+        # task = 2 # temp code
         while True: 
         # for i in range(1): 
             
-            # Uncomment once implementation is done
-            # message_byte = self.msg_queue.get()
-            # message_str = message_byte.decode("utf-8")
-            # message = json.loads(message_str)
-            # message_type = message["type"]
-
             # comment once implementation is done.
-            message = {
-                "type": "NAVIGATION",
-                "data": {
-                "commands":  ["LF045", "RF045", "SF040", "RF045", "LF045"],
-                # "commands": ["UF150"],
-
-                "path": [[0,1], [1,1], [2,1], [3,1], [3,3]]
+            if False:
+                message = {
+                    "type": "NAVIGATION",
+                    "data": {
+                    # "commands":  ["LF045", "RF045", "SF040", "RF045", "LF045"],
+                    "commands":  ["YF200"], 
+                    "path": [],
+                    # "path": [[0,1], [1,1], [2,1], [3,1], [3,3]]
+                    }
                 }
-            }
-            message_type = 'NAVIGATION'
+                message_type = 'NAVIGATION'
+                test+=1
             # end of test code
+            else:
+                # Uncomment once implementation is done
+                message_byte = self.msg_queue.get()
+                message_str = message_byte.decode("utf-8")
+                message = json.loads(message_str)
+                message_type = message["type"]
 
             if message_type == "NAVIGATION":
                 # Display path on Android
                 self.send_path_to_android(message) 
 
                 # Convert/adjust turn or obstacle routing commands
-                commands = self.adjust_commands(message["data"]["commands"])
-
+                commands: list[str] = self.adjust_commands(message["data"]["commands"])
+                
                 # Real code
                 for idx, command in enumerate(commands):
+                    
+                    # This if-else is so that we don't spam capture image for task 2 after 2nd obstacle
+                    # if message["data"]["commands"] == "SECONDLEFT" or message["data"]["commands"] == "SECONDRIGHT":
+                    #     # Write a check for Task 2 on side ultrasonic sensor.
+                    #     self.write_to_stm() # write in command for side ultrasonic sensor
+                            
+                    #     if not self.check_IR_sensor_status():  # If IR sensor returns false
+                    #         sb_or_sf_count = idx - 1 # calculate how many "sb/sf" commands
+                    #         distance_to_move_forward = f"SF{sb_or_sf_count * 10 * 2:03d}" # 10cm per command, double the distance
+                    #         # Add the distance to move forward to the commands list
+                    #         commands.append(distance_to_move_forward)
+                    #         commands = commands[-4:] # remove so that last 4 commands are the only ones left
+                    #         break
+                    # else:
                     # Capture an image before every instruction
                     if idx >= len(commands) - NUM_IMAGES:
                         # Start a new thread to capture and send the image to PC
                         capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=False), daemon=True)
                         capture_and_send_image_thread.start()
-
-                    self.write_to_stm(command)
                     print("[RPI] Writing to STM:", command)
-                    
+                    self.write_to_stm(command)
 
                 if self.second_arrow is not None:
                     self.return_to_carpark()
@@ -123,53 +140,69 @@ class STMInterface:
                 capture_and_send_image_thread.start()
 
                 self.obstacle_count += 1
+                # temp code
+                # message = {
+                #     "type": 'test'
+                #     }
+
+                # json_message = json.dumps(message)
+                # encode_message = json_message.encode("utf-8")
+                # # Send captured image to PC
+                # self.RPiMain.PC.msg_queue.put(encode_message)
+                # end of temp code
+                
                 
                 # Was previously in the code when we ran on 23/2/24, but may not be necessary?
-                if self.obstacle_count % STM_GYRO_RESET_FREQ == 0:
-                    print("[STM] Resetting gyroscope after %d obstacles" % self.obstacle_count)
-                    self.write_to_stm(STM_GYRO_RESET_COMMAND)
+                # if task == 2:
+                #     # self.obstacle_count % STM_GYRO_RESET_FREQ == 0:
+                #     print("[STM] Resetting gyroscope after %d obstacles" % self.obstacle_count)
+                #     self.write_to_stm(STM_GYRO_RESET_COMMAND)
             else:
                 print("[STM] WARNING: Rejecting message with unknown type [%s] for STM" % message_type)
 
     def write_to_stm(self, command):
         # Write a command to STM, handling exceptions and reconnecting if necessary
         self.clean_buffers()
-        if self.is_valid_command(command):
-            exception = True
-            while exception:
-                try:
-                    print("[STM] Sending command", command)
-                    encoded_string = command.encode()
-                    byte_array = bytearray(encoded_string)
-                    self.serial.write(byte_array)
-                except Exception as e:
-                    print("[STM] ERROR: Failed to write to STM -", str(e)) 
-                    exception = True
-                    self.reconnect() 
-                else:
-                    exception = False
-                    if command == STM_GYRO_RESET_COMMAND:
-                        print("[STM] Waiting %ss for reset" % STM_GYRO_RESET_DELAY)
-                        time.sleep(STM_GYRO_RESET_DELAY)
-                    elif re.match(STM_XDIST_COMMAND_FORMAT, command):
-                        dist = self.wait_for_dist()
-                        if dist >= 0: 
-                            self.xdist = dist
-                            print("[STM] updated XDIST =", self.xdist)
+        # if self.is_valid_command(command):
+        exception = True
+        while exception:
+            try:
+                print("[STM] Sending command", command)
+                encoded_string = command.encode()
+                byte_array = bytearray(encoded_string)
+                self.serial.write(byte_array)
+            except Exception as e:
+                print("[STM] ERROR: Failed to write to STM -", str(e)) 
+                exception = True
+                self.reconnect() 
+            else:
+                exception = False
+                if command == STM_GYRO_RESET_COMMAND:
+                    print("[STM] Waiting %ss for reset" % STM_GYRO_RESET_DELAY)
+                    time.sleep(STM_GYRO_RESET_DELAY)
+                elif re.match(STM_XDIST_COMMAND_FORMAT, command):
+                    dist = self.wait_for_dist()
+                    if dist >= 0:
+                        if self.negative:
+                            self.xdist -= dist
+                            self.negative = False
                         else:
-                            print("[STM] ERROR: failed to update XDIST, received invalid value:", dist)
-                    elif re.match(STM_YDIST_COMMAND_FORMAT, command):
-                        dist = self.wait_for_dist()
-                        if dist >= 0: 
-                            self.ydist = dist
-                            print("[STM] updated YDIST =", self.ydist)
-                        else:
-                            print("[STM] ERROR: failed to update YDIST, received invalid value:", dist)
+                            self.xdist += dist
+                        print("[STM] updated XDIST =", self.xdist)
                     else:
-                        print("[STM] Waiting for ACK")
-                        self.wait_for_ack()
-        else:
-            print(f"[STM] ERROR: Invalid command to STM [{command}]. Skipping...")
+                        print("[STM] ERROR: failed to update XDIST, received invalid value:", dist)
+                elif re.match(STM_YDIST_COMMAND_FORMAT, command):
+                    dist = self.wait_for_dist()
+                    if dist >= 0: 
+                        self.ydist += dist
+                        print("[STM] updated YDIST =", self.ydist)
+                    else:
+                        print("[STM] ERROR: failed to update YDIST, received invalid value:", dist)
+                else:
+                    print("[STM] Waiting for ACK")
+                    self.wait_for_ack()
+        # else:
+        #     print(f"[STM] ERROR: Invalid command to STM [{command}]. Skipping...")
 
     def wait_for_ack(self):
         # Wait for ACK message from STM
@@ -238,6 +271,7 @@ class STMInterface:
             if obs_routing_command.startswith("SECOND"):
                 self.second_arrow = obs_routing_command[len("SECOND")]
                 print("[STM] Saving second arrow as", self.second_arrow)
+                # add a loop to keep checking whether the side's ultrasonic sensor is detecting something or not
             return STM_OBS_ROUTING_MAP[obs_routing_command]
         
         def is_straight_command(command):
@@ -279,7 +313,8 @@ class STMInterface:
         for i in range(len(commands)):
             command = commands[i].upper()
             #if is_straight_command(command):
-            if True:
+            #TODO
+            if not self.task2:
                 final_commands = add_command(final_commands, command)
             else:
                 adj_commands = []
@@ -312,14 +347,14 @@ class STMInterface:
         print(f"[STM] Initiating return to carpark: XDIST = {self.xdist}, YDIST = {self.ydist}, ARROW = {self.second_arrow}")
         commands = self.get_commands_to_carpark()
         for command in commands:
-            self.write_to_stm(command)  
+            self.write_to_stm(command)
 
     def get_commands_to_carpark(self):
         # Calculate the path to return to the carpark based on the obtained information
         print(f"[STM] Calculating path to carpark...")
         movement_list = []
-        x_adjustment = (self.xdist) // 2 - 25 
-        y_adjustment = self.ydist + 80 
+        x_adjustment = self.xdist - 50
+        y_adjustment = self.ydist + 55
 
         movement_list.append(f"SF{y_adjustment:03d}")
         if self.second_arrow == 'R':
@@ -329,7 +364,7 @@ class STMInterface:
             else:
                 movement_list.append(f"SB{abs(x_adjustment):03d}")
             movement_list.append("RF090")
-            movement_list.append("VF200") 
+            movement_list.append("VF100") 
         elif self.second_arrow == 'L':
             movement_list.append("RF090")
             if x_adjustment > 0:
@@ -337,7 +372,7 @@ class STMInterface:
             else:
                 movement_list.append(f"SB{abs(x_adjustment):03d}")
             movement_list.append("LF090")
-            movement_list.append("VF200") 
+            movement_list.append("VF100") 
         else:
             print("[STM] ERROR getting path to carpark, second arrow invalid -", self.second_arrow)
         

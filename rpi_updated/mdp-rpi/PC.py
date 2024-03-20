@@ -13,6 +13,9 @@ class PCInterface:
         self.client_socket = None
         self.msg_queue = Queue()
         self.send_message = False
+        self.obs_id = 1
+        self.task2 = False # Make false for task 1
+        #TODO
 
     def connect(self):
         # Establish a connection with the PC
@@ -86,8 +89,32 @@ class PCInterface:
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                         # Real code
                         self.RPiMain.Android.msg_queue.put(message)
+                        if self.task2:
+                            if self.obs_id == 1:
+                                if parsed_msg["data"]["img_id"] == "39": #left
+                                    direction = "FIRSTLEFT"
+                                else:
+                                    direction = "FIRSTRIGHT"
+                                path_message = {"type": "NAVIGATION", "data": {"commands": [direction, "SB030", "YF150"], "path": []}}
+                                self.obs_id += 1
+                            else:
+                                if parsed_msg["data"]["img_id"] == "39": #left
+                                    direction = "SECONDLEFT"
+                                else:
+                                    direction = "SECONDRIGHT"
+                                path_message = {"type": "NAVIGATION", "data": {"commands": [direction], "path": []}}
+                            
+                            json_path_message = json.dumps(path_message)
+                            encode_path_message = json_path_message.encode("utf-8")
+                            self.RPiMain.STM.msg_queue.put(encode_path_message)
                         # Temp code: pass
                         # pass
+
+                    elif msg_type == "FASTEST_PATH":
+                        path_message = {"type": "NAVIGATION", "data": {"commands": ["YF150"], "path": []}}
+                        json_path_message = json.dumps(path_message)
+                        encode_path_message = json_path_message.encode("utf-8")
+                        self.RPiMain.STM.msg_queue.put(encode_path_message)
 
                     else:
                         print("[PC] ERROR: Received message with unknown type from PC -", message)
@@ -105,6 +132,7 @@ class PCInterface:
                 # uncomment once ready
                 message = self.msg_queue.get()
                 message = message.decode("utf-8")
+
                 # for testing
                 # message_ori = {
                 #     "type": "START_TASK",
