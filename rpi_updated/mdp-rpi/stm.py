@@ -22,7 +22,7 @@ class STMInterface:
         self.xfdist = 0
         self.ydist = 0 # first_y_dist + 35 + 10 + 5 + second_y_dist + 35 = 85
         self.negative = True
-        self.task2 = False
+        self.task2 = False #TODO: Make false for task 1
 
     def connect(self):
         # Connect to STM using available serial ports
@@ -306,7 +306,6 @@ class STMInterface:
         for i in range(len(commands)):
             command = commands[i].upper()
             #if is_straight_command(command):
-            #TODO
             if not self.task2:
                 final_commands = add_command(final_commands, command)
             else:

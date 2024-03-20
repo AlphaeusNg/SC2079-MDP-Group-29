@@ -14,8 +14,8 @@ class PCInterface:
         self.msg_queue = Queue()
         self.send_message = False
         self.obs_id = 1
-        self.task2 = False # Make false for task 1
-        #TODO
+        self.task2 = False #TODO: Make false for task 1
+        
 
     def connect(self):
         # Establish a connection with the PC

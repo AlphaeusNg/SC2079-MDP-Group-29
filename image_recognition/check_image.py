@@ -6,14 +6,12 @@ import time
 from datetime import datetime
 import torch
 
-MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"
-
-# Initialize the YOLO model
-model = YOLO(MODEL_PATH)
+TASK_1_MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"
+TASK_2_MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train task_2" / "weights" / "best.pt"
+FOREIGN_AID_MODEL_PATH = Path("image_recognition") / "ImageRecNew-main" / "YoloV8 Inference Server" / "Weights" / "bestv2.pt"
 
 # Check if GPU is available and move the model to the device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model.to(device)
 
 
 def map_yoloid_to_mdp_image_id(yoloid: int) -> str:
@@ -53,7 +51,7 @@ def map_yoloid_to_mdp_image_id(yoloid: int) -> str:
     }[yoloid]
 
 
-def predict_multiple_images(folder_path):
+def predict_multiple_images(folder_path, model):
 
     def extract_jpg_files(folder_path):
         jpg_files = []
@@ -125,10 +123,17 @@ def get_highest_confidence(predictions_list:list[dict]) -> dict:
     return highest_conf_pred
 
 
-def image_inference(image_path, obs_id, image_id_map:list[str]):
+def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
+
+    # Initialize the YOLO model
+    if not task_2:
+        model = YOLO(TASK_1_MODEL_PATH)
+    else:
+        model = torch.hub.load(TASK_2_MODEL_PATH)
+    model.to(device)
 
     # run inference on the image
     results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device=device)
