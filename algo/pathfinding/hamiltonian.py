@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__ + '\..')))
 
 import utils
 from objects.Obstacle import Obstacle
+from objects.OccupancyMap import OccupancyMap as map
 import pathfinding.reeds_shepp as rs
 import constants as c
 
