@@ -10,7 +10,7 @@ from objects.Border import Border, VirtualBorderWall
 from objects.Obstacle import Obstacle, VirtualWall
 from objects.OccupancyMap import OccupancyMap
 from pathfinding.hybrid_astar import HybridAStar
-from pathfinding.hamiltonian import Hamiltonian
+from pathfinding.hamiltonian import Hamiltonian, obstacle_to_checkpoint, obstacle_to_checkpoint_all
 from simulation.testing import get_maps
 import utils as utils
 from typing import List
@@ -86,16 +86,16 @@ class Simulator:
         map = OccupancyMap(self.obstacles)
         done = False
 
-        tsp = Hamiltonian(obstacles=self.obstacles, x_start=self.hamiltonian_args['x_start'],
+        tsp = Hamiltonian(obstacles=self.obstacles, map=map, x_start=self.hamiltonian_args['x_start'],
                           y_start=self.hamiltonian_args['y_start'], 
                           theta_start=self.hamiltonian_args['theta_start'],
                           theta_offset=self.hamiltonian_args['theta_offset'], 
                           metric=self.hamiltonian_args['metric'],
                           minR=self.hamiltonian_args['minR'])
-        checkpoints = tsp.find_brute_force_path()
+        obstacle_path = tsp.find_nearest_neighbor_path()
 
         print("Starting simulator...")
-        print(f"Optimal path found: {checkpoints}")
+        print(f"Optimal path found: {obstacle_path}")
         
         current_pos = tsp.start
         allPaths = []
@@ -117,20 +117,31 @@ class Simulator:
             colors = [(0, 0, 0, 255), (0, 255, 0, 255), (0, 0, 255, 255), (0, 255, 255, 255)]
 
             if not done:
-                for idx, checkpoint in enumerate(checkpoints):
-                    print(f"Calculating path from {current_pos} to {checkpoint}")
-                    algo = HybridAStar(map, x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
-                                    x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2], theta_offset=astar_args['theta_offset'],
-                                    steeringChangeCost=self.astar_args['steeringChangeCost'], 
-                                    gearChangeCost=self.astar_args['gearChangeCost'], 
-                                    L=self.astar_args['L'], minR=self.astar_args['minR'],
-                                    heuristic=self.astar_args['heuristic'], simulate=self.astar_args['simulate'],
-                                    thetaBins=self.astar_args['thetaBins'])
-                    
-                    path, pathHistory = algo.find_path()
+                for idx, obstacle in enumerate(obstacle_path):
+                    print(f"Calculating path from {current_pos} to {obstacle}")
+                    path = None
+                    valid_checkpoints = obstacle_to_checkpoint_all(map, obstacle, 
+                                                                   theta_offset=self.hamiltonian_args['theta_offset'])
+
+                    while path == None and valid_checkpoints:
+                        checkpoint = valid_checkpoints.pop(0)
+                        algo = HybridAStar(map, x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
+                                        x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2], theta_offset=astar_args['theta_offset'],
+                                        steeringChangeCost=self.astar_args['steeringChangeCost'], 
+                                        gearChangeCost=self.astar_args['gearChangeCost'], 
+                                        L=self.astar_args['L'], minR=self.astar_args['minR'],
+                                        heuristic=self.astar_args['heuristic'], simulate=self.astar_args['simulate'],
+                                        thetaBins=self.astar_args['thetaBins'])
+                        
+                        path, pathHistory = algo.find_path()
+                        if path == None:
+                            print("Path failed to converge, trying another final position...")
                     allPaths.append(path)
                     numNodes += len(path)
                     current_pos = (path[-1].x, path[-1].y, path[-1].theta)
+                    x, y = utils.coords_to_pixelcoords(x=path[-1].x, y=path[-1].y)
+                    pygame.draw.lines(self.path_surface, 'black', True, [(x-10,y-10),(x+10,y+10)], 3)
+                    pygame.draw.lines(self.path_surface, 'black', True, [(x-10,y+10),(x+10,y-10)], 3)
                 
                     for node in path:
                         print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " +
@@ -141,6 +152,7 @@ class Simulator:
                     self.screen.blit(self.path_surface, (0, 0))
                     pygame.display.update()
                     self.clock.tick(1000)
+                    
                 
                 done = True
                 print(f"Total path length: {numNodes*self.astar_args['L']}cm")
@@ -148,10 +160,6 @@ class Simulator:
             animateIndex = 0
 
             node = path[animateIndex]
-            # Draw car here
-            
-
-            # Delay 100ms
 
             animateIndex += 1
             if animateIndex == len(path):
@@ -159,7 +167,7 @@ class Simulator:
 
             #self.draw_path_history(pathHistory)
 
-            pygame.display.update()
+            #pygame.display.update()
         
     def draw_final_path(self, path, color):
         points = []
@@ -181,11 +189,10 @@ class Simulator:
             x0, y0 = utils.coords_to_pixelcoords(x=node.parent.x, y=node.parent.y)
             x1, y1 = utils.coords_to_pixelcoords(x=node.x, y=node.y)
             pygame.draw.line(self.path_surface, (255, 0, 255, 64), (x0, y0), (x1, y1))
-        
 
 if __name__ == "__main__":
     test_maps = get_maps()
-    map = test_maps[0][:8]
+    map = test_maps[7][:8]
     
     hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 10, 'theta_start': np.pi/2, 
                         'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 25}
