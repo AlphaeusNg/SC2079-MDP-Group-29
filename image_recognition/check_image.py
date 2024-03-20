@@ -132,7 +132,7 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
     if not task_2:
         model = YOLO(TASK_1_MODEL_PATH)
     else:
-        model = torch.hub.load(TASK_2_MODEL_PATH)
+        model = YOLO(TASK_2_MODEL_PATH)
     model.to(device)
 
     # run inference on the image
@@ -144,7 +144,7 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
         for c in r:
             label = c.names[c.boxes.cls.tolist().pop()].split("_")[0]
             # If label previously detected, skip
-            if label in image_id_map:
+            if label in image_id_map and not task_2:
                 continue
             bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
@@ -171,5 +171,6 @@ if __name__ == '__main__':
     # folder_path = r"image recognition\dataset\MDP CV.v7i.yolov8"
     # predict_multiple_images(folder_path)
     # image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_5_1.jpg"
-    image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_6_1.jpg"
+    # image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_6_1.jpg"
+    image_path = r"C:\Users\kelvi\Desktop\MDP29\SC2079-MDP-Group-29\captured_images\obs_id_0_0.jpg"
     _ = image_inference(image_path, "00")

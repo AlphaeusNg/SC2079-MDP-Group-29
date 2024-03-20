@@ -28,7 +28,7 @@ class PCClient:
         self.send_message = False
         self.t1 = task1.task1()
         self.image_record = []
-        self.task_1 = True #TODO: Put True for task1, false for task2
+        self.task_2 = False #TODO: Put True for task1, false for task2
 
     def connect(self):
         # Establish a connection with the PC
@@ -136,7 +136,7 @@ class PCClient:
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), image_id_map=self.t1.get_image_id(), task_1=self.task_1)
+                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), image_id_map=self.t1.get_image_id(), task_2=self.task_2)
                     self.image_record.append(image_prediction)
                     image_counter += 1
 
