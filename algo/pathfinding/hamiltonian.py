@@ -11,7 +11,7 @@ import pathfinding.reeds_shepp as rs
 import constants as c
 
 class Hamiltonian():
-    def __init__(self, obstacles, x_start, y_start, theta_start, theta_offset=0, 
+    def __init__(self, map, obstacles, x_start, y_start, theta_start, theta_offset=0, 
                           metric='euclidean', minR=25) -> None:
         assert -np.pi < theta_start, theta_offset <= np.pi
         self.checkpoints = []
@@ -20,7 +20,9 @@ class Hamiltonian():
         self.minR = minR
 
         for obstacle in obstacles:
-            self.checkpoints.append(obstacle_to_checkpoint(obstacle, theta_offset))
+            checkpoint = obstacle_to_checkpoint(map, obstacle, theta_offset)
+            if checkpoint is not None:
+                self.checkpoints.append(checkpoint)
 
     def find_brute_force_path(self):
         checkpoint_permutations = itertools.permutations(self.checkpoints)
@@ -60,15 +62,30 @@ class Hamiltonian():
         
         return path
 
-def obstacle_to_checkpoint(obstacle: Obstacle, theta_offset):
+def obstacle_to_checkpoint(map, obstacle: Obstacle, theta_offset):
+    theta_scan_list = [0, np.pi / 36, -np.pi / 36, np.pi / 18, -np.pi / 18, np.pi / 12, -np.pi / 12, np.pi / 9, -np.pi / 9, np.pi / 7.2, -np.pi / 7.2, np.pi / 6, -np.pi / 6]
+    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25]
+
     x, y = utils.grid_to_coords(obstacle.x_g, obstacle.y_g)
-    theta = offset_theta(obstacle.facing, theta_offset)
     x += offset_x(obstacle.facing)
     y += offset_y(obstacle.facing)
-    x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
-    y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
+    theta = offset_theta(obstacle.facing, np.pi)
 
-    return (x, y, theta, obstacle.id)
+    for r_scan in r_scan_list:
+        for theta_scan in theta_scan_list:
+            pos_theta = utils.M(theta+theta_scan)
+            pos_x = x + r_scan*np.cos(pos_theta)
+            pos_y = y + r_scan*np.sin(pos_theta)
+
+            x_g, y_g = utils.coords_to_grid(pos_x, pos_y)
+            if 0 <= x_g < 40 and 0 <= y_g < 40:
+                if not map.collide_with_point(pos_x, pos_y):
+                    theta = utils.M(pos_theta - theta_offset)
+                    pos_x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
+                    pos_y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
+                    return (pos_x, pos_y, theta, obstacle.id)
+
+    return None
 
 def offset_x(facing: str):
     if facing == 'N':
@@ -76,16 +93,16 @@ def offset_x(facing: str):
     elif facing == 'S':
         return 5.
     elif facing == 'E':
-        return -21.
+        return 0.
     elif facing == 'W':
-        return 31.
+        return 10.
 
 
 def offset_y(facing: str):
     if facing == 'N':
-        return -21.
+        return 0.
     elif facing == 'S':
-        return 31.
+        return 10.
     elif facing == 'E':
         return 5.
     elif facing == 'W':
