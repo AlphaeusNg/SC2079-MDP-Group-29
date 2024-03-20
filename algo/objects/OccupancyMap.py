@@ -60,7 +60,10 @@ class OccupancyMap:
 
     def collide_with_point(self, x, y):
         x_g, y_g = utils.coords_to_grid(x, y)
-        return self.occupancy_grid[x_g, y_g]
+        if x_g < 0 or x_g >= 40 or y_g < 0 or y_g >= 40:
+            return 0
+        else:
+            return self.occupancy_grid[x_g, y_g]
 
 if __name__ == '__main__':
     maps = get_maps()

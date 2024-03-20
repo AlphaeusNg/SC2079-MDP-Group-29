@@ -187,12 +187,16 @@ class HybridAStar():
             close.put((currentNode.f, currentNode))
             closedList[currentNode.x_g, currentNode.y_g, currentNode.theta_g] = currentNode.f
 
-        path = []
-        while currentNode != startNode:
-            path.append(currentNode)
-            currentNode = currentNode.parent
+        if pathFound:
+            path = []
+            while currentNode != startNode:
+                path.append(currentNode)
+                currentNode = currentNode.parent
 
-        path.reverse()
+            path.reverse()
+        
+        else:
+            path = None
 
         end = time.process_time()
         print(f"Nodes Expanded = {nodesExpanded}, Time taken = {(end - start):.2f}")

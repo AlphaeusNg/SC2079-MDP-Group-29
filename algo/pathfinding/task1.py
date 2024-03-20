@@ -1,7 +1,8 @@
-from algo.pathfinding.pathcommands import *
+from algo.pathcommands import *
 from algo.pathfinding.hamiltonian import Hamiltonian
 from algo.pathfinding.hybrid_astar import HybridAStar
 from algo.objects.OccupancyMap import OccupancyMap
+from algo.pathfinding.hamiltonian import obstacle_to_checkpoint_all
 
 class task1():
     def __init__(self):
@@ -30,16 +31,23 @@ class task1():
             obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, invertObs, int(obstacle["id"])))
 
         map = OccupancyMap(obstacles)
-        tsp = Hamiltonian(obstacles, 5, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
+        tsp = Hamiltonian(map, obstacles, 5, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
         current_pos = tsp.start
-        checkpoints = tsp.find_nearest_neighbor_path()
-        for idx, checkpoint in enumerate(checkpoints):
-            algo = HybridAStar(map=map, 
-                           x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
-                           x_f=checkpoint[0], y_f=checkpoint[1], 
-                           theta_f=checkpoint[2], steeringChangeCost=10, gearChangeCost=10, 
-                           L=L, minR=minR, heuristic='euclidean', simulate=False, thetaBins=24)
-            path, pathHistory = algo.find_path()
+        obstacle_path = tsp.find_nearest_neighbor_path()
+        for idx, obstacle in enumerate(obstacle_path):
+            valid_checkpoints = obstacle_to_checkpoint_all(map, obstacle, 
+                                                                   theta_offset=self.hamiltonian_args['theta_offset'])
+            while path == None and valid_checkpoints:
+                checkpoint = valid_checkpoints.pop(0)
+                algo = HybridAStar(map=map, 
+                            x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
+                            x_f=checkpoint[0], y_f=checkpoint[1], 
+                            theta_f=checkpoint[2], steeringChangeCost=10, gearChangeCost=10, 
+                            L=L, minR=minR, heuristic='euclidean', simulate=False, thetaBins=24)
+                path, pathHistory = algo.find_path()
+                if path == None:
+                    print("Path failed to converge, trying another final position...")
+
             self.paths.append(path)
             current_pos = (path[-1].x, path[-1].y, path[-1].theta)
             commands, pathDisplay = construct_path_2(path, L, minR)
