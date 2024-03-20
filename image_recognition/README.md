@@ -23,9 +23,9 @@ Pip install the ultralytics package including all [requirements](https://github.
 Note: _Reference taken from [here](https://github.com/ultralytics/ultralytics/blob/main/README.md)._
 
 ```bash
-pip install ultralytics
+pip install ultralytics pygame
 ```
 
 ### Hyperparameter
 Change hyperparameter `fliplr` in `default.yaml` file at path `.venv/Lib/site-packages/ultralytics/cfg/default.
-yaml` to `0.0` to switch off flipping, this is to ensure that the direction of the arrows are not learnt wrongly.
+yaml` to `0.0` to switch off flipping, this is to ensure that the direction of the arrows are not learnt wrongly during training.
