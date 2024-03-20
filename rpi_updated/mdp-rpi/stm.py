@@ -18,7 +18,8 @@ class STMInterface:
         self.obstacle_count = 0 # Task 1 gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
-        self.xdist = 0
+        self.xbdist = 0
+        self.xfdist = 0
         self.ydist = 0 # first_y_dist + 35 + 10 + 5 + second_y_dist + 35 = 85
         self.negative = True
         self.task2 = False
@@ -110,25 +111,14 @@ class STMInterface:
                 for idx, command in enumerate(commands):
                     
                     # This if-else is so that we don't spam capture image for task 2 after 2nd obstacle
-                    if message["data"]["commands"] == "SECONDLEFT" or message["data"]["commands"] == "SECONDRIGHT":
-                        # Write a check for Task 2 on side ultrasonic sensor.
-                        self.write_to_stm(command) # write in command for side ultrasonic sensor
-                            
-                    #     if not self.check_IR_sensor_status():  # If IR sensor returns false
-                    #         sb_or_sf_count = idx - 1 # calculate how many "sb/sf" commands
-                    #         distance_to_move_forward = f"SF{sb_or_sf_count * 10 * 2:03d}" # 10cm per command, double the distance
-                    #         # Add the distance to move forward to the commands list
-                    #         commands.append(distance_to_move_forward)
-                    #         commands = commands[-4:] # remove so that last 4 commands are the only ones left
-                    #         break
-                    else:
-                        # Capture an image before every instruction
+                    if message["data"]["commands"] != "SECONDLEFT" or message["data"]["commands"] != "SECONDRIGHT":
                         if idx >= len(commands) - NUM_IMAGES:
                             # Start a new thread to capture and send the image to PC
                             capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=False), daemon=True)
                             capture_and_send_image_thread.start()
-                        print("[RPI] Writing to STM:", command)
-                        self.write_to_stm(command)
+
+                    print("[RPI] Writing to STM:", command)
+                    self.write_to_stm(command)
 
                 if self.second_arrow is not None:
                     self.return_to_carpark()
@@ -180,17 +170,20 @@ class STMInterface:
                 if command == STM_GYRO_RESET_COMMAND:
                     print("[STM] Waiting %ss for reset" % STM_GYRO_RESET_DELAY)
                     time.sleep(STM_GYRO_RESET_DELAY)
-                elif re.match(STM_XDIST_COMMAND_FORMAT, command):
+                elif re.match(STM_XBDIST_COMMAND_FORMAT, command):
                     dist = self.wait_for_dist()
                     if dist >= 0:
-                        if self.negative:
-                            self.xdist -= dist
-                            self.negative = False
-                        else:
-                            self.xdist += dist
-                        print("[STM] updated XDIST =", self.xdist)
+                        self.xbdist += dist
+                        print("[STM] updated XBDIST =", self.xbdist)
                     else:
-                        print("[STM] ERROR: failed to update XDIST, received invalid value:", dist)
+                        print("[STM] ERROR: failed to update XBDIST, received invalid value:", dist)
+                elif re.match(STM_XFDIST_COMMAND_FORMAT, command):
+                    dist = self.wait_for_dist()
+                    if dist >= 0:
+                        self.xfdist += dist
+                        print("[STM] updated XFDIST =", self.xfdist)
+                    else:
+                        print("[STM] ERROR: failed to update XFDIST, received invalid value:", dist)
                 elif re.match(STM_YDIST_COMMAND_FORMAT, command):
                     dist = self.wait_for_dist()
                     if dist >= 0: 
@@ -353,7 +346,7 @@ class STMInterface:
         # Calculate the path to return to the carpark based on the obtained information
         print(f"[STM] Calculating path to carpark...")
         movement_list = []
-        x_adjustment = self.xdist - 50
+        x_adjustment = abs(self.xbdist - self.xfdist)
         y_adjustment = self.ydist + 55
 
         movement_list.append(f"SF{y_adjustment:03d}")
