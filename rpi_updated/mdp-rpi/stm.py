@@ -110,9 +110,9 @@ class STMInterface:
                 for idx, command in enumerate(commands):
                     
                     # This if-else is so that we don't spam capture image for task 2 after 2nd obstacle
-                    # if message["data"]["commands"] == "SECONDLEFT" or message["data"]["commands"] == "SECONDRIGHT":
-                    #     # Write a check for Task 2 on side ultrasonic sensor.
-                    #     self.write_to_stm() # write in command for side ultrasonic sensor
+                    if message["data"]["commands"] == "SECONDLEFT" or message["data"]["commands"] == "SECONDRIGHT":
+                        # Write a check for Task 2 on side ultrasonic sensor.
+                        self.write_to_stm(command) # write in command for side ultrasonic sensor
                             
                     #     if not self.check_IR_sensor_status():  # If IR sensor returns false
                     #         sb_or_sf_count = idx - 1 # calculate how many "sb/sf" commands
@@ -121,14 +121,14 @@ class STMInterface:
                     #         commands.append(distance_to_move_forward)
                     #         commands = commands[-4:] # remove so that last 4 commands are the only ones left
                     #         break
-                    # else:
-                    # Capture an image before every instruction
-                    if idx >= len(commands) - NUM_IMAGES:
-                        # Start a new thread to capture and send the image to PC
-                        capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=False), daemon=True)
-                        capture_and_send_image_thread.start()
-                    print("[RPI] Writing to STM:", command)
-                    self.write_to_stm(command)
+                    else:
+                        # Capture an image before every instruction
+                        if idx >= len(commands) - NUM_IMAGES:
+                            # Start a new thread to capture and send the image to PC
+                            capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=False), daemon=True)
+                            capture_and_send_image_thread.start()
+                        print("[RPI] Writing to STM:", command)
+                        self.write_to_stm(command)
 
                 if self.second_arrow is not None:
                     self.return_to_carpark()
