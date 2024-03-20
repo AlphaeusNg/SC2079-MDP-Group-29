@@ -75,17 +75,22 @@ def obstacle_to_checkpoint(map, obstacle: Obstacle, theta_offset):
     starting_y += offset_y(obstacle.facing)
     starting_image_to_pos_theta = offset_theta(obstacle.facing, np.pi)
 
-    theta_scan_list = [0, np.pi/36, -np.pi/36, np.pi/18, -np.pi/18, np.pi/12, -np.pi/12, np.pi/9, -np.pi/9, np.pi/7.2, -np.pi/7.2, np.pi/6, -np.pi/6]
-    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25]
+    theta_scan_list = [0, np.pi/36, -np.pi/36, np.pi/18, -np.pi/18, np.pi/12, -np.pi/12, 
+                       np.pi/9, -np.pi/9, np.pi/7.2, -np.pi/7.2, np.pi/6, -np.pi/6, 
+                       np.pi*180/35, -np.pi*180/35, np.pi/4.5, -np.pi/4.5, np.pi/4, -np.pi/4]
+    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25, 26, 27, 28, 29, 30]
 
     for r_scan in r_scan_list:
         for theta_scan in theta_scan_list:
             cur_image_to_pos_theta = utils.M(starting_image_to_pos_theta + theta_scan)
             cur_x = starting_x + r_scan*np.cos(cur_image_to_pos_theta)
             cur_y = starting_y + r_scan*np.sin(cur_image_to_pos_theta)
+            theta = utils.M(cur_image_to_pos_theta - theta_offset)
 
-            if not map.collide_with_point(cur_x, cur_y):
-                theta = utils.M(cur_image_to_pos_theta - theta_offset)
+            if not map.collide_with_point(cur_x, cur_y) and not \
+                map.collide_with_point(cur_x + 0.5*c.REAR_AXLE_TO_CENTER*np.cos(theta), cur_y + 0.5*c.REAR_AXLE_TO_CENTER*np.sin(theta)) and not \
+                map.collide_with_point(cur_x - 0.5*c.REAR_AXLE_TO_CENTER*np.cos(theta), cur_y - 0.5*c.REAR_AXLE_TO_CENTER*np.sin(theta)):
+                
                 cur_x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
                 cur_y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
                 return (cur_x, cur_y, theta, obstacle.id)

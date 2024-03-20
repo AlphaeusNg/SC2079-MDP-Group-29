@@ -39,6 +39,7 @@ class task1():
                                                                    theta_offset=self.hamiltonian_args['theta_offset'])
             while path == None and valid_checkpoints:
                 checkpoint = valid_checkpoints.pop(0)
+                print(f"Routing to x: {checkpoint[0]}, y: {checkpoint[1]} theta: {checkpoint[2]}...")
                 algo = HybridAStar(map=map, 
                             x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
                             x_f=checkpoint[0], y_f=checkpoint[1], 
@@ -48,13 +49,17 @@ class task1():
                 if path == None:
                     print("Path failed to converge, trying another final position...")
 
-            self.paths.append(path)
-            current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-            commands, pathDisplay = construct_path_2(path, L, minR)
-            self.commands.append(commands)
-            self.android.append(pathDisplay)
-            self.obstacleID.append(checkpoint[3])
-            print_path(path)
+            if path != None:
+                self.paths.append(path)
+                current_pos = (path[-1].x, path[-1].y, path[-1].theta)
+                commands, pathDisplay = construct_path_2(path, L, minR)
+                self.commands.append(commands)
+                self.android.append(pathDisplay)
+                self.obstacleID.append(checkpoint[3])
+                print_path(path)
+            
+            else:
+                print("Path could not be found, routing to next obstacle...")
         
     
     def get_command_to_next_obstacle(self):
