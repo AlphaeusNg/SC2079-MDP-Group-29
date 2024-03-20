@@ -8,6 +8,14 @@ Contains the scripts for training and inference.
 ### STM32
 Contains STM32 program code for managing and functioning the robot
 
+## SR: STM to RPi
+1. Acknowledgement of command
+   ```A```
+   - acknowledges that command has been received and completed
+2. distance moved from last command 
+   ```100```
+   - 3 digit number, read 1 character at a time by RPi
+
 ## Setup
 
 The following instructions setups a new virtual environment for python and installs the needed libraries.  
