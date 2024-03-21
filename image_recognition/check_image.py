@@ -7,7 +7,7 @@ from datetime import datetime
 import torch
 
 TASK_1_V1_MODEL_CONFIG = {"conf":0.803, "path":Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"}
-TASK_1_V2_MODEL_PATH_CONFIG = {"conf":0.791, "path":Path("image_recognition") / "runs" / "detect" / "train task_1" / "weights" / "best.pt"}
+TASK_1_V2_MODEL_CONFIG = {"conf":0.791, "path":Path("image_recognition") / "runs" / "detect" / "train task_1" / "weights" / "best.pt"}
 TASK_2_MODEL_CONFIG = {"conf":0.868, "path":Path("image_recognition") / "runs" / "detect" / "train task_2" / "weights" / "best.pt"}
 FOREIGN_AID_MODEL_PATH_CONFIG = {"conf":0.8, "path":Path("image_recognition") / "ImageRecNew-main" / "YoloV8 Inference Server" / "Weights" / "bestv2.pt"}
 
@@ -124,16 +124,17 @@ def get_highest_confidence(predictions_list:list[dict]) -> dict:
     return highest_conf_pred
 
 
-def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True):
+def image_inference(image_path, obs_id, image_counter, image_id_map:list[str], task_2:bool=True):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
 
     # Initialize the YOLO model
     if not task_2:
-        model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
-        conf = TASK_1_V1_MODEL_CONFIG["conf"]
-        # model = YOLO(TASK_1_V2_MODEL_PATH) # another model to try. May be better
+        # model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
+        # conf = TASK_1_V1_MODEL_CONFIG["conf"]
+        model = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
+        conf = TASK_1_V2_MODEL_CONFIG["conf"]
     else:
         model = YOLO(TASK_2_MODEL_CONFIG["path"])
         conf = TASK_2_MODEL_CONFIG["conf"]
@@ -146,7 +147,10 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
     for r in results:
         # Iterate over each object
         for c in r:
-            label = c.names[c.boxes.cls.tolist().pop()].split("_")[0]
+            label = c.names[c.boxes.cls.tolist().pop()][0:2]
+            # label = c.names[c.boxes.cls.tolist().pop()].split("_")[0] #old model label name
+            if label[0]=="0":
+                label = label[0]
             # If label previously detected, skip
             if label in image_id_map and not task_2:
                 continue
@@ -158,6 +162,11 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
 
     largest_bbox_label, largest_bbox_area = find_largest_bbox_label(bboxes)
 
+    if task_2:
+        name_of_image = f"task2_obs_id_{obs_id}_{image_counter}.jpg"
+    else:
+        name_of_image = f"task1_obs_id_{obs_id}_{image_counter}.jpg"
+
     image_prediction = {
         "type": "IMAGE_RESULTS",
         "data": {
@@ -165,7 +174,7 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
             "img_id": largest_bbox_label, 
             "bbox_area": largest_bbox_area
             },
-        "image_path": Path("captured_images") / img_name
+        "image_path": Path("captured_images") / img_name / name_of_image
         }
 
     return image_prediction
