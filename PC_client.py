@@ -7,7 +7,7 @@ import base64
 from algo.pathfinding import task1
 import time
 import shutil
-from image_recognition.stitch_images import stiching_images
+from image_recognition.stitch_images import stitching_images
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
@@ -140,7 +140,10 @@ class PCClient:
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), image_id_map=self.t1.get_image_id(), task_2=self.task_2)
+                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), 
+                                                                   image_counter=image_counter, 
+                                                                   image_id_map=self.t1.get_image_id(), 
+                                                                   task_2=self.task_2)
                     self.image_record.append(image_prediction)
                     image_counter += 1
 
@@ -155,7 +158,7 @@ class PCClient:
                                 break
                         
                         # If still can't find a prediction, repeat the last command
-                        # if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
+                        if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
                             
                             if path_message['type'] == 'FASTEST_PATH':
                                 image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
@@ -163,14 +166,14 @@ class PCClient:
                                 last_command = path_message['data']['commands'][-1]
                                 last_path = path_message['data']['path'][-1]
                                 if "F" in last_command:
-                                    command = {"type": "NAVIGATION", "data": {"commands": ['RF015','RB014'], "path": [last_path, last_path]}}
+                                    command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB010'], "path": [last_path, last_path]}}
                                 elif "B" in last_command:
-                                    command = {"type": "NAVIGATION", "data": {"commands": ['RB015','RF014'], "path": [last_path, last_path]}}
+                                    command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF010'], "path": [last_path, last_path]}}
                             
-                        #         command = json.dumps(command)
-                        #         self.msg_queue.put(command)
-                        #         retries += 1
-                        #         continue
+                                command = json.dumps(command)
+                                self.msg_queue.put(command)
+                                retries += 1
+                                continue
                             
                         # # For checklist A.5
                         # else:
@@ -180,6 +183,7 @@ class PCClient:
                         destination_folder = "images_result"
                         os.makedirs(destination_folder, exist_ok=True)
                         destination_file = f"{destination_folder}/result_obs_id_{obs_id}.jpg"
+                        image_path = image_prediction["image_path"] 
                         shutil.copy(image_path, destination_file)
 
                         # Remove unnecessary data
@@ -205,7 +209,7 @@ class PCClient:
                         else:
                             if not self.task_2:
                                 print("[Algo] Task 1 ended")
-                                stiching_images(r'image_recognition\images_result', r'image_recognition\images_result\stiched_image.jpg')
+                                stitching_images(r'image_recognition\images_result', r'image_recognition\stitched_image.jpg')
                                 break # exit thread
 
                         self.image_record = [] # reset the image record

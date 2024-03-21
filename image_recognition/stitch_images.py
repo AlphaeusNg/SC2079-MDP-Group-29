@@ -3,7 +3,7 @@ import os
 import math
 
 
-def stiching_images(image_folder_path, output_img_path):
+def stitching_images(image_folder_path, output_img_path):
     print("Stitching images...")
     # Initialize the big image
     big_img = Image.new('RGB', (2400, 2400))
