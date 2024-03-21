@@ -209,7 +209,7 @@ class PCClient:
                         else:
                             if not self.task_2:
                                 print("[Algo] Task 1 ended")
-                                stitching_images(r'image_recognition\images_result', r'image_recognition\stitched_image.jpg')
+                                stitching_images(r'images_result', r'image_recognition\stitched_image.jpg')
                                 break # exit thread
 
                         self.image_record = [] # reset the image record

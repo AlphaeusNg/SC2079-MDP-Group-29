@@ -42,4 +42,4 @@ def stitching_images(image_folder_path, output_img_path):
     print(f'Stitched image saved to {output_img_path}')
     
 if __name__ == "__main__":
-    stiching_images(r'image_recognition\images_result', r'image_recognition\images_result\stiched_image.jpg')
+    stiching_images(r'images_result', r'image_recognition\stitched_image.jpg')
