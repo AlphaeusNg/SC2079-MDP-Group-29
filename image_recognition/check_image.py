@@ -151,26 +151,25 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
     bboxes = []
     bboxes_2 = []
 
-    for r in results:
+    for r2 in results_2:
         # Iterate over each object
-        for c in r:
-            label = c.names[c.boxes.cls.tolist().pop()][0:2]
-            # label = c.names[c.boxes.cls.tolist().pop()].split("_")[0] #old model label name
+        for c2 in r2:
+            label = c2.names[c2.boxes.cls.tolist().pop()][0:2]
             if label[0]=="0":
                 label = label[0]
             # If label previously detected, skip
             if label in image_id_map and not task_2:
                 continue
-            bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
+            bboxes_2.append({"label": label, "xywh": c2.boxes.xywh.tolist().pop()})
             # print(bboxes)
 
-    for r2 in results_2:
-        for c2 in r2:
-            label = c2.names[c2.boxes.cls.tolist().pop()].split("_")[0] #old model label name
+    for r in results:
+        for c in r:
+            label = c.names[c.boxes.cls.tolist().pop()].split("_")[0] #old model label name
             # If label previously detected, skip
             if label in image_id_map and not task_2:
                 continue
-            bboxes_2.append({"label": label, "xywh": c2.boxes.xywh.tolist().pop()})
+            bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
     # To make it display, useful for testing
     # results[0].show()
@@ -180,7 +179,7 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
 
     # take model 2 if there is results, since it's better.
     if largest_bbox_area_2:
-        largest_bbox_label = largest_bbox_area_2
+        largest_bbox_label = largest_bbox_label_2
         largest_bbox_area = largest_bbox_area_2
         img_name = img_name + "_2"
     else:

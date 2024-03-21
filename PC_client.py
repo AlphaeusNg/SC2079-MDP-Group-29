@@ -166,7 +166,8 @@ class PCClient:
                         if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
                             
                             if command['type'] == 'FASTEST_PATH':
-                                image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
+                                # image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
+                                command = {"type": "NAVIGATION", "data": {"commands": ['RB005','RF005'], "path": [last_path, last_path]}}
                             else:
                                 last_command = command['data']['commands'][-1]
                                 last_path = command['data']['path'][-1]
@@ -179,9 +180,9 @@ class PCClient:
                                 else:
                                     command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF010'], "path": [last_path, last_path]}}
 
-                                self.msg_queue.put(json.dumps(command))
-                                retries += 1
-                                continue
+                            self.msg_queue.put(json.dumps(command))
+                            retries += 1
+                            continue
                             
                         # # For checklist A.5
                         # else:
