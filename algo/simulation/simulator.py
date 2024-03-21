@@ -125,6 +125,8 @@ class Simulator:
 
                     while path == None and valid_checkpoints:
                         checkpoint = valid_checkpoints.pop(0)
+                        print(f"Routing from x: {current_pos[0]}, y: {current_pos[1]}, theta: {current_pos[2]} " + 
+                              f"to x: {checkpoint[0]}, y: {checkpoint[1]} theta: {checkpoint[2]}...")
                         algo = HybridAStar(map, x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
                                         x_f=checkpoint[0], y_f=checkpoint[1], theta_f=checkpoint[2], theta_offset=astar_args['theta_offset'],
                                         steeringChangeCost=self.astar_args['steeringChangeCost'], 
@@ -136,13 +138,22 @@ class Simulator:
                         path, pathHistory = algo.find_path()
                         if path == None:
                             print("Path failed to converge, trying another final position...")
-                    allPaths.append(path)
+                        
+                    
+                    if path != None:
+                        allPaths.append(path)
+                        current_pos = (path[-1].x, path[-1].y, path[-1].theta)
+                
+                idx = 0
+                for path in allPaths:    
+                    print("Drawing path on simulator...")
                     numNodes += len(path)
                     current_pos = (path[-1].x, path[-1].y, path[-1].theta)
-                    x, y = utils.coords_to_pixelcoords(x=path[-1].x, y=path[-1].y)
+                    x, y = utils.coords_to_pixelcoords(x=path[-1].x + c.REAR_AXLE_TO_CENTER*np.cos(path[-1].theta), 
+                                                        y=path[-1].y + c.REAR_AXLE_TO_CENTER*np.sin(path[-1].theta))
                     pygame.draw.lines(self.path_surface, 'black', True, [(x-10,y-10),(x+10,y+10)], 3)
                     pygame.draw.lines(self.path_surface, 'black', True, [(x-10,y+10),(x+10,y-10)], 3)
-                
+            
                     for node in path:
                         print(f"Current Node (x:{node.x:.2f}, y: {node.y:.2f}, " +
                             f"theta: {node.theta*180/np.pi:.2f}), Action: {node.prevAction}")
@@ -152,11 +163,13 @@ class Simulator:
                     self.screen.blit(self.path_surface, (0, 0))
                     pygame.display.update()
                     self.clock.tick(1000)
+                    idx += 1
                     
                 
                 done = True
                 print(f"Total path length: {numNodes*self.astar_args['L']}cm")
             
+            """
             animateIndex = 0
 
             node = path[animateIndex]
@@ -164,6 +177,7 @@ class Simulator:
             animateIndex += 1
             if animateIndex == len(path):
                 animateIndex = 0
+            """
 
             #self.draw_path_history(pathHistory)
 
@@ -195,8 +209,8 @@ if __name__ == "__main__":
     map = test_maps[7][:8]
     
     hamiltonian_args = {'obstacles': map, 'x_start': 15, 'y_start': 10, 'theta_start': np.pi/2, 
-                        'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 25}
-    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 25*np.pi/4/5, 'theta_offset': -np.pi/2,
+                        'theta_offset': -np.pi/2, 'metric': 'euclidean', 'minR': 26.5}
+    astar_args = {'steeringChangeCost': 10, 'gearChangeCost': 10, 'L': 26.5*np.pi/4/5, 'theta_offset': -np.pi/2,
                     'minR': 25, 'heuristic': 'euclidean', 'simulate': False, 'thetaBins': 24}
 
     sim = Simulator(map, hamiltonian_args, astar_args)

@@ -66,7 +66,7 @@ main-build: MDP.elf secondary-outputs
 
 # Tool invocations
 MDP.elf MDP.map: $(OBJS) $(USER_OBJS) C:\Users\User\Documents\MDP\Main\MDPGrp29\Task\ 2\MDP\STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "MDP.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\Documents\MDP\Main\MDPGrp29\Task 2\MDP\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MDP.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "MDP.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\Documents\MDP\Main\MDPGrp29\Task 2\MDP\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MDP.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

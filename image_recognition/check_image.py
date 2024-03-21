@@ -148,7 +148,7 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
         for c in r:
             label = c.names[c.boxes.cls.tolist().pop()].split("_")[0]
             # If label previously detected, skip
-            if label in image_id_map:
+            if label in image_id_map and not task_2:
                 continue
             bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)

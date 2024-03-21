@@ -33,7 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SERVOCENTER 148
+#define SERVOCENTER 146
 #define SERVORIGHT 250
 #define SERVOLEFT 95
 /* USER CODE END PD */
@@ -156,13 +156,6 @@ int receivedInstruction = 0;
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
-	time_t start_time, current_time;
-
-	time(&start_time);
-
-	int timer_duration = 6 * 60;
-
-	printf("Timer started for 6 minutes.\n");
 
 	/* USER CODE END 1 */
 
@@ -261,15 +254,6 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		/* USER CODE END WHILE */
-		time(&current_time);
-
-		int elapsed_time = difftime(current_time, start_time);
-
-		if (elapsed_time >= timer_duration)
-		{
-			printf("Timer expired! 6 minutes have passed.\n");
-			break;
-		}
 		/* USER CODE BEGIN 3 */
 	}
 
@@ -792,7 +776,7 @@ void HCSR04_Read(void) //Call when u want to get reading from US
 void moveCarStraight(double distance) {
 	distance = distance * 75;
 	pwmVal_servo = SERVOCENTER;
-	osDelay(300);
+	osDelay(450);
 	e_brake = 0;
 	times_acceptable = 0;
 	rightEncoderVal = 75000;
@@ -812,12 +796,12 @@ void moveCarStraight(double distance) {
 void moveCarStop() {
 	e_brake = 1;
 	pwmVal_servo = SERVOCENTER;
-	osDelay(300);
+	osDelay(200);
 }
 
 void moveCarRight(double angle) {
 	pwmVal_servo = SERVORIGHT;
-	osDelay(300);
+	osDelay(450);
 	e_brake = 0;
 	times_acceptable = 0;
 	target_angle -= angle;
@@ -831,7 +815,7 @@ void moveCarRight(double angle) {
 
 void moveCarLeft(double angle) {
 	pwmVal_servo = SERVOLEFT;
-	osDelay(300);
+	osDelay(450);
 	e_brake = 0;
 	times_acceptable = 0;
 	target_angle += angle;
@@ -932,7 +916,6 @@ int finishCheck() {
 		rightTarget = rightEncoderVal;
 		times_acceptable = 0;
 		osDelay(300);
-
 		return 0;
 	}
 	return 1;
@@ -1116,16 +1099,13 @@ void StartOLEDTask(void *argument) {
 	uint8_t gyroVal[20] = { 0 };
 	uint8_t command[20] = { 0 };
 	for (;;) {
-		sprintf(usVal, "Distance: %d \0", (int) uDistance);
-		OLED_ShowString(0, 10, usVal);
-
 		int decimals = abs((int) ((total_angle - (int) (total_angle)) * 1000));
 		sprintf(gyroVal, "Gyro: %d.%d \0", (int) total_angle, decimals);
-		OLED_ShowString(0, 20, gyroVal);
+		OLED_ShowString(0, 10, gyroVal);
 
 		sprintf(command, "C: %c%c%c%c%c \0", aRxBuffer[0], aRxBuffer[1],
 				aRxBuffer[2], aRxBuffer[3], aRxBuffer[4]);
-		OLED_ShowString(0, 30, command);
+		OLED_ShowString(0, 20, command);
 
 		OLED_Refresh_Gram();
 		osDelay(100);
@@ -1290,7 +1270,6 @@ void StartCommunicateTask(void *argument) {
 			HAL_UART_Transmit(&huart3, (uint8_t*) &ack, 1, 0xFFFF);
 			flagDone = 0;
 		}
-
 		osDelay(10);
 	}
 	/* USER CODE END StartCommunicateTask */
@@ -1322,7 +1301,6 @@ void StartEncoderRTask(void *argument) {
 				dirR = -1;
 				diff = cnt1;
 			}
-
 			if (dirR == 1) {
 				rightEncoderVal -= diff;
 			} else {
@@ -1374,7 +1352,6 @@ void StartEncoderLTask(void *argument) {
 			tick = HAL_GetTick();
 		}
 	}
-
 	/* USER CODE END StartEncoderLTask */
 }
 
