@@ -53,15 +53,15 @@ class OccupancyMap:
             j_end = min(obstacle.y_g + 4, 39)       # 39: last index
             self.occupancy_grid[i_start:i_end+1, j_start:j_end+1] = 1
 
-        self.occupancy_grid[:2, :] = 1
-        self.occupancy_grid[-2:, :] = 1
-        self.occupancy_grid[:, :2] = 1
-        self.occupancy_grid[:, -2:] = 1
+        self.occupancy_grid[:3, :] = 1
+        self.occupancy_grid[-3:, :] = 1
+        self.occupancy_grid[:, :3] = 1
+        self.occupancy_grid[:, -3:] = 1
 
     def collide_with_point(self, x, y):
         x_g, y_g = utils.coords_to_grid(x, y)
         if x_g < 0 or x_g >= 40 or y_g < 0 or y_g >= 40:
-            return 0
+            return 1
         else:
             return self.occupancy_grid[x_g, y_g]
 

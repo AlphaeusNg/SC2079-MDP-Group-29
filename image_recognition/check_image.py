@@ -131,18 +131,25 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
 
     # Initialize the YOLO model
     if not task_2:
-        # model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
-        # conf = TASK_1_V1_MODEL_CONFIG["conf"]
-        model = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
-        conf = TASK_1_V2_MODEL_CONFIG["conf"]
+        model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
+        conf = TASK_1_V1_MODEL_CONFIG["conf"]
+        model_2 = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
+        conf_2 = TASK_1_V2_MODEL_CONFIG["conf"]
+        # model = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
+        # conf = TASK_1_V2_MODEL_CONFIG["conf"]
     else:
         model = YOLO(TASK_2_MODEL_CONFIG["path"])
         conf = TASK_2_MODEL_CONFIG["conf"]
+    
+    # if model_2:
+    #     model_2.to(device)
     model.to(device)
-
+    
     # run inference on the image
-    results = model.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
+    results = model.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_1", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
+    results_2 = model_2.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_2", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf_2, device=device)
     bboxes = []
+    bboxes_2 = []
 
     for r in results:
         # Iterate over each object
@@ -157,10 +164,27 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
             bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
 
+    for r2 in results_2:
+        for c2 in r2:
+            label = c2.names[c2.boxes.cls.tolist().pop()].split("_")[0] #old model label name
+            # If label previously detected, skip
+            if label in image_id_map and not task_2:
+                continue
+            bboxes_2.append({"label": label, "xywh": c2.boxes.xywh.tolist().pop()})
+            # print(bboxes)
     # To make it display, useful for testing
     # results[0].show()
 
     largest_bbox_label, largest_bbox_area = find_largest_bbox_label(bboxes)
+    largest_bbox_label_2, largest_bbox_area_2 = find_largest_bbox_label(bboxes_2)
+
+    # take model 2 if there is results, since it's better.
+    if largest_bbox_area_2:
+        largest_bbox_label = largest_bbox_area_2
+        largest_bbox_area = largest_bbox_area_2
+        img_name = img_name + "_2"
+    else:
+        img_name = img_name + "_1"
 
     if task_2:
         name_of_image = f"task2_obs_id_{obs_id}_{image_counter}.jpg"
