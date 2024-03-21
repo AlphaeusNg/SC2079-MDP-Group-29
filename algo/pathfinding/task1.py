@@ -1,4 +1,4 @@
-from algo.pathcommands import *
+from algo.pathfinding import *
 from algo.pathfinding.hamiltonian import Hamiltonian
 from algo.pathfinding.hybrid_astar import HybridAStar
 from algo.objects.OccupancyMap import OccupancyMap
