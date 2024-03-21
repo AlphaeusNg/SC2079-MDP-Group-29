@@ -1,8 +1,13 @@
-from algo.pathcommands import *
+from algo.pathfinding import *
+from algo.pathfinding.pathcommands import *
 from algo.pathfinding.hamiltonian import Hamiltonian
 from algo.pathfinding.hybrid_astar import HybridAStar
 from algo.objects.OccupancyMap import OccupancyMap
+from algo.objects.Obstacle import Obstacle
 from algo.pathfinding.hamiltonian import obstacle_to_checkpoint_all
+import numpy as np
+import constants as c
+
 
 class task1():
     def __init__(self):
@@ -35,8 +40,8 @@ class task1():
         current_pos = tsp.start
         obstacle_path = tsp.find_nearest_neighbor_path()
         for idx, obstacle in enumerate(obstacle_path):
-            valid_checkpoints = obstacle_to_checkpoint_all(map, obstacle, 
-                                                                   theta_offset=self.hamiltonian_args['theta_offset'])
+            valid_checkpoints = obstacle_to_checkpoint_all(map, obstacle, theta_offset=-np.pi/2)
+            path = None
             while path == None and valid_checkpoints:
                 checkpoint = valid_checkpoints.pop(0)
                 print(f"Routing to x: {checkpoint[0]}, y: {checkpoint[1]} theta: {checkpoint[2]}...")

@@ -154,22 +154,22 @@ class PCClient:
                         del image_prediction["image_path"]
                         
                         # If still can't find a prediction, repeat the last command
-                        if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
+                        # if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
                             
-                            if path_message['type'] == 'FASTEST_PATH':
-                                image_prediction['data']['img_id'] = "38"
-                            else:
-                                last_command = path_message['data']['commands'][-1]
-                                last_path = path_message['data']['path'][-1]
-                                if "F" in last_command:
-                                    command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
-                                elif "B" in last_command:
-                                    command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
+                        #     if path_message['type'] == 'FASTEST_PATH':
+                        #         image_prediction['data']['img_id'] = "38"
+                        #     else:
+                        #         last_command = path_message['data']['commands'][-1]
+                        #         last_path = path_message['data']['path'][-1]
+                        #         if "F" in last_command:
+                        #             command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
+                        #         elif "B" in last_command:
+                        #             command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
                             
-                                command = json.dumps(command)
-                                self.msg_queue.put(command)
-                                retries += 1
-                                continue
+                        #         command = json.dumps(command)
+                        #         self.msg_queue.put(command)
+                        #         retries += 1
+                        #         continue
                             
                         # # For checklist A.5
                         # else:
