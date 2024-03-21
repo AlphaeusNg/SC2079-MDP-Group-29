@@ -290,4 +290,4 @@ VP_TIM8_VS_no_output2.Mode=PWM Generation2 No Output
 VP_TIM8_VS_no_output2.Signal=TIM8_VS_no_output2
 board=custom
 rtos.0.ip=FREERTOS
-isbadioc=true
+isbadioc=false
