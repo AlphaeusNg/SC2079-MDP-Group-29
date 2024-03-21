@@ -14,7 +14,7 @@ class PCInterface:
         self.msg_queue = Queue()
         self.send_message = False
         self.obs_id = 1
-        self.task2 = False #TODO: Make false for task 1
+        self.task2 = True #TODO: Make false for task 1
         
 
     def connect(self):
