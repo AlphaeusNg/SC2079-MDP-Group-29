@@ -6,14 +6,13 @@ import time
 from datetime import datetime
 import torch
 
-MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"
-
-# Initialize the YOLO model
-model = YOLO(MODEL_PATH)
+TASK_1_V1_MODEL_CONFIG = {"conf":0.803, "path":Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"}
+TASK_1_V2_MODEL_PATH_CONFIG = {"conf":0.791, "path":Path("image_recognition") / "runs" / "detect" / "train task_1" / "weights" / "best.pt"}
+TASK_2_MODEL_CONFIG = {"conf":0.868, "path":Path("image_recognition") / "runs" / "detect" / "train task_2" / "weights" / "best.pt"}
+FOREIGN_AID_MODEL_PATH_CONFIG = {"conf":0.8, "path":Path("image_recognition") / "ImageRecNew-main" / "YoloV8 Inference Server" / "Weights" / "bestv2.pt"}
 
 # Check if GPU is available and move the model to the device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model.to(device)
 
 
 def map_yoloid_to_mdp_image_id(yoloid: int) -> str:
@@ -53,7 +52,7 @@ def map_yoloid_to_mdp_image_id(yoloid: int) -> str:
     }[yoloid]
 
 
-def predict_multiple_images(folder_path):
+def predict_multiple_images(folder_path, model):
 
     def extract_jpg_files(folder_path):
         jpg_files = []
@@ -125,13 +124,23 @@ def get_highest_confidence(predictions_list:list[dict]) -> dict:
     return highest_conf_pred
 
 
-def image_inference(image_path, obs_id, image_id_map:list[str]):
+def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
 
+    # Initialize the YOLO model
+    if not task_2:
+        model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
+        conf = TASK_1_V1_MODEL_CONFIG["conf"]
+        # model = YOLO(TASK_1_V2_MODEL_PATH) # another model to try. May be better
+    else:
+        model = YOLO(TASK_2_MODEL_CONFIG["path"])
+        conf = TASK_2_MODEL_CONFIG["conf"]
+    model.to(device)
+
     # run inference on the image
-    results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device=device)
+    results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
     bboxes = []
 
     for r in results:
@@ -139,7 +148,7 @@ def image_inference(image_path, obs_id, image_id_map:list[str]):
         for c in r:
             label = c.names[c.boxes.cls.tolist().pop()].split("_")[0]
             # If label previously detected, skip
-            if label in image_id_map:
+            if label in image_id_map and not task_2:
                 continue
             bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
@@ -167,4 +176,4 @@ if __name__ == '__main__':
     # predict_multiple_images(folder_path)
     # image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_5_1.jpg"
     image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_6_1.jpg"
-    _ = image_inference(image_path, "00")
+    _ = image_inference(image_path, "00", [])

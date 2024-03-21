@@ -130,14 +130,13 @@ class HybridAStar():
                     continue 
 
                 x_child, y_child, theta_child = self.calculate_next_node(currentNode, choice)
-                
 
                 if self.map.collide_with_point(x_child + c.REAR_AXLE_TO_CENTER*np.cos(theta_child), y_child + c.REAR_AXLE_TO_CENTER*np.sin(theta_child)):
                     continue #skip if next node is occupied
 
                 childNode = Node(x_child, y_child, theta_child, prevAction=choice, parent=currentNode)
 
-                if self.checkPathFound(childNode):
+                if endNode == childNode:
                     print("Path Found!")
                     pathFound = True
                     currentNode = childNode
@@ -175,10 +174,14 @@ class HybridAStar():
                     
                     childNode.f = childNode.g + childNode.h + extraCost
 
-                if openList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
+                if childNode.x_g < 0 or childNode.x_g >= 40 or \
+                    childNode.y_g < 0 or childNode.y_g >= 40 or \
+                    openList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
                     continue
 
-                if closedList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
+                if childNode.x_g < 0 or childNode.x_g >= 40 or \
+                    childNode.y_g < 0 or childNode.y_g >= 40 or \
+                    closedList[childNode.x_g, childNode.y_g, childNode.theta_g] < childNode.f:
                     continue
                 
                 open.put((childNode.f, childNode))
@@ -187,12 +190,16 @@ class HybridAStar():
             close.put((currentNode.f, currentNode))
             closedList[currentNode.x_g, currentNode.y_g, currentNode.theta_g] = currentNode.f
 
-        path = []
-        while currentNode != startNode:
-            path.append(currentNode)
-            currentNode = currentNode.parent
+        if pathFound:
+            path = []
+            while currentNode != startNode:
+                path.append(currentNode)
+                currentNode = currentNode.parent
 
-        path.reverse()
+            path.reverse()
+        
+        else:
+            path = None
 
         end = time.process_time()
         print(f"Nodes Expanded = {nodesExpanded}, Time taken = {(end - start):.2f}")
@@ -203,12 +210,16 @@ class HybridAStar():
         else:
             return path, None
 
-    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=27, distanceMargin: float=7.5, maxPerpDistance:float=0.5):
+    def checkPathFound(self, curNode, thetaMargin:float=np.pi/12, targetDistance:float=21, distanceMargin: float=7.5, maxPerpDistance:float=0.5):
         if abs(curNode.theta - self.theta_f) > thetaMargin:
             return False
         
         target_x = self.x_f + c.REAR_AXLE_TO_CENTER*np.cos(self.theta_f)
         target_y = self.y_f + c.REAR_AXLE_TO_CENTER*np.sin(self.theta_f)
+
+        if self.map.collide_with_point(target_x, target_y):
+            return False
+
         target_x += targetDistance*np.cos(self.theta_f - self.theta_offset)
         target_y += targetDistance*np.sin(self.theta_f - self.theta_offset)
 

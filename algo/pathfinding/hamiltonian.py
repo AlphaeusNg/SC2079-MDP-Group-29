@@ -9,29 +9,28 @@ import utils
 from objects.Obstacle import Obstacle
 import pathfinding.reeds_shepp as rs
 import constants as c
+import copy
 
 class Hamiltonian():
     def __init__(self, map, obstacles, x_start, y_start, theta_start, theta_offset=0, 
                           metric='euclidean', minR=25) -> None:
         assert -np.pi < theta_start, theta_offset <= np.pi
+        self.map = map
+        self.obstacles = obstacles
         self.checkpoints = []
         self.start = (x_start, y_start, theta_start)
+        self.theta_offset = theta_offset
         self.metric = metric
         self.minR = minR
 
-        for obstacle in obstacles:
-            checkpoint = obstacle_to_checkpoint(map, obstacle, theta_offset)
-            if checkpoint is not None:
-                self.checkpoints.append(checkpoint)
-
     def find_brute_force_path(self):
-        checkpoint_permutations = itertools.permutations(self.checkpoints)
-        shortest_path = None
+        obstacle_permutations = itertools.permutations(self.obstacles)
         shortest_distance = float('inf')
-        for path in checkpoint_permutations:
+        for obstacle_path in obstacle_permutations:
             current_pos = self.start
             total_distance = 0
-            for checkpoint in path:
+            for obstacle in obstacle_path:
+                checkpoint = obstacle_to_checkpoint(self.map, obstacle, self.theta_offset)
                 if self.metric == 'euclidean':
                     distance = utils.l2(current_pos[0], current_pos[1], checkpoint[0], checkpoint[1])
                 elif self.metric == 'reeds-shepp':
@@ -41,51 +40,88 @@ class Hamiltonian():
                 current_pos = checkpoint
             if total_distance < shortest_distance:
                 shortest_distance = total_distance
-                shortest_path = path[:]
+                shortest_path = obstacle_path[:]
         return shortest_path
 
     def find_nearest_neighbor_path(self):
         current_pos = self.start
         path = []
 
-        checkpoints = self.checkpoints[:]
-        while checkpoints:
-            if self.metric == 'euclidean':
-                nearest_neighbor = min(checkpoints, key=lambda checkpoint: 
-                                       utils.l2(current_pos[0], current_pos[1], checkpoint[0], checkpoint[1]))
-            elif self.metric == 'reeds-shepp':
-                nearest_neighbor = min(checkpoints, key=lambda checkpoint:
-                                       rs.get_optimal_path_length(current_pos, checkpoint, self.minR))
+        obstacles = self.obstacles.copy()
+        while obstacles:
+            nearest_neighbor = None
+            minDist = float('inf')
+            for obstacle in obstacles:
+                checkpoint = obstacle_to_checkpoint(self.map, obstacle, self.theta_offset)
+                if self.metric == 'euclidean':
+                    dist = utils.l2(current_pos[0], current_pos[1], checkpoint[0], checkpoint[1])
+                elif self.metric == 'reeds-shepp':
+                    dist = rs.get_optimal_path_length(current_pos, checkpoint, self.minR)
+                
+                if dist < minDist:
+                    minDist = dist
+                    nearest_neighbor = obstacle
+                
+            
             path.append(nearest_neighbor)
-            checkpoints.remove(nearest_neighbor)
-            current_pos = nearest_neighbor
+            obstacles.remove(nearest_neighbor)
+            current_pos = obstacle_to_checkpoint(self.map, nearest_neighbor, self.theta_offset)
         
         return path
 
 def obstacle_to_checkpoint(map, obstacle: Obstacle, theta_offset):
-    theta_scan_list = [0, np.pi / 36, -np.pi / 36, np.pi / 18, -np.pi / 18, np.pi / 12, -np.pi / 12, np.pi / 9, -np.pi / 9, np.pi / 7.2, -np.pi / 7.2, np.pi / 6, -np.pi / 6]
-    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25]
+    starting_x, starting_y = utils.grid_to_coords(obstacle.x_g, obstacle.y_g)
+    starting_x += offset_x(obstacle.facing)
+    starting_y += offset_y(obstacle.facing)
+    starting_image_to_pos_theta = offset_theta(obstacle.facing, np.pi)
 
-    x, y = utils.grid_to_coords(obstacle.x_g, obstacle.y_g)
-    x += offset_x(obstacle.facing)
-    y += offset_y(obstacle.facing)
-    theta = offset_theta(obstacle.facing, np.pi)
+    theta_scan_list = [0, np.pi/36, -np.pi/36, np.pi/18, -np.pi/18, np.pi/12, -np.pi/12, 
+                       np.pi/9, -np.pi/9, np.pi/7.2, -np.pi/7.2, np.pi/6, -np.pi/6, 
+                       np.pi*180/35, -np.pi*180/35, np.pi/4.5, -np.pi/4.5, np.pi/4, -np.pi/4]
+    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25, 26, 27, 28, 29, 30]
 
     for r_scan in r_scan_list:
         for theta_scan in theta_scan_list:
-            pos_theta = utils.M(theta+theta_scan)
-            pos_x = x + r_scan*np.cos(pos_theta)
-            pos_y = y + r_scan*np.sin(pos_theta)
+            cur_image_to_pos_theta = utils.M(starting_image_to_pos_theta + theta_scan)
+            cur_x = starting_x + r_scan*np.cos(cur_image_to_pos_theta)
+            cur_y = starting_y + r_scan*np.sin(cur_image_to_pos_theta)
+            theta = utils.M(cur_image_to_pos_theta - theta_offset)
 
-            x_g, y_g = utils.coords_to_grid(pos_x, pos_y)
-            if 0 <= x_g < 40 and 0 <= y_g < 40:
-                if not map.collide_with_point(pos_x, pos_y):
-                    theta = utils.M(pos_theta - theta_offset)
-                    pos_x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
-                    pos_y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
-                    return (pos_x, pos_y, theta, obstacle.id)
+            if not map.collide_with_point(cur_x, cur_y) and not \
+                map.collide_with_point(cur_x + 0.5*c.REAR_AXLE_TO_CENTER*np.cos(theta), cur_y + 0.5*c.REAR_AXLE_TO_CENTER*np.sin(theta)) and not \
+                map.collide_with_point(cur_x - 0.5*c.REAR_AXLE_TO_CENTER*np.cos(theta), cur_y - 0.5*c.REAR_AXLE_TO_CENTER*np.sin(theta)):
+                
+                cur_x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
+                cur_y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
+                return (cur_x, cur_y, theta, obstacle.id)
 
     return None
+
+def obstacle_to_checkpoint_all(map, obstacle: Obstacle, theta_offset):
+    starting_x, starting_y = utils.grid_to_coords(obstacle.x_g, obstacle.y_g)
+    starting_x += offset_x(obstacle.facing)
+    starting_y += offset_y(obstacle.facing)
+    starting_image_to_pos_theta = offset_theta(obstacle.facing, np.pi)
+
+    valid_checkpoints = []
+
+    theta_scan_list = [0, np.pi/36, -np.pi/36, np.pi/18, -np.pi/18, np.pi/12, -np.pi/12, np.pi/9, -np.pi/9, np.pi/7.2, -np.pi/7.2, np.pi/6, -np.pi/6]
+    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25]
+
+    for r_scan in r_scan_list:
+        for theta_scan in theta_scan_list:
+            cur_image_to_pos_theta = utils.M(starting_image_to_pos_theta + theta_scan)
+            cur_x = starting_x + r_scan*np.cos(cur_image_to_pos_theta)
+            cur_y = starting_y + r_scan*np.sin(cur_image_to_pos_theta)
+
+            if not map.collide_with_point(cur_x, cur_y):
+                theta = utils.M(cur_image_to_pos_theta - theta_offset)
+                cur_x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
+                cur_y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
+                valid_checkpoints.append((cur_x, cur_y, theta, obstacle.id))
+
+    return valid_checkpoints
+
 
 def offset_x(facing: str):
     if facing == 'N':
