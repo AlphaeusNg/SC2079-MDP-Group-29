@@ -124,7 +124,7 @@ def get_highest_confidence(predictions_list:list[dict]) -> dict:
     return highest_conf_pred
 
 
-def image_inference(image_path, obs_id, image_counter, image_id_map:list[str], task_2:bool=True):
+def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str], task_2:bool=True):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
@@ -141,7 +141,7 @@ def image_inference(image_path, obs_id, image_counter, image_id_map:list[str], t
     model.to(device)
 
     # run inference on the image
-    results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
+    results = model.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
     bboxes = []
 
     for r in results:
