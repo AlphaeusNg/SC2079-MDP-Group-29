@@ -8,6 +8,9 @@ from algo.pathfinding import task1
 import time
 import shutil
 from image_recognition.stitch_images import stitching_images
+import numpy as np
+import io
+from PIL import Image
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
@@ -129,18 +132,23 @@ class PCClient:
                 elif message["type"] == "IMAGE_TAKEN":
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
+                    # Decode the base64 encoded image string
                     decoded_image = base64.b64decode(encoded_image)
+                    # Convert the binary data to a PIL image
+                    pil_image = Image.open(io.BytesIO(decoded_image))
+                    # Convert the PIL image to a NumPy array
+                    image_array = np.array(pil_image)
                     os.makedirs("captured_images", exist_ok=True)
 
-                    if self.task_2:
-                        image_path = f"captured_images/task2_obs_id_{obs_id}_{image_counter}.jpg"
-                    else:
-                        image_path = f"captured_images/task1_obs_id_{obs_id}_{image_counter}.jpg"
+                    # if self.task_2:
+                    #     image_path = f"captured_images/task2_obs_id_{obs_id}_{image_counter}.jpg"
+                    # else:
+                    #     image_path = f"captured_images/task1_obs_id_{obs_id}_{image_counter}.jpg"
                     
-                    with open(image_path, "wb") as img_file:
-                        img_file.write(decoded_image)
+                    # with open(image_path, "wb") as img_file:
+                    #     img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), 
+                    image_prediction = check_image.image_inference(image_or_path=image_array, obs_id=str(obs_id), 
                                                                    image_counter=image_counter, 
                                                                    image_id_map=self.t1.get_image_id(), 
                                                                    task_2=self.task_2)
