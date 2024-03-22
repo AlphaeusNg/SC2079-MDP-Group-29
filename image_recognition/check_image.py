@@ -128,7 +128,8 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
-
+    largest_bbox_area_2 = None
+    model_2 = None
     # Initialize the YOLO model
     if not task_2:
         model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
@@ -141,28 +142,30 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
         model = YOLO(TASK_2_MODEL_CONFIG["path"])
         conf = TASK_2_MODEL_CONFIG["conf"]
     
-    # if model_2:
-    #     model_2.to(device)
+    if model_2 and not task_2:
+        model_2.to(device)
+        bboxes_2 = []
+        results_2 = model_2.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_2", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf_2, device=device)
+        for r2 in results_2:
+        # Iterate over each object
+            for c2 in r2:
+                label = c2.names[c2.boxes.cls.tolist().pop()][0:2]
+                if label[0]=="0":
+                    label = label[0]
+                # If label previously detected, skip
+                if label in image_id_map and not task_2:
+                    continue
+                bboxes_2.append({"label": label, "xywh": c2.boxes.xywh.tolist().pop()})
+                # print(bboxes)
+        
+        largest_bbox_label_2, largest_bbox_area_2 = find_largest_bbox_label(bboxes_2)
+
     model.to(device)
-    
     # run inference on the image
     results = model.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_1", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
-    results_2 = model_2.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_2", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf_2, device=device)
+    
     bboxes = []
-    bboxes_2 = []
-
-    for r2 in results_2:
-        # Iterate over each object
-        for c2 in r2:
-            label = c2.names[c2.boxes.cls.tolist().pop()][0:2]
-            if label[0]=="0":
-                label = label[0]
-            # If label previously detected, skip
-            if label in image_id_map and not task_2:
-                continue
-            bboxes_2.append({"label": label, "xywh": c2.boxes.xywh.tolist().pop()})
-            # print(bboxes)
-
+    
     for r in results:
         for c in r:
             label = c.names[c.boxes.cls.tolist().pop()].split("_")[0] #old model label name
@@ -175,7 +178,6 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
     # results[0].show()
 
     largest_bbox_label, largest_bbox_area = find_largest_bbox_label(bboxes)
-    largest_bbox_label_2, largest_bbox_area_2 = find_largest_bbox_label(bboxes_2)
 
     # take model 2 if there is results, since it's better.
     if largest_bbox_area_2:
