@@ -31,7 +31,8 @@ class PCClient:
         self.send_message = False
         self.t1 = task1.task1()
         self.image_record = []
-        self.task_2 = False #TODO: Put True for task1, false for task2
+        self.task_2 = False #TODO: Put True for task1, false for 
+        self.obs_order_count = 0
 
     def connect(self):
         # Establish a connection with the PC
@@ -191,7 +192,10 @@ class PCClient:
                         # copy image to images_result folder and rename them according to obs_id
                         destination_folder = "images_result"
                         os.makedirs(destination_folder, exist_ok=True)
-                        destination_file = f"{destination_folder}/result_obs_id_{obs_id}.jpg"
+                        if self.task_2:
+                            destination_file = f"{destination_folder}/task2_result_obs_id_{obs_id}.jpg"
+                        else:
+                            destination_file = f"{destination_folder}/task1_result_obs_id_{obs_id}.jpg"
                         image_path = image_prediction["image_path"] 
                         shutil.copy(image_path, destination_file)
 
@@ -204,6 +208,8 @@ class PCClient:
                         self.t1.update_image_id(image_prediction['data']['img_id'])
                         image_counter = 0
                         retries = 0
+                        if self.task_2:
+                            obs_id += 1 # because PC server doesn't send ID
 
                         # For testing
                         # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
@@ -238,6 +244,7 @@ class PCClient:
 
 
 if __name__ == "__main__":
+    
     client = PCClient()
     client.connect()
     

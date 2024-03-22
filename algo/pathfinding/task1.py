@@ -36,7 +36,7 @@ class task1():
             obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, invertObs, int(obstacle["id"])))
 
         map = OccupancyMap(obstacles)
-        tsp = Hamiltonian(map, obstacles, 5, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
+        tsp = Hamiltonian(map, obstacles, 15, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
         current_pos = tsp.start
         obstacle_path = tsp.find_nearest_neighbor_path()
         for idx, obstacle in enumerate(obstacle_path):
@@ -68,8 +68,12 @@ class task1():
         
     
     def get_command_to_next_obstacle(self):
-        nextCommand = self.commands.pop(0)
-        nextPath = self.android.pop(0)
+        nextCommand = None
+        nextPath = None
+        if self.commands:
+            nextCommand = self.commands.pop(0)
+        if self.android:
+            nextPath = self.android.pop(0)
         return construct_json(nextCommand, nextPath)
 
     def get_obstacle_id(self):

@@ -53,6 +53,9 @@ class Hamiltonian():
             minDist = float('inf')
             for obstacle in obstacles:
                 checkpoint = obstacle_to_checkpoint(self.map, obstacle, self.theta_offset)
+                if checkpoint == None:
+                    obstacles.remove(obstacle)
+                    continue
                 if self.metric == 'euclidean':
                     dist = utils.l2(current_pos[0], current_pos[1], checkpoint[0], checkpoint[1])
                 elif self.metric == 'reeds-shepp':
@@ -190,8 +193,9 @@ def print_grid(grid_size, obstacles):
 if __name__ == "__main__":
     obstacles = [Obstacle(10, 10, 'N'), Obstacle(20, 10, 'S'), Obstacle(10, 20, 'E'), Obstacle(20, 20, 'W'), 
                  Obstacle(38, 38, 'N')]
-    
-    tsp = Hamiltonian(obstacles, 15, 15, np.pi/2, metric='reeds-shepp')
+    from objects.OccupancyMap import OccupancyMap
+    map = OccupancyMap(obstacles) 
+    tsp = Hamiltonian(obstacles, 5, 15, 0, -np.pi/2, 'euclidean')
     path = tsp.find_nearest_neighbor_path()
     print("\nShortest Path:")
     print(path)
