@@ -45,6 +45,14 @@ class OccupancyMap:
 
         self.obstacles += obstacles     # add obstacles to obstacle list
 
+        self.occupancy_grid[:3, :] = 1
+        self.occupancy_grid[-3:, :] = 1
+        self.occupancy_grid[:, :3] = 1
+        self.occupancy_grid[:, -3:] = 1
+
+        self.occupancy_grid[2, 2:8] = 0
+        self.occupancy_grid[2:8, 2] = 0
+
         for obstacle in obstacles:
             # add obstacle to grid vertices (including virtual wall)
             i_start = max(obstacle.x_g - 3, 0)      # 0: first index
@@ -53,15 +61,12 @@ class OccupancyMap:
             j_end = min(obstacle.y_g + 4, 39)       # 39: last index
             self.occupancy_grid[i_start:i_end+1, j_start:j_end+1] = 1
 
-        self.occupancy_grid[:2, :] = 1
-        self.occupancy_grid[-2:, :] = 1
-        self.occupancy_grid[:, :2] = 1
-        self.occupancy_grid[:, -2:] = 1
+        
 
     def collide_with_point(self, x, y):
         x_g, y_g = utils.coords_to_grid(x, y)
         if x_g < 0 or x_g >= 40 or y_g < 0 or y_g >= 40:
-            return 0
+            return 1
         else:
             return self.occupancy_grid[x_g, y_g]
 

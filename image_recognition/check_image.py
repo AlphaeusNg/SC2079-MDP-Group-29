@@ -6,9 +6,10 @@ import time
 from datetime import datetime
 import torch
 
-TASK_1_MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"
-TASK_2_MODEL_PATH = Path("image_recognition") / "runs" / "detect" / "train task_2" / "weights" / "best.pt"
-FOREIGN_AID_MODEL_PATH = Path("image_recognition") / "ImageRecNew-main" / "YoloV8 Inference Server" / "Weights" / "bestv2.pt"
+TASK_1_V1_MODEL_CONFIG = {"conf":0.803, "path":Path("image_recognition") / "runs" / "detect" / "train (old + current + MDP CV.v8)" / "weights" / "best.pt"}
+TASK_1_V2_MODEL_CONFIG = {"conf":0.791, "path":Path("image_recognition") / "runs" / "detect" / "train task_1" / "weights" / "best.pt"}
+TASK_2_MODEL_CONFIG = {"conf":0.868, "path":Path("image_recognition") / "runs" / "detect" / "train task_2" / "weights" / "best.pt"}
+FOREIGN_AID_MODEL_PATH_CONFIG = {"conf":0.8, "path":Path("image_recognition") / "ImageRecNew-main" / "YoloV8 Inference Server" / "Weights" / "bestv2.pt"}
 
 # Check if GPU is available and move the model to the device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -123,36 +124,75 @@ def get_highest_confidence(predictions_list:list[dict]) -> dict:
     return highest_conf_pred
 
 
-def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True):
+def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str], task_2:bool=True):
     # Create a unique image path based on the current timestamp (and also check the delay)
     formatted_time = datetime.fromtimestamp(time.time()).strftime('%d-%m_%H-%M-%S.%f')[:-3]
     img_name = f"img_{formatted_time}"
-
+    largest_bbox_area_2 = None
+    model_2 = None
     # Initialize the YOLO model
     if not task_2:
-        model = YOLO(TASK_1_MODEL_PATH)
+        model = YOLO(TASK_1_V1_MODEL_CONFIG["path"])
+        conf = TASK_1_V1_MODEL_CONFIG["conf"]
+        model_2 = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
+        conf_2 = TASK_1_V2_MODEL_CONFIG["conf"]
+        # model = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
+        # conf = TASK_1_V2_MODEL_CONFIG["conf"]
     else:
-        model = YOLO(TASK_2_MODEL_PATH)
-    model.to(device)
-
-    # run inference on the image
-    results = model.predict(source=image_path, verbose=False, project="./captured_images", name=f"{img_name}", save=True, save_txt=True, save_conf=True, imgsz=640, conf=0.8, device=device)
-    bboxes = []
-
-    for r in results:
+        model_2 = YOLO(TASK_1_V2_MODEL_CONFIG["path"])
+        conf_2 = TASK_1_V2_MODEL_CONFIG["conf"]
+        model = YOLO(TASK_2_MODEL_CONFIG["path"])
+        conf = TASK_2_MODEL_CONFIG["conf"]
+    
+    if model_2:
+        model_2.to(device)
+        bboxes_2 = []
+        results_2 = model_2.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_2", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf_2, device=device)
+        for r2 in results_2:
         # Iterate over each object
+            for c2 in r2:
+                label = c2.names[c2.boxes.cls.tolist().pop()][0:2]
+                if label[0]=="0":
+                    label = label[0]
+                # If label previously detected, skip
+                if label in image_id_map and not task_2:
+                    continue
+                bboxes_2.append({"label": label, "xywh": c2.boxes.xywh.tolist().pop()})
+                # print(bboxes)
+        
+        largest_bbox_label_2, largest_bbox_area_2 = find_largest_bbox_label(bboxes_2)
+
+    model.to(device)
+    # run inference on the image
+    results = model.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_1", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf, device=device)
+    
+    bboxes = []
+    
+    for r in results:
         for c in r:
-            label = c.names[c.boxes.cls.tolist().pop()].split("_")[0]
+            label = c.names[c.boxes.cls.tolist().pop()].split("_")[0] #old model label name
             # If label previously detected, skip
             if label in image_id_map and not task_2:
                 continue
             bboxes.append({"label": label, "xywh": c.boxes.xywh.tolist().pop()})
             # print(bboxes)
-
     # To make it display, useful for testing
     # results[0].show()
 
     largest_bbox_label, largest_bbox_area = find_largest_bbox_label(bboxes)
+
+    # take model 2 if there is results, since it's better.
+    if largest_bbox_area_2:
+        largest_bbox_label = largest_bbox_label_2
+        largest_bbox_area = largest_bbox_area_2
+        img_name = img_name + "_2"
+    else:
+        img_name = img_name + "_1"
+
+    if task_2:
+        name_of_image = f"task2_obs_id_{obs_id}_{image_counter}.jpg"
+    else:
+        name_of_image = f"task1_obs_id_{obs_id}_{image_counter}.jpg"
 
     image_prediction = {
         "type": "IMAGE_RESULTS",
@@ -161,7 +201,7 @@ def image_inference(image_path, obs_id, image_id_map:list[str], task_2:bool=True
             "img_id": largest_bbox_label, 
             "bbox_area": largest_bbox_area
             },
-        "image_path": Path("captured_images") / img_name
+        "image_path": Path("captured_images") / img_name / name_of_image
         }
 
     return image_prediction
@@ -171,6 +211,5 @@ if __name__ == '__main__':
     # folder_path = r"image recognition\dataset\MDP CV.v7i.yolov8"
     # predict_multiple_images(folder_path)
     # image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_5_1.jpg"
-    # image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_6_1.jpg"
-    image_path = r"C:\Users\kelvi\Desktop\MDP29\SC2079-MDP-Group-29\captured_images\obs_id_0_0.jpg"
-    _ = image_inference(image_path, "00")
+    image_path = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\captured_images\obs_id_6_1.jpg"
+    _ = image_inference(image_path, "00", [])

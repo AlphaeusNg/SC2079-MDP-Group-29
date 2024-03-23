@@ -53,6 +53,9 @@ class Hamiltonian():
             minDist = float('inf')
             for obstacle in obstacles:
                 checkpoint = obstacle_to_checkpoint(self.map, obstacle, self.theta_offset)
+                if checkpoint == None:
+                    obstacles.remove(obstacle)
+                    continue
                 if self.metric == 'euclidean':
                     dist = utils.l2(current_pos[0], current_pos[1], checkpoint[0], checkpoint[1])
                 elif self.metric == 'reeds-shepp':
@@ -80,6 +83,7 @@ def obstacle_to_checkpoint(map, obstacle: Obstacle, theta_offset):
                        np.pi*180/35, -np.pi*180/35, np.pi/4.5, -np.pi/4.5, np.pi/4, -np.pi/4]
     r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25, 26, 27, 28, 29, 30]
 
+    
     for r_scan in r_scan_list:
         for theta_scan in theta_scan_list:
             cur_image_to_pos_theta = utils.M(starting_image_to_pos_theta + theta_scan)
@@ -106,16 +110,20 @@ def obstacle_to_checkpoint_all(map, obstacle: Obstacle, theta_offset):
     valid_checkpoints = []
 
     theta_scan_list = [0, np.pi/36, -np.pi/36, np.pi/18, -np.pi/18, np.pi/12, -np.pi/12, np.pi/9, -np.pi/9, np.pi/7.2, -np.pi/7.2, np.pi/6, -np.pi/6]
-    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25]
-
+    r_scan_list = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15, 25, 26, 27, 28, 29, 30]
+    
+    
     for r_scan in r_scan_list:
         for theta_scan in theta_scan_list:
             cur_image_to_pos_theta = utils.M(starting_image_to_pos_theta + theta_scan)
             cur_x = starting_x + r_scan*np.cos(cur_image_to_pos_theta)
             cur_y = starting_y + r_scan*np.sin(cur_image_to_pos_theta)
+            theta = utils.M(cur_image_to_pos_theta - theta_offset)
 
-            if not map.collide_with_point(cur_x, cur_y):
-                theta = utils.M(cur_image_to_pos_theta - theta_offset)
+            if not map.collide_with_point(cur_x, cur_y) and not \
+                map.collide_with_point(cur_x + 0.5*c.REAR_AXLE_TO_CENTER*np.cos(theta), cur_y + 0.5*c.REAR_AXLE_TO_CENTER*np.sin(theta)) and not \
+                map.collide_with_point(cur_x - 0.5*c.REAR_AXLE_TO_CENTER*np.cos(theta), cur_y - 0.5*c.REAR_AXLE_TO_CENTER*np.sin(theta)):
+                
                 cur_x -= c.REAR_AXLE_TO_CENTER*np.cos(theta)
                 cur_y -= c.REAR_AXLE_TO_CENTER*np.sin(theta)
                 valid_checkpoints.append((cur_x, cur_y, theta, obstacle.id))
@@ -185,8 +193,9 @@ def print_grid(grid_size, obstacles):
 if __name__ == "__main__":
     obstacles = [Obstacle(10, 10, 'N'), Obstacle(20, 10, 'S'), Obstacle(10, 20, 'E'), Obstacle(20, 20, 'W'), 
                  Obstacle(38, 38, 'N')]
-    
-    tsp = Hamiltonian(obstacles, 15, 15, np.pi/2, metric='reeds-shepp')
+    from objects.OccupancyMap import OccupancyMap
+    map = OccupancyMap(obstacles) 
+    tsp = Hamiltonian(obstacles, 5, 15, 0, -np.pi/2, 'euclidean')
     path = tsp.find_nearest_neighbor_path()
     print("\nShortest Path:")
     print(path)

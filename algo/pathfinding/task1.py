@@ -1,8 +1,13 @@
-from algo.pathcommands import *
+from algo.pathfinding import *
+from algo.pathfinding.pathcommands import *
 from algo.pathfinding.hamiltonian import Hamiltonian
 from algo.pathfinding.hybrid_astar import HybridAStar
 from algo.objects.OccupancyMap import OccupancyMap
+from algo.objects.Obstacle import Obstacle
 from algo.pathfinding.hamiltonian import obstacle_to_checkpoint_all
+import numpy as np
+import constants as c
+
 
 class task1():
     def __init__(self):
@@ -31,15 +36,15 @@ class task1():
             obstacles.append(Obstacle(obstacle["x"] * 2, obstacle["y"] * 2, invertObs, int(obstacle["id"])))
 
         map = OccupancyMap(obstacles)
-        tsp = Hamiltonian(map, obstacles, 5, 15, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
+        tsp = Hamiltonian(map, obstacles, 10, 10, 0, -np.pi/2, 'euclidean', minR) # 3rd element: (N: np.pi/2, E: 0)
         current_pos = tsp.start
         obstacle_path = tsp.find_nearest_neighbor_path()
         for idx, obstacle in enumerate(obstacle_path):
-            valid_checkpoints = obstacle_to_checkpoint_all(map, obstacle, 
-                                                                   theta_offset=self.hamiltonian_args['theta_offset'])
+            valid_checkpoints = obstacle_to_checkpoint_all(map, obstacle, theta_offset=-np.pi/2)
+            path = None
             while path == None and valid_checkpoints:
                 checkpoint = valid_checkpoints.pop(0)
-                print(f"Routing to x: {checkpoint[0]}, y: {checkpoint[1]} theta: {checkpoint[2]}...")
+                print(f"Routing to obstacle (x_g: {obstacle.x_g}, y_g: {obstacle.y_g}), x: {checkpoint[0]}, y: {checkpoint[1]} theta: {checkpoint[2]*180/np.pi}...")
                 algo = HybridAStar(map=map, 
                             x_0=current_pos[0], y_0=current_pos[1], theta_0=current_pos[2], 
                             x_f=checkpoint[0], y_f=checkpoint[1], 
@@ -63,8 +68,12 @@ class task1():
         
     
     def get_command_to_next_obstacle(self):
-        nextCommand = self.commands.pop(0)
-        nextPath = self.android.pop(0)
+        nextCommand = None
+        nextPath = None
+        if self.commands:
+            nextCommand = self.commands.pop(0)
+        if self.android:
+            nextPath = self.android.pop(0)
         return construct_json(nextCommand, nextPath)
 
     def get_obstacle_id(self):

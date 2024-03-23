@@ -5,9 +5,12 @@ from queue import Queue
 from image_recognition import check_image
 import base64
 from algo.pathfinding import task1
-from algo.pathfinding import pathcommands
-from datetime import datetime
 import time
+import shutil
+from image_recognition.stitch_images import stitching_images
+import numpy as np
+import io
+from PIL import Image
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
@@ -28,7 +31,8 @@ class PCClient:
         self.send_message = False
         self.t1 = task1.task1()
         self.image_record = []
-        self.task_2 = False #TODO: Put True for task1, false for task2
+        self.task_2 = True #TODO: Put True for task1, false for 
+        self.obs_order_count = 0
 
     def connect(self):
         # Establish a connection with the PC
@@ -87,7 +91,7 @@ class PCClient:
             image_counter = 0
             obs_id = 0
             retries = 0
-            path_message = None
+            command = None
             while True:
                 # Receive the length of the message
                 length_bytes = self.receive_all(4)
@@ -108,35 +112,44 @@ class PCClient:
                 if message["type"] == "START_TASK":
                     # Add algo implementation here:
                     self.t1.generate_path(message)
-                    path_message = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
+                    command = self.t1.get_command_to_next_obstacle() # get command to next, will pop from list automatically
                     obs_id = str(self.t1.get_obstacle_id())
                     # Test code below
-                    # path_message = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
+                    # command = {"type": "NAVIGATION", "data": {"commands": ["LF180"], "path": [[1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}}
                     # End of test code
-                    path_message_json = json.dumps(path_message)
-                    self.msg_queue.put(path_message_json)
+                    self.msg_queue.put(json.dumps(command))
 
                 elif message["type"] == "FASTEST_PATH":
-                    path_message = {"type": "FASTEST_PATH"}
-                    path_message_json = json.dumps(path_message)
-                    self.msg_queue.put(path_message_json)
+                    command = {"type": "FASTEST_PATH"}
+                    self.msg_queue.put(json.dumps(command))
                 
                 elif message["type"] == "test":
                     message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "39"}}
-                    command = json.dumps(command)
-                    self.msg_queue.put(command)
+                    self.msg_queue.put(json.dumps(message))
 
                 elif message["type"] == "IMAGE_TAKEN":
                     # Add image recognition here:
                     encoded_image = message["data"]["image"]
+                    # Decode the base64 encoded image string
                     decoded_image = base64.b64decode(encoded_image)
+                    # Convert the binary data to a PIL image
+                    # pil_image = Image.open(io.BytesIO(decoded_image))
+                    # # Convert the PIL image to a NumPy array
+                    # image_array = np.array(pil_image)
+                    os.makedirs("captured_images", exist_ok=True)
+
+                    if self.task_2:
+                        image_path = f"captured_images/task2_obs_id_{obs_id}_{image_counter}.jpg"
+                    else:
+                        image_path = f"captured_images/task1_obs_id_{obs_id}_{image_counter}.jpg"
                     
-                    image_path = f"captured_images/obs_id_{obs_id}_{image_counter}.jpg"
-                    # os.makedirs(directory_path, exist_ok=True)
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_path=image_path, obs_id=str(obs_id), image_id_map=self.t1.get_image_id(), task_2=self.task_2)
+                    image_prediction = check_image.image_inference(image_or_path=image_path, obs_id=str(obs_id), 
+                                                                   image_counter=image_counter, 
+                                                                   image_id_map=self.t1.get_image_id(), 
+                                                                   task_2=self.task_2)
                     self.image_record.append(image_prediction)
                     image_counter += 1
 
@@ -149,38 +162,54 @@ class PCClient:
                                 image_prediction = self.image_record.pop()
                             else:
                                 break
-
-                        del image_prediction["data"]["bbox_area"]
-                        del image_prediction["image_path"]
                         
                         # If still can't find a prediction, repeat the last command
                         if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
                             
-                            if path_message['type'] == 'FASTEST_PATH':
-                                image_prediction['data']['img_id'] = "38"
+                            if command['type'] == 'FASTEST_PATH':
+                                image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
+                                # command = {"type": "NAVIGATION", "data": {"commands": ['RB005','RF005'], "path": []}}
                             else:
-                                last_command = path_message['data']['commands'][-1]
-                                last_path = path_message['data']['path'][-1]
-                                if "F" in last_command:
-                                    command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB005'], "path": [last_path, last_path]}}
-                                elif "B" in last_command:
-                                    command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF005'], "path": [last_path, last_path]}}
-                            
-                                command = json.dumps(command)
-                                self.msg_queue.put(command)
-                                retries += 1
-                                continue
+                                last_command = command['data']['commands'][-1]
+                                last_path = command['data']['path'][-1]
+                                # if "F" in last_command:
+                                #     command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB010'], "path": [last_path, last_path]}}
+                                # elif "B" in last_command:
+                                #     command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF010'], "path": [last_path, last_path]}}
+                                if (retries+1)%2==0:
+                                    command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB010'], "path": [last_path, last_path]}}
+                                else:
+                                    command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF010'], "path": [last_path, last_path]}}
+
+                            self.msg_queue.put(json.dumps(command))
+                            retries += 1
+                            continue
                             
                         # # For checklist A.5
                         # else:
                         #     print("[Algo] Find the non-bulleye ended")
                         #     return
+                        # copy image to images_result folder and rename them according to obs_id
+                        destination_folder = "images_result"
+                        os.makedirs(destination_folder, exist_ok=True)
+                        if self.task_2:
+                            destination_file = f"{destination_folder}/task2_result_obs_id_{obs_id}.jpg"
+                        else:
+                            destination_file = f"{destination_folder}/task1_result_obs_id_{obs_id}.jpg"
+                        image_path = image_prediction["image_path"] 
+                        shutil.copy(image_path, destination_file)
+
+                        # Remove unnecessary data
+                        del image_prediction["data"]["bbox_area"]
+                        del image_prediction["image_path"]
 
                         message = json.dumps(image_prediction)
                         self.msg_queue.put(message)
                         self.t1.update_image_id(image_prediction['data']['img_id'])
                         image_counter = 0
                         retries = 0
+                        if self.task_2:
+                            obs_id += 1 # because PC server doesn't send ID
 
                         # For testing
                         # message = {"type": "IMAGE_RESULTS", "data": {"obs_id": "3", "img_id": "20"}}
@@ -189,11 +218,13 @@ class PCClient:
                         # Update self.t1 to input new path, may put this above the image inference if we don't want to wait and stop
                         if not self.t1.has_task_ended():
                             command = self.t1.get_command_to_next_obstacle()
-                            command = json.dumps(command)
-                            self.msg_queue.put(command)
+                            self.msg_queue.put(json.dumps(command))
                             obs_id = str(self.t1.get_obstacle_id())
                         else:
-                            print("[Algo] Task 1 ended")
+                            if not self.task_2:
+                                print("[Algo] Task 1 ended")
+                                stitching_images(r'images_result', r'image_recognition\stitched_image.jpg')
+                                break # exit thread
 
                         self.image_record = [] # reset the image record
 
@@ -213,6 +244,7 @@ class PCClient:
 
 
 if __name__ == "__main__":
+    
     client = PCClient()
     client.connect()
     
