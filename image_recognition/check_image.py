@@ -139,10 +139,12 @@ def image_inference(image_or_path, obs_id, image_counter, image_id_map:list[str]
         # model = YOLO(TASK_1_V2_MODEL_CONFIG["path"]) # another model to try. May be better
         # conf = TASK_1_V2_MODEL_CONFIG["conf"]
     else:
+        model_2 = YOLO(TASK_1_V2_MODEL_CONFIG["path"])
+        conf_2 = TASK_1_V2_MODEL_CONFIG["conf"]
         model = YOLO(TASK_2_MODEL_CONFIG["path"])
         conf = TASK_2_MODEL_CONFIG["conf"]
     
-    if model_2 and not task_2:
+    if model_2:
         model_2.to(device)
         bboxes_2 = []
         results_2 = model_2.predict(source=image_or_path, verbose=False, project="./captured_images", name=f"{img_name}_2", save=True, save_txt=True, save_conf=True, imgsz=640, conf=conf_2, device=device)

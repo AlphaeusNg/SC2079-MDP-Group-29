@@ -31,7 +31,7 @@ class PCClient:
         self.send_message = False
         self.t1 = task1.task1()
         self.image_record = []
-        self.task_2 = False #TODO: Put True for task1, false for 
+        self.task_2 = True #TODO: Put True for task1, false for 
         self.obs_order_count = 0
 
     def connect(self):
@@ -167,8 +167,8 @@ class PCClient:
                         if image_prediction['data']['img_id'] == None and NUM_OF_RETRIES > retries:
                             
                             if command['type'] == 'FASTEST_PATH':
-                                # image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
-                                command = {"type": "NAVIGATION", "data": {"commands": ['RB005','RF005'], "path": [last_path, last_path]}}
+                                image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
+                                # command = {"type": "NAVIGATION", "data": {"commands": ['RB005','RF005'], "path": []}}
                             else:
                                 last_command = command['data']['commands'][-1]
                                 last_path = command['data']['path'][-1]
