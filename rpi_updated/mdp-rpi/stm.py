@@ -15,7 +15,6 @@ class STMInterface:
         self.baudrate = STM_BAUDRATE
         self.serial = None
         self.msg_queue = Queue()
-        self.obstacle_count = 0 # Task 1 gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
         self.xdist = 0
@@ -71,14 +70,12 @@ class STMInterface:
             
     def send(self):
         # Send commands to STM based on the received messages from PC
-        self.obstacle_count = 1 # Task 1: Gyro reset
         # Task 2: return to carpark
         self.second_arrow = None
-        # task = 2 # temp code
         while True: 
         # for i in range(1): 
             
-            # comment once implementation is done.
+            # Test code without PC
             if False:
                 message = {
                     "type": "NAVIGATION",
@@ -127,8 +124,6 @@ class STMInterface:
                 # Start a new thread to capture and send the image to PC
                 capture_and_send_image_thread = threading.Thread(target=self.send_image_to_pc(final_image=True), daemon=True)
                 capture_and_send_image_thread.start()
-
-                self.obstacle_count += 1
                 # temp code
                 # message = {
                 #     "type": 'test'
@@ -139,13 +134,6 @@ class STMInterface:
                 # # Send captured image to PC
                 # self.RPiMain.PC.msg_queue.put(encode_message)
                 # end of temp code
-                
-                
-                # Was previously in the code when we ran on 23/2/24, but may not be necessary?
-                # if task == 2:
-                #     # self.obstacle_count % STM_GYRO_RESET_FREQ == 0:
-                #     print("[STM] Resetting gyroscope after %d obstacles" % self.obstacle_count)
-                #     self.write_to_stm(STM_GYRO_RESET_COMMAND)
             else:
                 print("[STM] WARNING: Rejecting message with unknown type [%s] for STM" % message_type)
 

@@ -45,5 +45,4 @@ pip install ultralytics
 ```
 
 ### Hyperparameter
-Change hyperparameter `fliplr` in `default.yaml` file at path `.venv/Lib/site-packages/ultralytics/cfg/default.
-yaml` to `0.0` to switch off flipping, this is to ensure that the direction of the arrows are not learnt wrongly.
+For training: Change hyperparameter `fliplr` in `default.yaml` file at path `.venv/Lib/site-packages/ultralytics/cfg/default.yaml` to `0.0` to switch off flipping, this is to ensure that the arrows (left & right) are not learnt wrongly.

@@ -20,7 +20,7 @@ BT_BUFFER_SIZE = 2048
 STM_BAUDRATE = 115200
 STM_ACK_MSG = "A"
 STM_NAV_COMMAND_FORMAT = '^[SLR][FB][0-9]{3}$' # task 1
-# STM_NAV_COMMAND_FORMAT = '^(([SLR][FB])|([UYV]F)|([IXT][LR]))[0-9]{3}$' # task 2
+STM_NAV_COMMAND_FORMAT = '^(([SLR][FB])|([UYV]F)|([IXT][LR]))[0-9]{3}$' # task 2
 STM_GYRO_RESET_COMMAND = "GYROR"
 STM_GYRO_RESET_DELAY = 4 # time to wait for gyro reset
 STM_GYRO_RESET_FREQ = 3 # number of obstacles before GRYO RESET command is sent
@@ -69,7 +69,6 @@ STM_COMMAND_ADJUSTMENT_MAP = STM_COMMAND_ADJUSTMENT_DICT[LOCATION]
 STM_OBS_ROUTING_MAP = {
     "FIRSTLEFT": ["LF056", "RF056", "SF005", "RF056", "LF056"],
     "FIRSTRIGHT": ["RF056", "LF056", "SF005", "LF056", "RF056"],
-    # "FIRSTRIGHT": ["RF090", "RF090", "RF090", "RF090"], # testing
     "SECONDLEFT": ["RF090", "JB100", "IB100", "SF015",
                    "LB090", "SB010", "LB090", "JB100", 
                    "IB200", "SF020", 
@@ -78,9 +77,6 @@ STM_OBS_ROUTING_MAP = {
                     "LF090", "LF090", "JF100",
                     "IF200", 
                     "LF090"]
-    # "SECONDLEFT": ["LF090", "XF300", "RF090", "SF020", "RF090", "XF300", "RF090"], # ref code
-    # "SECONDRIGHT": ["RF090", "XF300", "LF090", "SF020", "LF090", "XF300", "LF090",]
 }
-# STM_XDIST_COMMAND_FORMAT = "I[FB][0-9]{3}$"
 STM_XDIST_COMMAND_FORMAT = "^[IJ][FB][0-9]{3}$"
 STM_YDIST_COMMAND_FORMAT = "^YF[0-9]{3}$"

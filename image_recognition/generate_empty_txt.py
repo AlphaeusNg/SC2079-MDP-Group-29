@@ -1,9 +1,9 @@
 import os
+from pathlib import Path
 
 """
 Just to generate blank yolovx annotations for background shots
 """
-
 
 def generate_empty_txt_files(image_folder):
     # Get a list of all image files in the specified folder
@@ -26,8 +26,7 @@ def generate_empty_txt_files(image_folder):
             print(f"Empty text file created for: {image_file}")
 
 
-# Specify the folder location
-folder_location = r"C:\Users\alpha\OneDrive\Desktop\Life\NTU\Y4S2\MDP\SC2079-MDP-Group-29\rpi\images\marcus\Noise Photo"
-
-# Call the function to generate empty text files
-generate_empty_txt_files(folder_location)
+if __name__ == "__main__":
+    current_dir = Path(__file__).resolve().parent
+    folder_location = os.path.join(current_dir, 'images', 'marcus', 'Noise Photo')
+    generate_empty_txt_files(folder_location)

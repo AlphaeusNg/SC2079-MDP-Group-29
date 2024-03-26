@@ -1,25 +1,25 @@
 import os
 import socket
-import json
+import threading
 from queue import Queue
-from image_recognition import check_image
-import base64
-from algo.pathfinding import task1
+import json
 import time
 import shutil
+import base64
+
+from image_recognition import model_inference
+from algo.pathfinding import task1
 from image_recognition.stitch_images import stitching_images
-import numpy as np
-import io
-from PIL import Image
+
+
+# Configuration
+TASK_2 = True #TODO: Change to False for task 1, True for task 2
 
 # Constants
 RPI_IP = "192.168.29.29"  # Replace with the Raspberry Pi's IP address
 PC_PORT = 8888  # Replace with the port used by the PC server
 PC_BUFFER_SIZE = 1024
 NUM_OF_RETRIES = 2
-
-import socket
-import threading
 
 class PCClient:
     def __init__(self):
@@ -31,7 +31,7 @@ class PCClient:
         self.send_message = False
         self.t1 = task1.task1()
         self.image_record = []
-        self.task_2 = True #TODO: Put True for task1, false for 
+        self.task_2 = TASK_2
         self.obs_order_count = 0
 
     def connect(self):
@@ -128,14 +128,10 @@ class PCClient:
                     self.msg_queue.put(json.dumps(message))
 
                 elif message["type"] == "IMAGE_TAKEN":
-                    # Add image recognition here:
+                    # Add image inference implementation here:
                     encoded_image = message["data"]["image"]
                     # Decode the base64 encoded image string
                     decoded_image = base64.b64decode(encoded_image)
-                    # Convert the binary data to a PIL image
-                    # pil_image = Image.open(io.BytesIO(decoded_image))
-                    # # Convert the PIL image to a NumPy array
-                    # image_array = np.array(pil_image)
                     os.makedirs("captured_images", exist_ok=True)
 
                     if self.task_2:
@@ -146,7 +142,7 @@ class PCClient:
                     with open(image_path, "wb") as img_file:
                         img_file.write(decoded_image)
 
-                    image_prediction = check_image.image_inference(image_or_path=image_path, obs_id=str(obs_id), 
+                    image_prediction = model_inference.image_inference(image_or_path=image_path, obs_id=str(obs_id), 
                                                                    image_counter=image_counter, 
                                                                    image_id_map=self.t1.get_image_id(), 
                                                                    task_2=self.task_2)
@@ -155,7 +151,6 @@ class PCClient:
 
                     if message["final_image"] == True:
                         
-                        # image_prediction = check_image.get_highest_confidence(self.image_record)
                         # Get last prediction and move forward
                         while image_prediction['data']['img_id'] == None and self.image_record is not None:
                             if self.image_record:
@@ -168,14 +163,8 @@ class PCClient:
                             
                             if command['type'] == 'FASTEST_PATH':
                                 image_prediction['data']['img_id'] = "38" # 38 is right, 39 is left
-                                # command = {"type": "NAVIGATION", "data": {"commands": ['RB005','RF005'], "path": []}}
                             else:
-                                last_command = command['data']['commands'][-1]
                                 last_path = command['data']['path'][-1]
-                                # if "F" in last_command:
-                                #     command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB010'], "path": [last_path, last_path]}}
-                                # elif "B" in last_command:
-                                #     command = {"type": "NAVIGATION", "data": {"commands": ['RB010','RF010'], "path": [last_path, last_path]}}
                                 if (retries+1)%2==0:
                                     command = {"type": "NAVIGATION", "data": {"commands": ['RF010','RB010'], "path": [last_path, last_path]}}
                                 else:
@@ -189,6 +178,7 @@ class PCClient:
                         # else:
                         #     print("[Algo] Find the non-bulleye ended")
                         #     return
+
                         # copy image to images_result folder and rename them according to obs_id
                         destination_folder = "images_result"
                         os.makedirs(destination_folder, exist_ok=True)
@@ -239,9 +229,7 @@ class PCClient:
                 raise ConnectionError("Connection closed unexpectedly")
             data += chunk
         return data
-
     
-
 
 if __name__ == "__main__":
     
@@ -260,12 +248,5 @@ if __name__ == "__main__":
     PC_client_receive.join()
     PC_client_send.join()
     print("[PC Client] All threads concluded, cleaning up...")
-    
-    # while True:
-        # message = input("Enter message to send (or type 'quit' to exit): ")
-        # if message.lower() == "quit":
-        #     break
-        # send_thread = threading.Thread(target=send_thread, args=(client, message))
-        # send_thread.start()
 
     client.disconnect()
