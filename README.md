@@ -42,13 +42,9 @@ To set up a new virtual environment for Python and install the required librarie
    ```
    **Note**: The instructions provided above assume a Python environment with version 3.8 or higher and PyTorch version 1.8 or higher.
 
-   For more information on the ultralytics package, visit their GitHub repository.
+   For more information on the ultralytics package, visit their [GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/README.md).
 
    See [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
-
-   [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
-
-   Note: _Reference taken from [here](https://github.com/ultralytics/ultralytics/blob/main/README.md)._
    
 ### Hyperparameter
 For training purposes, it's recommended to adjust the `fliplr` hyperparameter in the `default.yaml` file located at `.venv/Lib/site-packages/ultralytics/cfg/default.yaml`. Set `fliplr` to `0.0` to disable flipping. This ensures that directional arrows (left & right) are not learned incorrectly.
