@@ -70,10 +70,6 @@ const osThreadAttr_t OLEDTask_attributes = { .name = "OLEDTask", .stack_size =
 osThreadId_t gyroTaskHandle;
 const osThreadAttr_t gyroTask_attributes = { .name = "gyroTask", .stack_size =
 		128 * 4, .priority = (osPriority_t) osPriorityLow, };
-/* Definitions for ultrasonicTask */
-osThreadId_t ultrasonicTaskHandle;
-const osThreadAttr_t ultrasonicTask_attributes = { .name = "ultrasonicTask",
-		.stack_size = 128 * 4, .priority = (osPriority_t) osPriorityLow, };
 /* Definitions for communicateTask */
 osThreadId_t communicateTaskHandle;
 const osThreadAttr_t communicateTask_attributes = { .name = "communicateTask",
@@ -104,7 +100,6 @@ void StartDefaultTask(void *argument);
 void StartMotorTask(void *argument);
 void StartOLEDTask(void *argument);
 void StartGyroTask(void *argument);
-void StartUltrasonicTask(void *argument);
 void StartCommunicateTask(void *argument);
 void StartEncoderRTask(void *argument);
 void StartEncoderLTask(void *argument);
@@ -126,7 +121,6 @@ uint16_t pwmVal_R = 0;
 uint16_t pwmVal_L = 0;
 int times_acceptable = 0;
 int e_brake = 0;
-//int stopped = 0;
 
 // encoder
 int32_t rightEncoderVal = 0, leftEncoderVal = 0;
@@ -137,13 +131,6 @@ double target_angle = 0;
 double total_angle = 0;
 uint8_t gyroBuffer[20];
 uint8_t ICMAddress = 0x68;
-
-// ultrasonic
-int Is_First_Captured = 0;
-int32_t IC_Val1 = 0;
-int32_t IC_Val2 = 0;
-uint16_t Difference = 0;
-uint16_t uDistance = 0;
 
 // locked flag for completion of buffer transmission via UART
 int receivedInstruction = 0;
@@ -222,10 +209,6 @@ int main(void) {
 	/* creation of gyroTask */
 	gyroTaskHandle = osThreadNew(StartGyroTask, NULL, &gyroTask_attributes);
 
-	/* creation of ultrasonicTask */
-//	ultrasonicTaskHandle = osThreadNew(StartUltrasonicTask, NULL,
-//			&ultrasonicTask_attributes);
-
 	/* creation of communicateTask */
 	communicateTaskHandle = osThreadNew(StartCommunicateTask, NULL,
 			&communicateTask_attributes);
@@ -253,7 +236,6 @@ int main(void) {
 	/* Infinite loop */
 	while (1){
 		/* USER CODE BEGIN WHILE */
-
 		/* USER CODE END WHILE */
 	}
 	/* USER CODE BEGIN 3 */
@@ -727,51 +709,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	receivedInstruction = 1;
 }
 
-// ultrasonic
-void delay(uint16_t time) {
-	__HAL_TIM_SET_COUNTER(&htim4, 0);
-	while (__HAL_TIM_GET_COUNTER (&htim4) < time)
-		;
-}
-
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
-		if (Is_First_Captured == 0) {
-			IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-			Is_First_Captured = 1;
-			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1,
-					TIM_INPUTCHANNELPOLARITY_FALLING);
-		} else if (Is_First_Captured == 1) {
-			IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-			__HAL_TIM_SET_COUNTER(htim, 0);
-
-			if (IC_Val2 > IC_Val1) {
-				Difference = IC_Val2 - IC_Val1;
-			}
-
-			else if (IC_Val1 > IC_Val2) {
-				Difference = (65535 - IC_Val1) + IC_Val2;
-			}
-
-			uDistance = Difference * .0343 / 2;
-
-			Is_First_Captured = 0;
-
-			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1,
-					TIM_INPUTCHANNELPOLARITY_RISING);
-			__HAL_TIM_DISABLE_IT(&htim4, TIM_IT_CC1);
-		}
-	}
-}
-
-void HCSR04_Read(void) //Call when u want to get reading from US
-{
-	HAL_GPIO_WritePin(Trigger_GPIO_Port, Trigger_Pin, GPIO_PIN_SET);
-	delay(10);
-	HAL_GPIO_WritePin(Trigger_GPIO_Port, Trigger_Pin, GPIO_PIN_RESET);
-	__HAL_TIM_ENABLE_IT(&htim4, TIM_IT_CC1);
-}
-
 // movement
 void moveCarStraight(double distance) {
 	distance = distance * 75;
@@ -1145,22 +1082,6 @@ void StartGyroTask(void *argument) {
 		i++;
 	}
 	/* USER CODE END StartGyroTask */
-}
-
-/* USER CODE BEGIN Header_StartUltrasonicTask */
-/**
- * @brief Function implementing the ultrasonicTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartUltrasonicTask */
-void StartUltrasonicTask(void *argument) {
-	/* USER CODE BEGIN StartUltrasonicTask */
-	/* Infinite loop */
-	for (;;) {
-		osDelay(100);
-	}
-	/* USER CODE END StartUltrasonicTask */
 }
 
 /* USER CODE BEGIN Header_StartCommunicateTask */
