@@ -44,4 +44,4 @@ def stitching_images(image_folder_path, output_img_path):
 if __name__ == "__main__":
     image_folder_path = r'images_result'
     print(os.listdir(image_folder_path))
-    stitching_images(r'images_result', r'image_recognition\stitched_image.jpg')
+    stitching_images(r'images_result', r'images_result\task1_stitched_image.jpg')

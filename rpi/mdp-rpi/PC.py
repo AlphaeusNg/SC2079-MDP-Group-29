@@ -5,7 +5,7 @@ import json
 from rpi_config import *
 
 class PCInterface:
-    def __init__(self, RPiMain):
+    def __init__(self, RPiMain, task2):
         # Initialize PCInterface with RPiMain instance and connection details
         self.RPiMain = RPiMain
         self.host = RPI_IP
@@ -14,7 +14,7 @@ class PCInterface:
         self.msg_queue = Queue()
         self.send_message = False
         self.obs_id = 1
-        self.task2 = True #TODO: Make false for task 1
+        self.task2 = task2
         
 
     def connect(self):
@@ -88,7 +88,7 @@ class PCInterface:
                     # PC -> Rpi -> Android
                     elif msg_type == 'IMAGE_RESULTS' or msg_type in ['COORDINATES', 'PATH']:
                         # Real code
-                        self.RPiMain.Android.msg_queue.put(message) #TODO: comment if no android connection
+                        self.RPiMain.Android.msg_queue.put(message) #TODO: comment if no android connection during testing
                         if self.task2:
                             if self.obs_id == 1:
                                 if parsed_msg["data"]["img_id"] == "39": #left

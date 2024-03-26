@@ -9,7 +9,7 @@ from rpi_config import *
 import time
 
 class STMInterface:
-    def __init__(self, RPiMain):
+    def __init__(self, RPiMain, task2):
         # Initialize STMInterface with necessary attributes
         self.RPiMain = RPiMain 
         self.baudrate = STM_BAUDRATE
@@ -20,7 +20,7 @@ class STMInterface:
         self.xdist = 0
         self.ydist = 0 # first_y_dist + 35 + 10 + 5 + second_y_dist + 35 = 85
         self.move_counter = 0
-        self.task2 = True #TODO: if task1 put False, if task2 put True
+        self.task2 = task2
 
     def connect(self):
         # Connect to STM using available serial ports
