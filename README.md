@@ -60,7 +60,7 @@ However, the yolo8 model trained on this dataset struggled to perform consistent
 
 To address this, we specifically captured about 100 high-quality images of left and right arrows and trained a separate model for task 2. This strategy of using fewer but higher-quality images significantly improved image recognition accuracy for task 2.
 
-
+Additionally, we opted to deploy two models simultaneously for task 1, where a prediction from either model triggers an output. The second model was trained using a dataset obtained from: https://universe.roboflow.com/mdp-group-38/mdp-image-recognition-v4. Our experiments indicated instances where one model succeeded in detection while the other did not, underscoring the efficacy of utilizing both models in tandem.
 
 
 
