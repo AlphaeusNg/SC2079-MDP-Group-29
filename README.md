@@ -49,6 +49,18 @@ To set up a new virtual environment for Python and install the required librarie
 ### Hyperparameter
 For training purposes, it's recommended to adjust the `fliplr` hyperparameter in the `default.yaml` file located at `.venv/Lib/site-packages/ultralytics/cfg/default.yaml`. Set `fliplr` to `0.0` to disable flipping. This ensures that directional arrows (left & right) are not learned incorrectly.
 
+## Image Recognition
+Initially, we merged with two other groups to simultaneously capture and annotate photos, totaling around 2000 images. We followed these instructions:
+
+- Take landscape photos with a resolution of approximately 3280x2464.
+- Capture about 15 close-up shots (around 5cm away), 15 medium-distance shots (about 15cm away), and 15 long-distance shots (1.5m away within a 2x2m area).
+- Shoot in varied lighting conditions, splitting evenly between normal laboratory lighting and dimmer environments.
+
+However, the yolo8 model trained on this dataset struggled to perform consistently across all conditions for both task 1 and task 2. This was largely due to discrepancies between our photo settings and the real-life scenarios captured by the RPI camera. In our MDP robot setup, the RPI camera was limited to capturing images from distances under 10 cm, leading to a significant portion of our training data being of low quality.
+
+To address this, we specifically captured about 100 high-quality images of left and right arrows and trained a separate model for task 2. This strategy of using fewer but higher-quality images significantly improved image recognition accuracy for task 2.
+
+
 
 
 
