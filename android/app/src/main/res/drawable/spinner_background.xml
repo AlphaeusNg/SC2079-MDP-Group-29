@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The custom background shape -->
+    <item>
+        <shape>
+            <solid android:color="@color/preset" />
+            <corners android:radius="36dp" />
+        </shape>
+    </item>
+    <!-- The arrow image -->
+    <item
+        android:width="16dp"
+        android:height="16dp"
+        android:drawable="@drawable/ic_spinner_arrow"
+        android:gravity="end|center_vertical"
+        android:right="16dp">
+        <!-- Adjust width, height, and right padding to suit your design -->
+    </item>
+</layer-list>

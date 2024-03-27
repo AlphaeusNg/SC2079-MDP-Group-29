@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BottomNavigationViewStyle" parent="TextAppearance.AppCompat">
+        <!--For the navbar to be able to make use of a custom font-->
+        <item name="android:fontFamily">@font/urbanist_semibold</item>
+    </style>
+</resources>

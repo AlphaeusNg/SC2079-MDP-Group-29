@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">MDP Android App</string>
+    <string name="title_home">Home</string>
+    <string name="title_bluetooth">Bluetooth</string>
+    <string name="title_messages">Messages</string>
+    <string name="text_bluetooth">Bluetooth Status: Not connected</string>
+
+    <!--  strings used for home page  -->
+    <string name="text_obstacle1">1</string>
+    <string name="text_obstacle2">2</string>
+    <string name="text_obstacle3">3</string>
+    <string name="text_obstacle4">4</string>
+    <string name="text_obstacle5">5</string>
+    <string name="text_obstacle6">6</string>
+    <string name="text_obstacle7">7</string>
+    <string name="text_obstacle8">8</string>
+    <string name="button_reset">Reset</string>
+    <string name="button_imagerec">Image Recognition</string>
+    <string name="button_fastest">Fastest Car</string>
+    <string name="button_start">Start</string>
+    <string name="button_load_preset">Load Preset</string>
+    <string name="text_robotStatusTitle">Robot Movement:</string>
+    <string name="text_StatusTitle">Status:</string>
+    <string name="text_Status">Not Ready</string>
+    <string name="text_robotStart">(0, 0, N)</string>
+    <string name="text_targetCoorTitle">Target captured:</string>
+    <string name="text_targetCoor"> ID -> TARGET_ID: (0, 0, N)</string>
+    <string name="text_reset">Reset</string>
+    <string name="text_obstacleTitle">Obstacles:</string>
+    <string name="text_robotStartPoint">Set Robot</string>
+    <string name="text_setDirection">Set Direction</string>
+    <string name="text_taskType">Select Task Type:</string>
+
+    <!--  strings used for bluetooth page  -->
+    <string name="button_scan">Scan</string>
+    <string name="button_pair">Pair</string>
+    <string name="text_paired">Paired Devices</string>
+    <string name="text_available">Available Devices</string>
+<!--    <string name="text_none">No devices found</string>-->
+
+    <!--  strings used for messages page  -->
+    <string name="text_received">Messages Received:</string>
+    <string name="text_sent">Messages Sent:</string>
+    <string name="text_hint">Enter message</string>
+    <string name="button_send">Send</string>
+    <string name="button_copy">Copy</string>
+    <string name="button_clear">Clear</string>
+
+    <!--  heading status  -->
+    <string name="bluetooth_device_connected">Bluetooth: Connected to&#160;</string>
+    <string name="bluetooth_device_connected_not">Bluetooth: Not Connected</string>
+
+</resources>
